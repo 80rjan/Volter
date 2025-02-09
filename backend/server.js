@@ -11,5 +11,6 @@ const appController = require('./controller/appController');
 app.get('/', appController.getAllPawns);
 app.put('/continuePawn', appController.continuePawn)
 app.put('/closePawn', appController.closePawn)
+app.put('/addSale', appController.addSale)
 
 app.listen(3000);
