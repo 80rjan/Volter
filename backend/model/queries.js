@@ -213,7 +213,7 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
     `, [pawnObj.price_pawned]);
 }
 
-async function removePawn(id, tableName) {
+async function closePawn(id, tableName) {
     const validTables = ["electronics_pawn", "gold_pawn", "vehicle_pawn", "other_pawn", "watch_pawn"];
     if (!validTables.includes(tableName)) {
         throw new Error("Invalid table name in REMOVE PAWN");
@@ -257,7 +257,7 @@ async function removePawn(id, tableName) {
     await pool.query(`COMMIT;`)
 }
 
-async function removeSale(id, priceSold) {
+async function closeSale(id, priceSold) {
     const query = await pool.query(`SELECT price_bought, client_id FROM sale WHERE id = $1;`, [id]);
     let priceBought = null;
     let clientId = null;
@@ -374,7 +374,7 @@ module.exports = {
     getAllSales,
     continuePawn,
     addNewPawn,
-    removePawn,
-    removeSale,
+    closePawn,
+    closeSale,
     addSale
 }

@@ -16,11 +16,31 @@ export default function Pawn({ pawn, refresh }) {
 
         if (!tableName) return console.error("Invalid category:", category);
 
-        //Put http which sends the id of the table and the table name in which the pawn date is updated
+        //Put http which sends the id of the pawn and the table name in which the pawn date is updated
         axios.put(`http://localhost:3000/continuePawn`, { id, tableName })
             .then(response => refresh())
             .catch(error => console.error('Error continuing pawn:', error));
     }
+
+    const closePawn = (id, category) => {
+        //Find the name of the table based on the category
+        const tableName = {
+            'Electronics': 'electronics_pawn',
+            'Gold': 'gold_pawn',
+            'Vehicle': 'vehicle_pawn',
+            'Watch': 'watch_pawn',
+            'Other': 'other_pawn'
+        }[category];
+
+        if (!tableName) return console.error("Invalid category:", category);
+
+        //Put http which sends the id of the pawn and the table name in which the pawn date is closed
+        axios.put(`http://localhost:3000/closePawn`, { id, tableName })
+            .then(response => refresh())
+            .catch(error => console.error('Error continuing pawn:', error));
+    }
+
+
 
     return (
         <Wrapper>
@@ -33,7 +53,7 @@ export default function Pawn({ pawn, refresh }) {
             <h5>{pawn["Days Left"]}</h5>
             <h5>{pawn["Valid Until"].substring(0, 10)}</h5>
             <button onClick={() => continuePawn(pawn.Id, pawn.Category)}>Continue Pawn</button>
-            <button>Close Pawn</button>
+            <button onClick={() => closePawn(pawn.Id, pawn.Category)}>Close Pawn</button>
             <button>Move Item to Sale</button>
         </Wrapper>
     )
