@@ -17,7 +17,19 @@ const continuePawn = asyncHandler(async (req, res) => {
     }
 })
 
+const closePawn = asyncHandler(async (req, res) => {
+    const { id, tableName } = req.body;
+
+    try {
+        await db.closePawn(id, tableName);
+        res.status(200).json({ message: "Pawn closed successfully!" }); // Send a success response
+    } catch (error) {
+        res.status(500).json({ message: "Error closing pawn" }); // Send error message
+    }
+})
+
 module.exports = {
     getAllPawns,
     continuePawn,
+    closePawn,
 }
