@@ -3,9 +3,10 @@ const pool = require('./pool');
 async function getAllPawns() {
     const { rows } = await pool.query(`
     SELECT 
-        c.id AS "Id", 
+        c.id AS "Client Id", 
         c.name AS "Name", 
         'Electronics' AS "Category", 
+        ep.id AS "Id",
         ep.brand || ' ' || ep.year AS "About", 
         ep.date_to AS "Valid Until", 
         (ep.date_to - CURRENT_DATE) AS "Days Left",  
@@ -18,9 +19,10 @@ async function getAllPawns() {
     UNION ALL
     
     SELECT 
-        c.id AS "Id", 
+        c.id AS "Client Id", 
         c.name AS "Name", 
         'Gold' AS "Category", 
+        gp.id AS "Id",
         gp.weight || 'g ' || gp.carats || 'k ' || gp.type AS "About", 
         gp.date_to AS "Valid Until", 
         (gp.date_to - CURRENT_DATE) AS "Days Left", 
@@ -33,9 +35,10 @@ async function getAllPawns() {
     UNION ALL
     
     SELECT 
-        c.id AS "Id", 
+        c.id AS "Client Id", 
         c.name AS "Name", 
         'Other' AS "Category", 
+        op.id AS "Id",
         op.description AS "About", 
         op.date_to AS "Valid Until", 
         (op.date_to - CURRENT_DATE) AS "Days Left", 
@@ -48,9 +51,10 @@ async function getAllPawns() {
     UNION ALL
     
     SELECT 
-        c.id AS "Id", 
+        c.id AS "Client Id", 
         c.name AS "Name", 
         'Vehicle' AS "Category", 
+        vp.id AS "Id",
         vp.brand || ' ' || vp.model || ' ' || vp.year AS "About", 
         vp.date_to AS "Valid Until", 
         (vp.date_to - CURRENT_DATE) AS "Days Left",
@@ -63,9 +67,10 @@ async function getAllPawns() {
     UNION ALL
     
     SELECT 
-        c.id AS "Id", 
+        c.id AS "Client Id", 
         c.name AS "Name", 
         'Watch' AS "Category", 
+        wp.id AS "Id",
         wp.brand || ' ' || wp.year AS "About", 
         wp.date_to AS "Valid Until", 
         (wp.date_to - CURRENT_DATE) AS "Days Left",
@@ -99,7 +104,7 @@ async function getAllSales() {
     return rows;
 }
 
-async function continuePawn(tableName, id) {
+async function continuePawn(id, tableName) {
     const validTables = ["electronics_pawn", "gold_pawn", "vehicle_pawn", "other_pawn", "watch_pawn"];
     if (!validTables.includes(tableName)) {
         throw new Error("Invalid table name in CONTINUE PAWN");
@@ -208,7 +213,7 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
     `, [pawnObj.price_pawned]);
 }
 
-async function removePawn(tableName, id) {
+async function removePawn(id, tableName) {
     const validTables = ["electronics_pawn", "gold_pawn", "vehicle_pawn", "other_pawn", "watch_pawn"];
     if (!validTables.includes(tableName)) {
         throw new Error("Invalid table name in REMOVE PAWN");
@@ -290,7 +295,7 @@ async function removeSale(id, priceSold) {
     await pool.query(`COMMIT;`)
 }
 
-async function addSale(pawnCategory, id) {
+async function addSale(id, pawnCategory) {
     const validTables = ["electronics_pawn", "gold_pawn", "vehicle_pawn", "other_pawn", "watch_pawn"];
     if (!validTables.includes(pawnCategory))
         throw new Error("Invalid pawn category in ADD SALE");
