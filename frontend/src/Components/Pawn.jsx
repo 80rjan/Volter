@@ -1,8 +1,9 @@
 import styled from "styled-components";
 import axios from "axios";
 import {useEffect, useState} from "react";
+import { Euro, RotateCcw, X, Ellipsis } from 'lucide-react'
 
-export default function Pawn({ pawn, refresh }) {
+export default function Pawn({ pawn, refresh, isOdd }) {
 
     const continuePawn = (id, category) => {
         //Find the name of the table based on the category
@@ -59,20 +60,22 @@ export default function Pawn({ pawn, refresh }) {
     }
 
 
-
     return (
-        <Wrapper>
-            <h5>{pawn["Client Id"]}</h5>
-            <h5>{pawn.Name}</h5>
-            <h5>{pawn.Category}</h5>
-            <h5>{pawn.About}</h5>
-            <h5>{pawn["Item Cost"]}</h5>
-            <h5>{pawn.Provision}</h5>
-            <h5>{pawn["Days Left"]}</h5>
-            <h5>{pawn["Valid Until"].substring(0, 10)}</h5>
-            <button onClick={() => continuePawn(pawn.Id, pawn.Category)}>Continue Pawn</button>
-            <button onClick={() => closePawn(pawn.Id, pawn.Category)}>Close Pawn</button>
-            <button onClick={() => movePawnToSale(pawn.Id, pawn.Category)}>Move Item to Sale</button>
+        <Wrapper style={isOdd ? {background: "#f0f0f0"} : {background: "#ffffff"}}>
+            <Text>{pawn["Client Id"]}</Text>
+            <Text>{pawn.Name}</Text>
+            <Text>{pawn.Category}</Text>
+            <Text>{pawn.About}</Text>
+            <Text>{pawn["Item Cost"].toLocaleString("de-DE")}</Text>
+            <Text>{pawn.Provision.toLocaleString("de-DE")}</Text>
+            <Text>{pawn["Days Left"]}</Text>
+            <Text>{pawn["Valid Until"].substring(0, 10)}</Text>
+            <ButtonWrapper>
+                <X size={22} onClick={() => closePawn(pawn.Id, pawn.Category)} />
+                <RotateCcw size={22} color="var(--cta-color)" onClick={() => continuePawn(pawn.Id, pawn.Category)} />
+                <Euro size={22} color="var(--green)" onClick={() => movePawnToSale(pawn.Id, pawn.Category)} />
+            </ButtonWrapper>
+            <Ellipsis size={24} color="#888" />
         </Wrapper>
     )
 }
@@ -80,11 +83,18 @@ export default function Pawn({ pawn, refresh }) {
 
 const Wrapper = styled.div`
     display: grid;
-    grid-template-columns: repeat(11, 1fr);
-    
-    
-    h5 {
-        margin: 0;
-        padding: 0;
-    }
+    place-items: center;
+    grid-template-columns: 2rem 1fr 1fr 2fr repeat(4, 1fr) 1.5fr .5fr;
+    padding: .5rem;
+    border-bottom: rgba(0,0,0,0.2) 2px solid;
 `;
+
+const Text = styled.p`
+    font-weight: 600;
+    font-size: .8rem;
+`
+
+const ButtonWrapper = styled.div`
+    display: flex;
+    gap: .5rem;
+`

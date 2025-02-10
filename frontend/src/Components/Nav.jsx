@@ -26,21 +26,22 @@ const NavWrapper = styled.nav`
     flex-direction: column;
     gap: 2rem;
     align-items: center;
-    padding: 2rem;
+    padding: 1rem;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.2);
 `
 
 const StyledNavLink = styled(NavLink)`
     width: 100%;
     text-decoration: none;
     font-size: 1.2rem;
-    font-weight: bold;
+    font-weight: 600;
     color: black;
     
     &.active {
         background: var(--cta-color);
         color: white;
-        padding: 0.8rem 0;
-        border-radius: .5rem;
+        padding: 0.6rem 0;
+        border-radius: .4rem;
         box-shadow: -4px 2px 6px rgba(0,0,0,0.2);
     }
 `
