@@ -295,10 +295,10 @@ async function closeSale(id, priceSold) {
     await pool.query(`COMMIT;`)
 }
 
-async function addSale(id, pawnCategory) {
+async function changePawnToSale(id, pawnCategory) {
     const validTables = ["electronics_pawn", "gold_pawn", "vehicle_pawn", "other_pawn", "watch_pawn"];
     if (!validTables.includes(pawnCategory))
-        throw new Error("Invalid pawn category in ADD SALE");
+        throw new Error("Invalid pawn category in CHANGE PAWN TO SALE");
 
     let query = await pool.query(`SELECT (price_pawned * provision / 100) AS provision_money, client_id, price_pawned FROM ${pawnCategory} WHERE id = $1;`, [id])
     let clientId = null;
@@ -309,7 +309,7 @@ async function addSale(id, pawnCategory) {
         priceBought = query.rows[0].price_pawned;
         provisionMoney = query.rows[0].provision_money;
     } else {
-        throw new Error("Cant find information in pawn table to ADD SALE");
+        throw new Error("Cant find information in pawn table to CHANGE PAWN TO SALE");
     }
 
     let description = null;
@@ -369,6 +369,44 @@ async function addSale(id, pawnCategory) {
     `, [priceBought, provisionMoney])
 }
 
+async function addNewSale(saleObj, clientObj) {
+    //Insert a new client if name, embg and telephone arent already a combination in another client
+    await pool.query(`
+        INSERT INTO client (name, embg, telephone, city)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (name, embg, telephone) DO NOTHING;
+    `, [clientObj.name, clientObj.embg, clientObj.telephone, clientObj.city]);
+
+    const query = await pool.query(`SELECT id FROM client WHERE name = $1 AND embg = $2 AND telephone = $3;`, [clientObj.name, clientObj.embg, clientObj.telephone]);
+    let clientId = null;
+    if (query.rows.length > 0) {
+        clientId = query.rows[0].id;
+    } else
+        throw new Error("Cant find information in client table to ADD PAWN");
+
+    //Insert a new sale into sale table
+    await pool.query(`
+        INSERT INTO sale (client_id, price_bought, date_from, description)
+        VALUES ($1, $2, CURRENT_DATE, $3)
+    `, [clientId, saleObj.priceBought, saleObj.description])
+
+    //Insert a new transaction with money given
+    await pool.query(`
+        INSERT INTO transaction (client_id, money_given, money_got, profit, date)
+        VALUES ($1, $2, 0, 0, CURRENT_DATE);
+    `, [clientId, saleObj.priceBought])
+
+    //Update cash register with money given, increase numSales and increase moneySales
+    await pool.query(`
+        UPDATE cash_register 
+        SET
+            num_sale_items = num_sale_items + 1,
+            money_sale_items = money_sale_items + $1,
+            register_money = register_money - $1,
+            last_updated = NOW();
+    `, [saleObj.priceBought])
+}
+
 module.exports = {
     getAllPawns,
     getAllSales,
@@ -376,5 +414,6 @@ module.exports = {
     addNewPawn,
     closePawn,
     closeSale,
-    addSale
+    changePawnToSale,
+    addNewSale
 }
