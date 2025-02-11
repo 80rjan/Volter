@@ -1,6 +1,6 @@
 const pool = require('./pool');
 
-async function getAllPawns() {
+async function getAllPawns(orderBy, orderDirection) {
     const { rows } = await pool.query(`
     SELECT 
         c.id AS "Client Id", 
@@ -80,7 +80,7 @@ async function getAllPawns() {
     INNER JOIN watch_pawn wp
         ON c.id = wp.client_id
     
-    ORDER BY "Valid Until" ASC;
+    ORDER BY "${orderBy}" ${orderDirection};
     `);
     console.log(rows);
     return rows;

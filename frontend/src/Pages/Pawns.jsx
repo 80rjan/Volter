@@ -3,20 +3,35 @@ import axios from "axios";
 import styled from "styled-components";
 import Pawn from "../Components/Pawn.jsx";
 import Nav from "../Components/Nav.jsx";
-import { Plus, X, Euro, RotateCcw} from "lucide-react";
+import { Plus, X, Euro, RotateCcw, ChevronUp, ChevronDown, Minus} from "lucide-react";
 
 export default function Pawns() {
     const [allPawns, setAllPawns] = useState([]);
+    const [orderBy, setOrderBy] = useState("Valid Until");
+    const [orderDirectionArr, setOrderDirectionArr] = useState([0,0,0,0,0,0,1]); // -1=desc 0=normal 1=asc
+    const [orderDirection, setOrderDirection] = useState("ASC");
 
-    const fetchPawns = () => {
-        axios.get('http://localhost:3000')
+    const fetchPawns = (order, direction) => {
+        axios.get(`http://localhost:3000?orderBy=${order}&orderDirection=${direction}`)
             .then(res => setAllPawns(res.data))
             .catch(error => console.error('Error fetching all pawns:', error));
     }
 
     useEffect(() => {
-        fetchPawns();
-    }, []);
+        if (orderDirectionArr.includes(1)) {
+            setOrderDirection("ASC");
+        } else if (orderDirectionArr.includes(-1)) {
+            setOrderDirection("DESC");
+        } else {
+            setOrderDirection("ASC");
+        }
+    }, [orderDirectionArr]);
+
+
+    useEffect(() => {
+        fetchPawns(orderBy, orderDirection);
+    }, [orderBy, orderDirection]);
+
 
     return (
         <PawnsPage >
@@ -39,20 +54,101 @@ export default function Pawns() {
 
                 <PawnsWrapper>
                     <TableHeader >
-                        <Text>Id</Text>
-                        <Text>Name</Text>
-                        <Text>Category</Text>
-                        <Text>About</Text>
-                        <Text>Item Cost</Text>
-                        <Text>Provision</Text>
-                        <Text>Days Left</Text>
-                        <Text>Valid Until</Text>
-                        <Text>Actions</Text>
-                        <Text>More</Text>
+                        <Text onClick={() => {
+                            setOrderDirectionArr(prev => {
+                                const newDirection = [...prev];
+                                newDirection[0] = newDirection[0] === 0 ? 1 : newDirection[0] === 1 ? -1 : 0;
+                                const res = [0,0,0,0,0,0,0]
+                                res[0] = newDirection[0];
+                                return res;
+                            });
+                            setOrderBy("Client Id")
+                        }}>
+                            Id {orderDirectionArr[0] === 0 ? <Minus size={14} /> : orderDirectionArr[0] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        </Text>
+                        <Text onClick={() => {
+                            setOrderDirectionArr(prev => {
+                                const newDirection = [...prev];
+                                newDirection[1] = newDirection[1] === 0 ? 1 : newDirection[1] === 1 ? -1 : 0;
+                                const res = [0,0,0,0,0,0,0]
+                                res[1] = newDirection[1];
+                                return res;
+                            });
+                            setOrderBy("Name")
+                        }}>
+                            Name {orderDirectionArr[1] === 0 ? <Minus size={14} /> : orderDirectionArr[1] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        </Text>
+                        <Text onClick={() => {
+                            setOrderDirectionArr(prev => {
+                                const newDirection = [...prev];
+                                newDirection[2] = newDirection[2] === 0 ? 1 : newDirection[2] === 1 ? -1 : 0;
+                                const res = [0,0,0,0,0,0,0]
+                                res[2] = newDirection[2];
+                                return res;
+                            });
+                            setOrderBy("Category")
+                        }}>
+                            Category {orderDirectionArr[2] === 0 ? <Minus size={14} /> : orderDirectionArr[2] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        </Text>
+                        <Text onClick={prev => {
+                            setOrderDirectionArr(prev => {
+                                const newDirection = [...prev];
+                                newDirection[3] = newDirection[3] === 0 ? 1 : newDirection[3] === 1 ? -1 : 0;
+                                const res = [0,0,0,0,0,0,0]
+                                res[3] = newDirection[3];
+                                return res;
+                            });
+                            setOrderBy("About")
+                        }}>
+                            About {orderDirectionArr[3] === 0 ? <Minus size={14} /> : orderDirectionArr[3] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        </Text>
+                        <Text onClick={prev => {
+                            setOrderDirectionArr(prev => {
+                                const newDirection = [...prev];
+                                newDirection[4] = newDirection[4] === 0 ? 1 : newDirection[4] === 1 ? -1 : 0;
+                                const res = [0,0,0,0,0,0,0]
+                                res[4] = newDirection[4];
+                                return res;
+                            });
+                            setOrderBy("Item Cost")
+                        }}>
+                            Item Cost {orderDirectionArr[4] === 0 ? <Minus size={14} /> : orderDirectionArr[4] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        </Text>
+                        <Text onClick={prev => {
+                            setOrderDirectionArr(prev => {
+                                const newDirection = [...prev];
+                                newDirection[5] = newDirection[5] === 0 ? 1 : newDirection[5] === 1 ? -1 : 0;
+                                const res = [0,0,0,0,0,0,0]
+                                res[5] = newDirection[5];
+                                return res;
+                            });
+                            setOrderBy("Provision")
+                        }}>
+                            Provision {orderDirectionArr[5] === 0 ? <Minus size={14} /> : orderDirectionArr[5] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        </Text>
+                        <Text onClick={prev => {
+                            setOrderDirectionArr(prev => {
+                                const newDirection = [...prev];
+                                newDirection[6] = newDirection[6] === 0 ? 1 : newDirection[6] === 1 ? -1 : 0;
+                                const res = [0,0,0,0,0,0,0]
+                                res[6] = newDirection[6];
+                                return res;
+                            });
+                            setOrderBy("Days Left")
+                        }}>
+                            Days Left {orderDirectionArr[6] === 0 ? <Minus size={14} /> : orderDirectionArr[6] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        </Text>
+                        <Text style={{cursor: "default"}}>Valid Until</Text>
+                        <Text style={{cursor: "default"}}>Actions</Text>
+                        <Text style={{cursor: "default"}}>More</Text>
                     </TableHeader>
-                    { allPawns.map((pawn, index) => (
-                            <Pawn pawn={pawn} key={index} refresh={fetchPawns} isOdd={index%2 !== 0}/>
-                    )) }
+
+                    <ScrollablePawns>
+                        { allPawns.map((pawn, index) => (
+                            <Pawn pawn={pawn} key={index} refresh={() => fetchPawns(orderBy, orderDirection)} isOdd={index%2 !== 0}/>
+                        )) }
+                    </ScrollablePawns>
+
                     <TableFooter>
                         <div>
                             <X size={18} color="#000"/>
@@ -94,7 +190,7 @@ const HeaderWrapper = styled.div`
 `
 
 const ButtonAddNewPawn = styled.button`
-    background: var(--cta-color);
+    background: var(--green);
     height: fit-content;
     color: white;
     border-radius: .4rem;
@@ -104,6 +200,19 @@ const ButtonAddNewPawn = styled.button`
     font-size: 1.2rem;
     box-shadow: 4px 2px 6px rgba(0,0,0,0.2);
     gap: .5rem;
+    transition: all 250ms ease-in-out;
+    
+    svg {
+        transition: all 500ms ease-in-out;
+    }
+    
+    &:hover {
+        scale: 1.05;
+        
+        svg {
+            transform: rotate(90deg);
+        }
+    }
 `
 
 const FilterWrapper = styled.div`
@@ -127,6 +236,8 @@ const PawnsWrapper = styled.div`
     background: white;
     border-radius: .5rem;
     box-shadow: 0 0 8px rgba(0,0,0,0.2);
+    height: 100%;
+    overflow: hidden;
 `
 
 const TableHeader = styled.div`
@@ -134,14 +245,36 @@ const TableHeader = styled.div`
     place-items: center;
     grid-template-columns: 2rem 1fr 1fr 2fr repeat(4, 1fr) 1.5fr .5fr;
     padding: 1rem .5rem;
-    color: #888;
-    text-decoration: underline;
-    border-bottom: rgba(0,0,0,0.2) 2px solid;
+    //color: #eeeeee;
+    border-bottom: rgba(0, 0, 0, 0.2) 2px solid;
+    //background: var(--green);
 `
 
-const Text = styled.p`
+const Text = styled.div`
     font-weight: 600;
     font-size: .8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+`
+
+const ScrollablePawns = styled.div`
+    overflow-y: scroll;
+    
+    &::-webkit-scrollbar {
+        width: 4px;
+    }
+    &::-webkit-scrollbar-track {
+        
+    }
+    &::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 8px;
+        
+        &:hover {
+            background: #aaa;
+        }
+    }
 `
 
 const TableFooter = styled.div`
@@ -150,6 +283,9 @@ const TableFooter = styled.div`
     padding: 1rem;
     color: #444;
     font-weight: 400;
+    margin-top: auto;
+    box-shadow: 0 -2px 6px rgba(0,0,0,0.2);
+    //background: #ccc;
     
     div {
         display: flex;

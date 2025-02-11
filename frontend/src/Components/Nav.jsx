@@ -20,11 +20,12 @@ const Logo = styled.img`
     height: auto;
     margin-bottom: 1rem;
 `
+
 const NavWrapper = styled.nav`
     display: flex;
     background: white;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.5rem;
     align-items: center;
     padding: 1rem;
     box-shadow: 2px 0 8px rgba(0,0,0,0.2);
@@ -33,16 +34,25 @@ const NavWrapper = styled.nav`
 const StyledNavLink = styled(NavLink)`
     width: 100%;
     text-decoration: none;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 600;
     color: black;
+    padding: 0.6rem 0;
+    border-radius: .4rem;
+    transition: all 250ms ease-in-out;
+    
+    &:hover {
+        scale: 1.05;
+        background: #eee;
+    }
     
     &.active {
-        background: var(--cta-color);
+        background: var(--green);
         color: white;
-        padding: 0.6rem 0;
-        border-radius: .4rem;
         box-shadow: -4px 2px 6px rgba(0,0,0,0.2);
+    }
+    &.active:hover {
+        scale: 1;
     }
 `
 
