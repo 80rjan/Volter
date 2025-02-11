@@ -19,7 +19,7 @@ export default function Pawn({ pawn, refresh, isOdd }) {
 
         //Put http which sends the id of the pawn and the table name in which the pawn date is updated
         axios.put(`http://localhost:3000/continuePawn`, { id, tableName })
-            .then(response => refresh())
+            .then(response => refresh() )
             .catch(error => console.error('Error continuing pawn:', error));
     }
 
@@ -37,7 +37,7 @@ export default function Pawn({ pawn, refresh, isOdd }) {
 
         //Put http which sends the id of the pawn and the table name in which the pawn is closed
         axios.put(`http://localhost:3000/closePawn`, { id, tableName })
-            .then(response => refresh())
+            .then(response => refresh() )
             .catch(error => console.error('Error continuing pawn:', error));
     }
 
@@ -55,7 +55,7 @@ export default function Pawn({ pawn, refresh, isOdd }) {
 
         //Put http which sends the id of the pawn and the table name in which the pawn is closed and a new product goes for sale
         axios.put(`http://localhost:3000/addSale`, { id, tableName })
-            .then(response => refresh())
+            .then(response => refresh() )
             .catch(error => console.error('Error continuing pawn:', error));
     }
 
@@ -66,8 +66,8 @@ export default function Pawn({ pawn, refresh, isOdd }) {
             <Text>{pawn.Name}</Text>
             <Text>{pawn.Category}</Text>
             <Text>{pawn.About}</Text>
-            <Text>{pawn["Item Cost"].toLocaleString("de-DE")}</Text>
-            <Text>{pawn.Provision.toLocaleString("de-DE")}</Text>
+            <Text className="bold" >{pawn["Item Cost"].toLocaleString("de-DE")}</Text>
+            <Text className="bold" >{pawn.Provision.toLocaleString("de-DE")}</Text>
             <Text>{pawn["Days Left"]}</Text>
             <Text>{pawn["Valid Until"].substring(0, 10)}</Text>
             <ButtonWrapper>
@@ -75,7 +75,7 @@ export default function Pawn({ pawn, refresh, isOdd }) {
                 <RotateCcw size={22} color="var(--cta-color)" onClick={() => continuePawn(pawn.Id, pawn.Category)} />
                 <Euro size={22} color="var(--green)" onClick={() => movePawnToSale(pawn.Id, pawn.Category)} />
             </ButtonWrapper>
-            <Ellipsis size={24} color="#888" />
+            <Ellipsis size={28} color="#888" />
         </Wrapper>
     )
 }
@@ -87,14 +87,28 @@ const Wrapper = styled.div`
     grid-template-columns: 2rem 1fr 1fr 2fr repeat(4, 1fr) 1.5fr .5fr;
     padding: .5rem;
     border-bottom: rgba(0,0,0,0.2) 2px solid;
+
+    svg {
+        cursor: pointer;
+        transition: scale 100ms step-end;
+    }
+    svg:hover {
+        scale: 1.1;
+    }
 `;
 
 const Text = styled.p`
-    font-weight: 600;
+    font-weight: 500;
     font-size: .8rem;
+    
+    &.bold {
+        font-weight: bold;
+        font-style: italic;
+    }
 `
 
 const ButtonWrapper = styled.div`
     display: flex;
     gap: .5rem;
+    
 `
