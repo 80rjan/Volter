@@ -10,9 +10,12 @@ export default function Pawns() {
     const [orderBy, setOrderBy] = useState("Valid Until");
     const [orderDirectionArr, setOrderDirectionArr] = useState([0,0,0,0,0,0,1]); // -1=desc 0=normal 1=asc
     const [orderDirection, setOrderDirection] = useState("ASC");
+    const [searchByName, setSearchByName] = useState("");
+    const [searchByEmbg, setSearchByEmbg] = useState("");
+    const [searchByTel, setSearchByTel] = useState("");
 
-    const fetchPawns = (order, direction) => {
-        axios.get(`http://localhost:3000?orderBy=${order}&orderDirection=${direction}`)
+    const fetchPawns = (order, direction, searchByName, searchByEmbg, searchByTel) => {
+        axios.get(`http://localhost:3000?orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByTel=${searchByTel}`)
             .then(res => setAllPawns(res.data))
             .catch(error => console.error('Error fetching all pawns:', error));
     }
@@ -29,8 +32,8 @@ export default function Pawns() {
 
 
     useEffect(() => {
-        fetchPawns(orderBy, orderDirection);
-    }, [orderBy, orderDirection]);
+        fetchPawns(orderBy, orderDirection, searchByName, searchByEmbg, searchByTel);
+    }, [orderBy, orderDirection, searchByName, searchByEmbg, searchByTel]);
 
 
     return (
@@ -47,9 +50,21 @@ export default function Pawns() {
                 </HeaderWrapper>
 
                 <FilterWrapper >
-                    <StyledInput placeholder="Search by name"/>
-                    <StyledInput placeholder="Search by embg"/>
-                    <StyledInput placeholder="Search by telephone"/>
+                    <StyledInput placeholder="Search by name"
+                                 onKeyUp={(e) => {
+                                     setSearchByName(e.target.value)
+                                 }}
+                    />
+                    <StyledInput placeholder="Search by embg"
+                                 onKeyUp={(e) => {
+                                     setSearchByEmbg(e.target.value)
+                                 }}
+                    />
+                    <StyledInput placeholder="Search by telephone"
+                                 onKeyUp={(e) => {
+                                     setSearchByTel(e.target.value)
+                                 }}
+                    />
                 </FilterWrapper>
 
                 <PawnsWrapper>

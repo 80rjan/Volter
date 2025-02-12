@@ -1,6 +1,6 @@
 const pool = require('./pool');
 
-async function getAllPawns(orderBy, orderDirection) {
+async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByTel = "") {
     const { rows } = await pool.query(`
     SELECT 
         c.id AS "Client Id", 
@@ -15,6 +15,7 @@ async function getAllPawns(orderBy, orderDirection) {
     FROM client c
     INNER JOIN electronics_pawn ep
         ON c.id = ep.client_id
+    WHERE c.name LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND c.telephone LIKE $3 || '%'
     
     UNION ALL
     
@@ -31,6 +32,7 @@ async function getAllPawns(orderBy, orderDirection) {
     FROM client c
     INNER JOIN gold_pawn gp
         ON c.id = gp.client_id
+    WHERE c.name LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND c.telephone LIKE $3 || '%'
     
     UNION ALL
     
@@ -47,6 +49,7 @@ async function getAllPawns(orderBy, orderDirection) {
     FROM client c
     INNER JOIN other_pawn op
         ON c.id = op.client_id
+    WHERE c.name LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND c.telephone LIKE $3 || '%'
     
     UNION ALL
     
@@ -63,6 +66,7 @@ async function getAllPawns(orderBy, orderDirection) {
     FROM client c
     INNER JOIN vehicle_pawn vp
         ON c.id = vp.client_id
+    WHERE c.name LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND c.telephone LIKE $3 || '%'
     
     UNION ALL
     
@@ -79,29 +83,56 @@ async function getAllPawns(orderBy, orderDirection) {
     FROM client c
     INNER JOIN watch_pawn wp
         ON c.id = wp.client_id
+    WHERE c.name LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND c.telephone LIKE $3 || '%'
     
     ORDER BY "${orderBy}" ${orderDirection};
-    `);
+    `, [searchByName, searchByEmbg, searchByTel]);
     console.log(rows);
     return rows;
 }
 
-async function getAllSales() {
-    const { rows } = await pool.query(`
-    SELECT 
-        c.id AS "Id", 
-        c.name AS "Name", 
-        'Sale' AS "Category", 
-        s.description AS "About", 
-        s.date_from AS "Date Bought",
-        s.price_bought AS "Item Cost"
-    FROM client c
-    INNER JOIN sale s
-        ON c.id = s.client_id
-    ORDER BY "Date Bought" ASC;
-    `)
+async function closePawn(id, tableName) {
+    const validTables = ["electronics_pawn", "gold_pawn", "vehicle_pawn", "other_pawn", "watch_pawn"];
+    if (!validTables.includes(tableName)) {
+        throw new Error("Invalid table name in REMOVE PAWN");
+    }
 
-    return rows;
+    const query = await pool.query(`SELECT (price_pawned * provision / 100) AS provision_money, price_pawned, client_id FROM ${tableName} WHERE id = $1;`, [id])
+    let provisionMoney = null;
+    let pawnMoney = null;
+    let clientId = null;
+    if (query.rows.length > 0) {
+        provisionMoney = query.rows[0].provision_money;
+        pawnMoney = query.rows[0].price_pawned;
+        clientId = query.rows[0].client_id;
+    } else
+        throw new Error("Cant find information in pawn table to REMOVE PAWN");
+
+    await pool.query(`BEGIN;`)
+
+    //Delete pawn from pawn table
+    await pool.query(`
+        DELETE FROM ${tableName}
+        WHERE id = $1;
+    `, [id])
+
+    //Insert a new transaction with cash inserted and profit made
+    await pool.query(`
+        INSERT INTO transaction (client_id, money_given, money_got, profit, date)
+        VALUES ($1, 0, $2, $3, CURRENT_DATE);
+    `, [clientId, pawnMoney, provisionMoney])
+
+    //Update cash register with money inserted, decrease numPawns and decrease moneyPawns
+    await pool.query(`
+        UPDATE cash_register 
+        SET
+            num_pawns = num_pawns - 1,
+            money_pawns = money_pawns - $1,
+            register_money = register_money + $1 + $2,
+            last_updated = NOW();
+    `, [pawnMoney, provisionMoney])
+
+    await pool.query(`COMMIT;`)
 }
 
 async function continuePawn(id, tableName) {
@@ -213,88 +244,6 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
     `, [pawnObj.price_pawned]);
 }
 
-async function closePawn(id, tableName) {
-    const validTables = ["electronics_pawn", "gold_pawn", "vehicle_pawn", "other_pawn", "watch_pawn"];
-    if (!validTables.includes(tableName)) {
-        throw new Error("Invalid table name in REMOVE PAWN");
-    }
-
-    const query = await pool.query(`SELECT (price_pawned * provision / 100) AS provision_money, price_pawned, client_id FROM ${tableName} WHERE id = $1;`, [id])
-    let provisionMoney = null;
-    let pawnMoney = null;
-    let clientId = null;
-    if (query.rows.length > 0) {
-        provisionMoney = query.rows[0].provision_money;
-        pawnMoney = query.rows[0].price_pawned;
-        clientId = query.rows[0].client_id;
-    } else
-        throw new Error("Cant find information in pawn table to REMOVE PAWN");
-
-    await pool.query(`BEGIN;`)
-
-    //Delete pawn from pawn table
-    await pool.query(`
-        DELETE FROM ${tableName}
-        WHERE id = $1;
-    `, [id])
-
-    //Insert a new transaction with cash inserted and profit made
-    await pool.query(`
-        INSERT INTO transaction (client_id, money_given, money_got, profit, date)
-        VALUES ($1, 0, $2, $3, CURRENT_DATE);
-    `, [clientId, pawnMoney, provisionMoney])
-
-    //Update cash register with money inserted, decrease numPawns and decrease moneyPawns
-    await pool.query(`
-        UPDATE cash_register 
-        SET
-            num_pawns = num_pawns - 1,
-            money_pawns = money_pawns - $1,
-            register_money = register_money + $1 + $2,
-            last_updated = NOW();
-    `, [pawnMoney, provisionMoney])
-
-    await pool.query(`COMMIT;`)
-}
-
-async function closeSale(id, priceSold) {
-    const query = await pool.query(`SELECT price_bought, client_id FROM sale WHERE id = $1;`, [id]);
-    let priceBought = null;
-    let clientId = null;
-    if (query.rows.length > 0) {
-        priceBought = query.rows[0].price_bought;
-        clientId = query.rows[0].client_id;
-    } else
-        throw new Error("Cant find information in sale table to REMOVE SALE");
-
-
-    await pool.query(`BEGIN;`)
-
-    //Delete sale from sale table
-    await pool.query(`
-        DELETE FROM sale
-        WHERE id = $1;
-    `, [id])
-
-    //Insert a new transaction with cash inserted and profit made
-    await pool.query(`
-        INSERT INTO transaction (client_id, money_given, money_got, profit, date)
-        VALUES ($1, 0, $2, $3, CURRENT_DATE);
-    `, [clientId, priceBought, priceSold-priceBought])
-
-    //Update cash register with money inserted, decrease numSales and decrease moneySales
-    await pool.query(`
-        UPDATE cash_register 
-        SET
-            num_sale_items = num_sale_items - 1,
-            money_sale_items = money_sale_items - $1,
-            register_money = register_money + $2,
-            last_updated = NOW();
-    `, [priceBought, priceSold])
-
-    await pool.query(`COMMIT;`)
-}
-
 async function changePawnToSale(id, pawnCategory) {
     const validTables = ["electronics_pawn", "gold_pawn", "vehicle_pawn", "other_pawn", "watch_pawn"];
     if (!validTables.includes(pawnCategory))
@@ -367,6 +316,62 @@ async function changePawnToSale(id, pawnCategory) {
             register_money = register_money + $2,
             last_updated = NOW();
     `, [priceBought, provisionMoney])
+}
+
+async function getAllSales() {
+    const { rows } = await pool.query(`
+    SELECT 
+        c.id AS "Id", 
+        c.name AS "Name", 
+        'Sale' AS "Category", 
+        s.description AS "About", 
+        s.date_from AS "Date Bought",
+        s.price_bought AS "Item Cost"
+    FROM client c
+    INNER JOIN sale s
+        ON c.id = s.client_id
+    ORDER BY "Date Bought" ASC;
+    `)
+
+    return rows;
+}
+
+async function closeSale(id, priceSold) {
+    const query = await pool.query(`SELECT price_bought, client_id FROM sale WHERE id = $1;`, [id]);
+    let priceBought = null;
+    let clientId = null;
+    if (query.rows.length > 0) {
+        priceBought = query.rows[0].price_bought;
+        clientId = query.rows[0].client_id;
+    } else
+        throw new Error("Cant find information in sale table to REMOVE SALE");
+
+
+    await pool.query(`BEGIN;`)
+
+    //Delete sale from sale table
+    await pool.query(`
+        DELETE FROM sale
+        WHERE id = $1;
+    `, [id])
+
+    //Insert a new transaction with cash inserted and profit made
+    await pool.query(`
+        INSERT INTO transaction (client_id, money_given, money_got, profit, date)
+        VALUES ($1, 0, $2, $3, CURRENT_DATE);
+    `, [clientId, priceBought, priceSold-priceBought])
+
+    //Update cash register with money inserted, decrease numSales and decrease moneySales
+    await pool.query(`
+        UPDATE cash_register 
+        SET
+            num_sale_items = num_sale_items - 1,
+            money_sale_items = money_sale_items - $1,
+            register_money = register_money + $2,
+            last_updated = NOW();
+    `, [priceBought, priceSold])
+
+    await pool.query(`COMMIT;`)
 }
 
 async function addNewSale(saleObj, clientObj) {
