@@ -66,7 +66,7 @@ export default function Pawn({ pawn, refresh, isOdd }) {
             <Text>{pawn.Name}</Text>
             <Text>{pawn.Category}</Text>
             <Text>{pawn.About}</Text>
-            <Text className="bold" >{pawn["Item Cost"].toLocaleString("de-DE")}</Text>
+            <Text>{pawn["Item Cost"].toLocaleString("de-DE")}</Text>
             <Text className="bold" >{pawn.Provision.toLocaleString("de-DE")}</Text>
             <Text>{pawn["Days Left"]}</Text>
             <Text>{pawn["Valid Until"].substring(0, 10)}</Text>
@@ -90,10 +90,10 @@ const Wrapper = styled.div`
 
     svg {
         cursor: pointer;
-        transition: scale 100ms step-end;
+        transition: all 200ms ease-in-out;
     }
     svg:hover {
-        scale: 1.1;
+        scale: 1.2;
     }
 `;
 
@@ -103,7 +103,6 @@ const Text = styled.p`
     
     &.bold {
         font-weight: bold;
-        font-style: italic;
     }
 `
 

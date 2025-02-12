@@ -2,7 +2,11 @@ const asyncHandler = require("express-async-handler");
 const db = require('../model/queries');
 
 const getAllPawns = asyncHandler(async (req, res) => {
-    const pawns = await db.getAllPawns(req.query.orderBy, req.query.orderDirection);
+    let searchByName = req.query.searchByName !== 'undefined' ? req.query.searchByName : '';
+    let searchByEmbg = req.query.searchByEmbg !== 'undefined' ? req.query.searchByEmbg : '';
+    let searchByTel = req.query.searchByTel !== 'undefined' ? req.query.searchByTel : '';
+
+    const pawns = await db.getAllPawns(req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, searchByTel);
     res.send(pawns);
 })
 
