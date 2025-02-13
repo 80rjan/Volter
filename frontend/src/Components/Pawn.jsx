@@ -75,7 +75,7 @@ export default function Pawn({ pawn, refresh, isOdd }) {
         if (!tableName) return console.error("Invalid category:", category);
 
         //Put http which sends the id of the pawn and the table name in which the pawn is closed and a new product goes for sale
-        axios.put(`http://localhost:3000/addSale`, { id, tableName })
+        axios.put(`http://localhost:3000/changePawnToSale`, { id, tableName })
             .then(response => {
                 setSuccessMsg("Successfully moved pawn to sale")
                 setInfoMsg(`Added ${response.data.profit.toLocaleString("de-DE")} into cash register!`)

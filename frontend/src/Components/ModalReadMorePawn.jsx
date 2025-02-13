@@ -20,7 +20,7 @@ export default function ModalReadMorePawn({ category, pawnInfo, closeModal, clos
                         </div>
                         <div>
                             <span>
-                                <p>Id:</p>
+                                <p>Client Id:</p>
                                 <p>{client.id}</p>
                             </span>
                             <span>
@@ -60,7 +60,7 @@ export default function ModalReadMorePawn({ category, pawnInfo, closeModal, clos
                         closeModal();
                     }}><RotateCcw size={32}/> Continue Pawn </button>
                     <button onClick={() => {
-                        closePawn();
+                        movePawnToSale();
                         closeModal();
                     }}><Euro size={32}/> Move Pawn To Sale </button>
                 </ButtonWrapper>
@@ -74,6 +74,10 @@ export default function ModalReadMorePawn({ category, pawnInfo, closeModal, clos
 const renderElectronicsOrWatch = (pawn) => {
     return (
         <PawnDetailsWrapper>
+            <span>
+                <p>Pawn Id:</p>
+                <p>{pawn.id}</p>
+            </span>
             <span>
                 <p>Brand:</p>
                 <p>{pawn.brand}</p>
@@ -120,6 +124,10 @@ const renderElectronicsOrWatch = (pawn) => {
 const renderGold = (pawn) => {
     return (
         <PawnDetailsWrapper>
+            <span>
+                <p>Pawn Id:</p>
+                <p>{pawn.id}</p>
+            </span>
             <span>
                 <p>Type:</p>
                 <p>{pawn.type}</p>
@@ -175,6 +183,10 @@ const renderVehicle = (pawn) => {
     return (
         <PawnDetailsWrapper>
             <span>
+                <p>Pawn Id:</p>
+                <p>{pawn.id}</p>
+            </span>
+            <span>
                 <p>Brand:</p>
                 <p>{pawn.brand}</p>
             </span>
@@ -224,6 +236,10 @@ const renderVehicle = (pawn) => {
 const renderOther = (pawn) => {
     return (
         <PawnDetailsWrapper>
+            <span>
+                <p>Pawn Id:</p>
+                <p>{pawn.id}</p>
+            </span>
             <span>
                 <p>Description:</p>
                 <p>{pawn.description}</p>
@@ -299,8 +315,9 @@ const Wrapper = styled.div`
 
 const InformationWrapper = styled.div`
     display: flex;
-    //flex-direction: column;
-    gap: 8rem;
+    width: 100%;
+    //gap: 8rem;
+    justify-content: space-around;
 `
 
 const ClientWrapper = styled.div`

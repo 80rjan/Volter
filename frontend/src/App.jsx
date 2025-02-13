@@ -2,6 +2,7 @@ import {useEffect, useState} from 'react'
 import './App.css'
 import Pawns from "./Pages/Pawns.jsx";
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
+import Sales from "./Pages/Sales.jsx";
 
 const router = createBrowserRouter([
     {
@@ -9,8 +10,8 @@ const router = createBrowserRouter([
         element: <Pawns />
     },
     {
-        path: '/sale',
-        element: <h1>Sale</h1>
+        path: '/sales',
+        element: <Sales />
     },
     {
         path: '/cashRegister',

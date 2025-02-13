@@ -340,22 +340,32 @@ async function changePawnToSale(id, pawnCategory) {
     return provisionMoney;
 }
 
-async function getAllSales() {
+async function getAllSales(orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByTel = "") {
     const { rows } = await pool.query(`
     SELECT 
-        c.id AS "Id", 
+        c.id AS "Client Id", 
         c.name AS "Name", 
-        'Sale' AS "Category", 
+        s.id AS "Id",
         s.description AS "About", 
         s.date_from AS "Date Bought",
         s.price_bought AS "Item Cost"
     FROM client c
     INNER JOIN sale s
         ON c.id = s.client_id
-    ORDER BY "Date Bought" ASC;
-    `)
+    WHERE c.name LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND c.telephone LIKE $3 || '%'
+    ORDER BY "${orderBy}" ${orderDirection};
+    `, [searchByName, searchByEmbg, searchByTel])
 
     return rows;
+}
+
+async function getSale(clientId, saleId) {
+
+    const { rows: saleRows } = await pool.query(`SELECT * FROM sale WHERE id = $1`, [saleId]);
+    const sale = saleRows[0];
+    const { rows: clientRows } = await pool.query(`SELECT * FROM client WHERE id = $1`, [clientId]);
+    const client = clientRows[0];
+    return { sale, client };
 }
 
 async function closeSale(id, priceSold) {
@@ -442,12 +452,13 @@ async function getAllClients() {
 module.exports = {
     getAllPawns,
     getPawn,
-    getAllSales,
     continuePawn,
     addNewPawn,
     closePawn,
-    closeSale,
     changePawnToSale,
+    getAllSales,
+    getSale,
+    closeSale,
     addNewSale,
     getAllClients
 }

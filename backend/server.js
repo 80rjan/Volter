@@ -13,6 +13,10 @@ app.get('/getPawn', appController.getPawn);
 app.post('/insertPawn', appController.insertPawn)
 app.put('/continuePawn', appController.continuePawn)
 app.put('/closePawn', appController.closePawn)
-app.put('/addSale', appController.changePawnToSale)
+app.put('/changePawnToSale', appController.changePawnToSale)
+
+app.get('/sales', appController.getAllSales)
+app.put('/sales/saleItem', appController.getAllSales)
+app.get('/sales/getSale', appController.getSale)
 
 app.listen(3000);

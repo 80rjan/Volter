@@ -142,6 +142,28 @@ const changePawnToSale = asyncHandler(async (req, res) => {
     }
 })
 
+const getAllSales = asyncHandler(async (req, res) => {
+    let searchByName = req.query.searchByName !== 'undefined' ? req.query.searchByName : '';
+    let searchByEmbg = req.query.searchByEmbg !== 'undefined' ? req.query.searchByEmbg : '';
+    let searchByTel = req.query.searchByTel !== 'undefined' ? req.query.searchByTel : '';
+
+    const sales = await db.getAllSales(req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, searchByTel);
+    res.send(sales);
+})
+
+const getSale = asyncHandler(async (req, res) => {
+    console.log("Im here")
+    console.log(req.query.clientId)
+    console.log(req.query.saleId)
+
+    try {
+        const saleInfo = await db.getSale(req.query.clientId, req.query.saleId);
+        res.status(200).json({ saleInfo });
+    } catch (error) {
+        res.status(500).json({ message: "Error getting specified sale " + error });
+    }
+})
+
 module.exports = {
     getAllPawns,
     getPawn,
@@ -149,4 +171,6 @@ module.exports = {
     continuePawn,
     closePawn,
     changePawnToSale,
+    getAllSales,
+    getSale,
 }

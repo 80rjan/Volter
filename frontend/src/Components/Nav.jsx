@@ -8,7 +8,7 @@ export default function Nav() {
         <NavWrapper >
             <Logo src={navImage} alt="Volter Zalozna Kukja"/>
             <StyledNavLink to="/"><Handshake size={28} /> Pawns</StyledNavLink>
-            <StyledNavLink to="/sale" ><Tag size={28} /> Sales</StyledNavLink>
+            <StyledNavLink to="/sales" ><Tag size={28} /> Sales</StyledNavLink>
             <StyledNavLink to="/cashRegister" ><Landmark size={28} /> Cash Register</StyledNavLink>
             <StyledNavLink to="/monthlyReport" ><Calendar1 size={28} /> Monthly Reports</StyledNavLink>
             <StyledNavLink to="/yearlyReport" ><CalendarDays size={28} /> Yearly Reports</StyledNavLink>
