@@ -10,7 +10,7 @@ async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByE
         ep.brand || ' ' || ep.year AS "About", 
         ep.date_to AS "Valid Until", 
         (ep.date_to - CURRENT_DATE) AS "Days Left",  
-        ep.price_pawned * ep.provision / 100 AS "Provision", 
+        ep.price_pawned * (ep.provision / 100) AS "Provision", 
         ep.price_pawned AS "Item Cost"
     FROM client c
     INNER JOIN electronics_pawn ep
@@ -27,7 +27,7 @@ async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByE
         gp.weight || 'g ' || gp.carats || 'k ' || gp.type AS "About", 
         gp.date_to AS "Valid Until", 
         (gp.date_to - CURRENT_DATE) AS "Days Left", 
-        gp.price_pawned * gp.provision / 100 AS "Provision", 
+        gp.price_pawned * (gp.provision / 100) AS "Provision", 
         gp.price_pawned AS "Item Cost"
     FROM client c
     INNER JOIN gold_pawn gp
@@ -44,7 +44,7 @@ async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByE
         op.description AS "About", 
         op.date_to AS "Valid Until", 
         (op.date_to - CURRENT_DATE) AS "Days Left", 
-        op.price_pawned * op.provision / 100 AS "Provision", 
+        op.price_pawned * (op.provision / 100) AS "Provision", 
         op.price_pawned AS "Item Cost"
     FROM client c
     INNER JOIN other_pawn op
@@ -61,7 +61,7 @@ async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByE
         vp.brand || ' ' || vp.model || ' ' || vp.year AS "About", 
         vp.date_to AS "Valid Until", 
         (vp.date_to - CURRENT_DATE) AS "Days Left",
-        vp.price_pawned * vp.provision / 100 AS "Provision", 
+        vp.price_pawned * (vp.provision / 100) AS "Provision", 
         vp.price_pawned AS "Item Cost"
     FROM client c
     INNER JOIN vehicle_pawn vp
@@ -78,7 +78,7 @@ async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByE
         wp.brand || ' ' || wp.year AS "About", 
         wp.date_to AS "Valid Until", 
         (wp.date_to - CURRENT_DATE) AS "Days Left",
-        wp.price_pawned * wp.provision / 100 AS "Provision", 
+        wp.price_pawned * (wp.provision / 100) AS "Provision", 
         wp.price_pawned AS "Item Cost"
     FROM client c
     INNER JOIN watch_pawn wp
@@ -97,7 +97,7 @@ async function closePawn(id, tableName) {
         throw new Error("Invalid table name in REMOVE PAWN");
     }
 
-    const query = await pool.query(`SELECT (price_pawned * provision / 100) AS provision_money, price_pawned, client_id FROM ${tableName} WHERE id = $1;`, [id])
+    const query = await pool.query(`SELECT (price_pawned * (provision / 100)) AS provision_money, price_pawned, client_id FROM ${tableName} WHERE id = $1;`, [id])
     let provisionMoney = null;
     let pawnMoney = null;
     let clientId = null;
@@ -133,6 +133,8 @@ async function closePawn(id, tableName) {
     `, [pawnMoney, provisionMoney])
 
     await pool.query(`COMMIT;`)
+
+    return pawnMoney+provisionMoney;
 }
 
 async function continuePawn(id, tableName) {
@@ -141,7 +143,7 @@ async function continuePawn(id, tableName) {
         throw new Error("Invalid table name in CONTINUE PAWN");
     }
 
-    let query = await pool.query(`SELECT (price_pawned * provision / 100) AS provision_money, client_id FROM ${tableName} WHERE id = $1;`, [id])
+    let query = await pool.query(`SELECT (price_pawned * (provision / 100)) AS provision_money, client_id FROM ${tableName} WHERE id = $1;`, [id])
     let provisionMoney = null;
     let clientId = null;
     if (query.rows.length > 0) {
@@ -174,6 +176,8 @@ async function continuePawn(id, tableName) {
     `, [provisionMoney])
 
     await pool.query(`COMMIT;`)
+
+    return provisionMoney;
 }
 
 async function addNewPawn(pawnCategory, pawnObj, clientObj) {
@@ -200,28 +204,28 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
     switch (pawnCategory) {
         case 'electronics_pawn': await pool.query(`
             INSERT INTO electronics_pawn (client_id, brand, year, price_pawned, price_to_redeem, provision, date_from, date_to, total_days, description)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
-        `, [clientId, pawnObj.brand, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.date_from, pawnObj.date_to, pawnObj.total_days, pawnObj.description]);
+            VALUES ($1, $2, $3, $4, $5, $6, CURRENT_DATE, CURRENT_DATE + $7 * INTERVAL '1 day', $7, $8);
+        `, [clientId, pawnObj.brand, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description]);
             break;
         case 'gold_pawn': await pool.query(`
             INSERT INTO gold_pawn (client_id, weight, carats, price_per_gram, price_pawned, price_to_redeem, provision, date_from, date_to, total_days, description, type)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);
-        `, [clientId, pawnObj.weight, pawnObj.carats, pawnObj.price_per_gram, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.date_from, pawnObj.date_to, pawnObj.total_days, pawnObj.description, pawnObj.type]);
+            VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_DATE, CURRENT_DATE + $8 * INTERVAL '1 day', $8, $9, $10);
+        `, [clientId, pawnObj.weight, pawnObj.carats, pawnObj.price_per_gram, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description, pawnObj.type]);
             break;
         case 'other_pawn': await pool.query(`
             INSERT INTO other_pawn (client_id, price_pawned, price_to_redeem, provision, date_from, date_to, total_days, description)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
-        `, [clientId, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.date_from, pawnObj.date_to, pawnObj.total_days, pawnObj.description]);
+            VALUES ($1, $2, $3, $4, CURRENT_DATE, CURRENT_DATE + $5 * INTERVAL '1 day', $5, $6);
+        `, [clientId, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description]);
             break;
         case 'vehicle_pawn': await pool.query(`
             INSERT INTO vehicle_pawn (client_id, brand, model, year, price_pawned, price_to_redeem, provision, date_from, date_to, total_days, description)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
-        `, [clientId, pawnObj.brand, pawnObj.model, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.date_from, pawnObj.date_to, pawnObj.total_days, pawnObj.description]);
+            VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_DATE, CURRENT_DATE + $8 * INTERVAL '1 day',  $8, $9);
+        `, [clientId, pawnObj.brand, pawnObj.model, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description]);
             break;
         case 'watch_pawn': await pool.query(`
             INSERT INTO watch_pawn (client_id, brand, year, price_pawned, price_to_redeem, provision, date_from, date_to, total_days, description)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
-        `, [clientId, pawnObj.brand, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.date_from, pawnObj.date_to, pawnObj.total_days, pawnObj.description]);
+            VALUES ($1, $2, $3, $4, $5, $6, CURRENT_DATE, CURRENT_DATE + $7 * INTERVAL '1 day', $7, $8);
+        `, [clientId, pawnObj.brand, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description]);
             break;
         default:
             throw new Error("Invalid pawn table name to ADD PAWN");
@@ -249,7 +253,7 @@ async function changePawnToSale(id, pawnCategory) {
     if (!validTables.includes(pawnCategory))
         throw new Error("Invalid pawn category in CHANGE PAWN TO SALE");
 
-    let query = await pool.query(`SELECT (price_pawned * provision / 100) AS provision_money, client_id, price_pawned FROM ${pawnCategory} WHERE id = $1;`, [id])
+    let query = await pool.query(`SELECT (price_pawned * (provision / 100)) AS provision_money, client_id, price_pawned FROM ${pawnCategory} WHERE id = $1;`, [id])
     let clientId = null;
     let priceBought = null;
     let provisionMoney = null;
@@ -316,6 +320,8 @@ async function changePawnToSale(id, pawnCategory) {
             register_money = register_money + $2,
             last_updated = NOW();
     `, [priceBought, provisionMoney])
+
+    return provisionMoney;
 }
 
 async function getAllSales() {
@@ -412,6 +418,11 @@ async function addNewSale(saleObj, clientObj) {
     `, [saleObj.priceBought])
 }
 
+async function getAllClients() {
+    const { rows } = await pool.query(`SELECT * FROM client;`)
+    return rows;
+}
+
 module.exports = {
     getAllPawns,
     getAllSales,
@@ -420,5 +431,6 @@ module.exports = {
     closePawn,
     closeSale,
     changePawnToSale,
-    addNewSale
+    addNewSale,
+    getAllClients
 }

@@ -1,16 +1,17 @@
 import styled from "styled-components";
 import navImage from "../assets/Volter zalozna kukja 3D slika.png"
 import { NavLink } from "react-router-dom";
+import { Percent, Tag, Landmark, Calendar1, CalendarDays } from "lucide-react";
 
 export default function Nav() {
     return (
         <NavWrapper >
             <Logo src={navImage} alt="Volter Zalozna Kukja"/>
-            <StyledNavLink to="/">Pawns</StyledNavLink>
-            <StyledNavLink to="/sale" >Sales</StyledNavLink>
-            <StyledNavLink to="/cashRegister" >Cash Register</StyledNavLink>
-            <StyledNavLink to="/monthlyReport" >Monthly Reports</StyledNavLink>
-            <StyledNavLink to="/yearlyReport" >Yearly Reports</StyledNavLink>
+            <StyledNavLink to="/"><Percent size={28} /> Pawns</StyledNavLink>
+            <StyledNavLink to="/sale" ><Tag size={28} /> Sales</StyledNavLink>
+            <StyledNavLink to="/cashRegister" ><Landmark size={28} /> Cash Register</StyledNavLink>
+            <StyledNavLink to="/monthlyReport" ><Calendar1 size={28} /> Monthly Reports</StyledNavLink>
+            <StyledNavLink to="/yearlyReport" ><CalendarDays size={28} /> Yearly Reports</StyledNavLink>
         </NavWrapper>
     )
 }
@@ -32,6 +33,10 @@ const NavWrapper = styled.nav`
 `
 
 const StyledNavLink = styled(NavLink)`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: .6rem;
     width: 100%;
     text-decoration: none;
     font-size: 1.1rem;

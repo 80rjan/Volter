@@ -4,6 +4,7 @@ import styled from "styled-components";
 import Pawn from "../Components/Pawn.jsx";
 import Nav from "../Components/Nav.jsx";
 import { Plus, X, Euro, RotateCcw, ChevronUp, ChevronDown, Minus} from "lucide-react";
+import ModalAddNewPawn from "../Components/ModalAddNewPawn.jsx";
 
 export default function Pawns() {
     const [allPawns, setAllPawns] = useState([]);
@@ -13,6 +14,8 @@ export default function Pawns() {
     const [searchByName, setSearchByName] = useState("");
     const [searchByEmbg, setSearchByEmbg] = useState("");
     const [searchByTel, setSearchByTel] = useState("");
+    const [modalAddNewPawn, setModalAddNewPawn] = useState(false);
+    const [refresh, setRefresh] = useState(false);
 
     const fetchPawns = (order, direction, searchByName, searchByEmbg, searchByTel) => {
         axios.get(`http://localhost:3000?orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByTel=${searchByTel}`)
@@ -30,10 +33,9 @@ export default function Pawns() {
         }
     }, [orderDirectionArr]);
 
-
     useEffect(() => {
         fetchPawns(orderBy, orderDirection, searchByName, searchByEmbg, searchByTel);
-    }, [orderBy, orderDirection, searchByName, searchByEmbg, searchByTel]);
+    }, [orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, refresh]);
 
 
     return (
@@ -43,10 +45,16 @@ export default function Pawns() {
 
                 <HeaderWrapper >
                     <h1>Pawns</h1>
-                    <ButtonAddNewPawn >
+                    <ButtonAddNewPawn
+                        onClick={() => setModalAddNewPawn(true)}
+                    >
                         <Plus size={22} color="white" strokeWidth={3} />
                         Add New Pawn
                     </ButtonAddNewPawn>
+
+                    {modalAddNewPawn && <ModalAddNewPawn
+                        closeModal={() => setModalAddNewPawn(false)}
+                    />}
                 </HeaderWrapper>
 
                 <FilterWrapper >
@@ -160,7 +168,12 @@ export default function Pawns() {
 
                     <ScrollablePawns>
                         { allPawns.map((pawn, index) => (
-                            <Pawn pawn={pawn} key={index} refresh={() => fetchPawns(orderBy, orderDirection)} isOdd={index%2 !== 0}/>
+                            <Pawn
+                                pawn={pawn}
+                                key={index}
+                                refresh={() => setRefresh(prev => !prev)}
+                                isOdd={index%2 !== 0}
+                            />
                         )) }
                     </ScrollablePawns>
 
@@ -186,9 +199,9 @@ export default function Pawns() {
 }
 
 const PawnsPage = styled.div`
-    height: 100%;
+    height: 100vh;
     display: grid;
-    grid-template-columns: max(10%, 200px) auto;
+    grid-template-columns: max(10%, 220px) auto;
 `
 
 const Container = styled.div`
@@ -196,6 +209,8 @@ const Container = styled.div`
     flex-direction: column;
     padding: 2rem 2rem;
     gap: 1rem;
+    flex-grow: 1;
+    overflow: hidden;
 `
 
 const HeaderWrapper = styled.div`
@@ -251,8 +266,9 @@ const PawnsWrapper = styled.div`
     background: white;
     border-radius: .5rem;
     box-shadow: 0 0 8px rgba(0,0,0,0.2);
-    height: 100%;
     overflow: hidden;
+    flex-grow: 1;
+    min-height: 0;
 `
 
 const TableHeader = styled.div`
@@ -274,7 +290,8 @@ const Text = styled.div`
 `
 
 const ScrollablePawns = styled.div`
-    overflow-y: scroll;
+    overflow-y: auto;
+    flex-grow: 1;
     
     &::-webkit-scrollbar {
         width: 4px;

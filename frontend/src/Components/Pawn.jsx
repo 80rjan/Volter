@@ -2,8 +2,17 @@ import styled from "styled-components";
 import axios from "axios";
 import {useEffect, useState} from "react";
 import { Euro, RotateCcw, X, Ellipsis } from 'lucide-react'
+import ModalShowMessage from "./ModalShowMessage.jsx";
 
 export default function Pawn({ pawn, refresh, isOdd }) {
+    const [modalSuccessMsg, setModalSuccessMsg] = useState(false);
+    const [successMsg, setSuccessMsg] = useState("");
+    const [infoMsg, setInfoMsg] = useState("");
+
+    useEffect(() => {
+        if (!modalSuccessMsg)
+            refresh();
+    }, [modalSuccessMsg])
 
     const continuePawn = (id, category) => {
         //Find the name of the table based on the category
@@ -19,7 +28,11 @@ export default function Pawn({ pawn, refresh, isOdd }) {
 
         //Put http which sends the id of the pawn and the table name in which the pawn date is updated
         axios.put(`http://localhost:3000/continuePawn`, { id, tableName })
-            .then(response => refresh() )
+            .then(response => {
+                setSuccessMsg("Successfully continued pawn")
+                setInfoMsg(`Added ${response.data.profit.toLocaleString("de-DE")} into cash register!`)
+                setModalSuccessMsg(true);
+            })
             .catch(error => console.error('Error continuing pawn:', error));
     }
 
@@ -37,7 +50,11 @@ export default function Pawn({ pawn, refresh, isOdd }) {
 
         //Put http which sends the id of the pawn and the table name in which the pawn is closed
         axios.put(`http://localhost:3000/closePawn`, { id, tableName })
-            .then(response => refresh() )
+            .then(response => {
+                setSuccessMsg("Successfully closed pawn")
+                setInfoMsg(`Added ${response.data.moneyIntoCashReg.toLocaleString("de-DE")} into cash register!`)
+                setModalSuccessMsg(true);
+            } )
             .catch(error => console.error('Error continuing pawn:', error));
     }
 
@@ -55,7 +72,11 @@ export default function Pawn({ pawn, refresh, isOdd }) {
 
         //Put http which sends the id of the pawn and the table name in which the pawn is closed and a new product goes for sale
         axios.put(`http://localhost:3000/addSale`, { id, tableName })
-            .then(response => refresh() )
+            .then(response => {
+                setSuccessMsg("Successfully moved pawn to sale")
+                setInfoMsg(`Added ${response.data.profit.toLocaleString("de-DE")} into cash register!`)
+                setModalSuccessMsg(true);
+            })
             .catch(error => console.error('Error continuing pawn:', error));
     }
 
@@ -66,8 +87,8 @@ export default function Pawn({ pawn, refresh, isOdd }) {
             <Text>{pawn.Name}</Text>
             <Text>{pawn.Category}</Text>
             <Text>{pawn.About}</Text>
-            <Text>{pawn["Item Cost"].toLocaleString("de-DE")}</Text>
-            <Text className="bold" >{pawn.Provision.toLocaleString("de-DE")}</Text>
+            <Text>{Number(pawn["Item Cost"]).toLocaleString("de-DE")}</Text>
+            <Text className="bold" >{Number(pawn.Provision).toLocaleString("de-DE")}</Text>
             <Text>{pawn["Days Left"]}</Text>
             <Text>{pawn["Valid Until"].substring(0, 10)}</Text>
             <ButtonWrapper>
@@ -76,6 +97,14 @@ export default function Pawn({ pawn, refresh, isOdd }) {
                 <Euro size={22} color="var(--green)" onClick={() => movePawnToSale(pawn.Id, pawn.Category)} />
             </ButtonWrapper>
             <Ellipsis size={28} color="#888" />
+
+            {modalSuccessMsg &&
+                <ModalShowMessage
+                    closeModal={() => setModalSuccessMsg(false)}
+                    successMsg={successMsg}
+                    infoMsg={infoMsg}
+                />
+            }
         </Wrapper>
     )
 }
