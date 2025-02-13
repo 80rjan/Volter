@@ -10,6 +10,15 @@ const getAllPawns = asyncHandler(async (req, res) => {
     res.send(pawns);
 })
 
+const getPawn = asyncHandler(async (req, res) => {
+    try {
+        const pawnInfo = await db.getPawn(req.query.clientId, req.query.category, req.query.pawnId);
+        res.status(200).json({ pawnInfo });
+    } catch (error) {
+        res.status(500).json({ message: "Error getting specified pawn " + error });
+    }
+})
+
 const insertPawn = asyncHandler(async (req, res) => {
     let category = req.body.category;
     let clientObj = {
@@ -20,22 +29,27 @@ const insertPawn = asyncHandler(async (req, res) => {
     }
     let pawnObj = null;
     let priceToRedeem = 0;
+    let pricePawned = 0;
+    let provision = 0;
 
     switch (category) {
         case 'electronics_pawn' :
-            priceToRedeem = req.body.price_pawned + (req.body.price_pawned * (req.body.provision / 100));
+            provision = Number(req.body.provision);
+            pricePawned = Number(req.body.price_pawned)
+            priceToRedeem = pricePawned + (pricePawned * (provision / 100));
             pawnObj = {
             brand: req.body.brand,
             year: req.body.year,
-            price_pawned: req.body.price_pawned,
+            price_pawned: pricePawned,
             price_to_redeem: priceToRedeem,
-            provision: req.body.provision,
+            provision: provision,
             total_days: req.body.total_days,
             description: req.body.description,
         }; break;
         case 'gold_pawn' :
-            let pricePawned = req.body.weight * req.body.price_per_gram;
-            priceToRedeem = pricePawned * (req.body.provision / 100);
+            provision = Number(req.body.provision)
+            pricePawned = Number(req.body.weight) * Number(req.body.price_per_gram);
+            priceToRedeem = pricePawned + (pricePawned * (provision / 100))
             pawnObj = {
             weight: req.body.weight,
             carats: req.body.carats,
@@ -43,39 +57,45 @@ const insertPawn = asyncHandler(async (req, res) => {
             price_per_gram: req.body.price_per_gram,
             price_pawned: pricePawned,
             price_to_redeem: priceToRedeem,
-            provision: req.body.provision,
+            provision: provision,
             total_days: req.body.total_days,
             description: req.body.description,
         }; break;
         case 'vehicle_pawn' :
-            priceToRedeem = req.body.price_pawned + (req.body.price_pawned * (req.body.provision / 100));
+            provision = Number(req.body.provision);
+            pricePawned = Number(req.body.price_pawned)
+            priceToRedeem = pricePawned + (pricePawned * (provision / 100));
             pawnObj = {
             brand: req.body.brand,
             model: req.body.model,
             year: req.body.year,
-            price_pawned: req.body.price_pawned,
+            price_pawned: pricePawned,
             price_to_redeem: priceToRedeem,
-            provision: req.body.provision,
+            provision: provision,
             total_days: req.body.total_days,
             description: req.body.description,
         }; break;
         case 'watch_pawn' :
-            priceToRedeem = req.body.price_pawned + (req.body.price_pawned * (req.body.provision / 100));
+            provision = Number(req.body.provision);
+            pricePawned = Number(req.body.price_pawned)
+            priceToRedeem = pricePawned + (pricePawned * (provision / 100));
             pawnObj = {
             brand: req.body.brand,
             year: req.body.year,
-            price_pawned: req.body.price_pawned,
+            price_pawned: pricePawned,
             price_to_redeem: priceToRedeem,
-            provision: req.body.provision,
+            provision: provision,
             total_days: req.body.total_days,
             description: req.body.description,
         }; break;
         case 'other_pawn' :
-            priceToRedeem = req.body.price_pawned + (req.body.price_pawned * (req.body.provision / 100));
+            provision = Number(req.body.provision);
+            pricePawned = Number(req.body.price_pawned)
+            priceToRedeem = pricePawned + (pricePawned * (provision / 100));
             pawnObj = {
-            price_pawned: req.body.price_pawned,
+            price_pawned: pricePawned,
             price_to_redeem: priceToRedeem,
-            provision: req.body.provision,
+            provision: provision,
             total_days: req.body.total_days,
             description: req.body.description,
         }; break;
@@ -124,6 +144,7 @@ const changePawnToSale = asyncHandler(async (req, res) => {
 
 module.exports = {
     getAllPawns,
+    getPawn,
     insertPawn,
     continuePawn,
     closePawn,

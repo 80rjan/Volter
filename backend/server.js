@@ -9,6 +9,7 @@ app.use(cors()); // This allows your frontend to make requests to the backend
 
 const appController = require('./controller/appController');
 app.get('/', appController.getAllPawns);
+app.get('/getPawn', appController.getPawn);
 app.post('/insertPawn', appController.insertPawn)
 app.put('/continuePawn', appController.continuePawn)
 app.put('/closePawn', appController.closePawn)

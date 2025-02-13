@@ -1,6 +1,6 @@
 import ReactDom from "react-dom";
 import styled from "styled-components";
-import { X } from 'lucide-react'
+import { X, CircleCheckBig } from 'lucide-react'
 
 export default function ModalShowMessage({ closeModal, successMsg, infoMsg }) {
 
@@ -9,6 +9,7 @@ export default function ModalShowMessage({ closeModal, successMsg, infoMsg }) {
             <Overlay />
             <Wrapper >
                 <X size={32} onClick={closeModal}/>
+                <CircleCheckBig size={120} />
                 <h1>{successMsg}</h1>
                 <p>{infoMsg}</p>
             </Wrapper>
@@ -57,8 +58,14 @@ const Wrapper = styled.div`
         transition: all 400ms ease-in-out;
         cursor: pointer;
     }
-    svg:hover {
+    svg:first-child:hover {
         transform: rotate(90deg);
+    }
+    
+    svg:nth-child(2) {
+        color: var(--green);
+        margin-left: auto;
+        margin-right: auto;
     }
 `
 

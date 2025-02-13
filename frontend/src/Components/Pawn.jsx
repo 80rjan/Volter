@@ -3,11 +3,15 @@ import axios from "axios";
 import {useEffect, useState} from "react";
 import { Euro, RotateCcw, X, Ellipsis } from 'lucide-react'
 import ModalShowMessage from "./ModalShowMessage.jsx";
+import ModalReadMorePawn from "./ModalReadMorePawn.jsx";
 
 export default function Pawn({ pawn, refresh, isOdd }) {
     const [modalSuccessMsg, setModalSuccessMsg] = useState(false);
+    const [modalReadMore, setModalReadMore] = useState(false);
     const [successMsg, setSuccessMsg] = useState("");
     const [infoMsg, setInfoMsg] = useState("");
+    const [pawnInfo, setPawnInfo] = useState(null);
+
 
     useEffect(() => {
         if (!modalSuccessMsg)
@@ -80,6 +84,21 @@ export default function Pawn({ pawn, refresh, isOdd }) {
             .catch(error => console.error('Error continuing pawn:', error));
     }
 
+    useEffect(() =>{
+        if (pawnInfo != null)
+        setModalReadMore(true);
+    }, [pawnInfo])
+
+    const fetchPawn = (clientId, category, pawnId) => {
+        axios.get(`http://localhost:3000/getPawn?clientId=${clientId}&category=${category}&pawnId=${pawnId}`)
+            .then(res => {
+                setPawnInfo(res.data.pawnInfo)
+            })
+            .catch(error => {
+                console.error('Error fetching pawn:', error);
+            });
+    }
+
 
     return (
         <Wrapper style={isOdd ? {background: "#f0f0f0"} : {background: "#ffffff"}}>
@@ -96,13 +115,26 @@ export default function Pawn({ pawn, refresh, isOdd }) {
                 <RotateCcw size={22} color="var(--cta-color)" onClick={() => continuePawn(pawn.Id, pawn.Category)} />
                 <Euro size={22} color="var(--green)" onClick={() => movePawnToSale(pawn.Id, pawn.Category)} />
             </ButtonWrapper>
-            <Ellipsis size={28} color="#888" />
+            <Ellipsis size={28} color="#888"
+                onClick={() => fetchPawn(pawn["Client Id"], pawn.Category, pawn.Id)}
+            />
 
             {modalSuccessMsg &&
                 <ModalShowMessage
                     closeModal={() => setModalSuccessMsg(false)}
                     successMsg={successMsg}
                     infoMsg={infoMsg}
+                />
+            }
+
+            {modalReadMore &&
+                <ModalReadMorePawn
+                    category={pawn.Category}
+                    pawnInfo={pawnInfo}
+                    closeModal={() => setModalReadMore(false)}
+                    closePawn={() => closePawn(pawn.Id, pawn.Category)}
+                    continuePawn={() => continuePawn(pawn.Id, pawn.Category)}
+                    movePawnToSale={() => movePawnToSale(pawn.Id, pawn.Category)}
                 />
             }
         </Wrapper>

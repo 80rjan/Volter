@@ -7,7 +7,7 @@ async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByE
         c.name AS "Name", 
         'Electronics' AS "Category", 
         ep.id AS "Id",
-        ep.brand || ' ' || ep.year AS "About", 
+        ep.brand || ' ' || ep.year || ' ' || ep.description AS "About", 
         ep.date_to AS "Valid Until", 
         (ep.date_to - CURRENT_DATE) AS "Days Left",  
         ep.price_pawned * (ep.provision / 100) AS "Provision", 
@@ -24,7 +24,7 @@ async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByE
         c.name AS "Name", 
         'Gold' AS "Category", 
         gp.id AS "Id",
-        gp.weight || 'g ' || gp.carats || 'k ' || gp.type AS "About", 
+        gp.weight || 'g ' || gp.carats || 'k ' || gp.type || ' ' || gp.description AS "About", 
         gp.date_to AS "Valid Until", 
         (gp.date_to - CURRENT_DATE) AS "Days Left", 
         gp.price_pawned * (gp.provision / 100) AS "Provision", 
@@ -58,7 +58,7 @@ async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByE
         c.name AS "Name", 
         'Vehicle' AS "Category", 
         vp.id AS "Id",
-        vp.brand || ' ' || vp.model || ' ' || vp.year AS "About", 
+        vp.brand || ' ' || vp.model || ' ' || vp.year || ' ' || vp.description AS "About", 
         vp.date_to AS "Valid Until", 
         (vp.date_to - CURRENT_DATE) AS "Days Left",
         vp.price_pawned * (vp.provision / 100) AS "Provision", 
@@ -75,7 +75,7 @@ async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByE
         c.name AS "Name", 
         'Watch' AS "Category", 
         wp.id AS "Id",
-        wp.brand || ' ' || wp.year AS "About", 
+        wp.brand || ' ' || wp.year || ', ' || wp.description AS "About", 
         wp.date_to AS "Valid Until", 
         (wp.date_to - CURRENT_DATE) AS "Days Left",
         wp.price_pawned * (wp.provision / 100) AS "Provision", 
@@ -87,8 +87,24 @@ async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByE
     
     ORDER BY "${orderBy}" ${orderDirection};
     `, [searchByName, searchByEmbg, searchByTel]);
-    console.log(rows);
     return rows;
+}
+
+async function getPawn(clientId, category, pawnId) {
+    let pawnTable = "";
+    switch (category) {
+        case "Electronics": pawnTable = "electronics_pawn";break;
+        case "Gold": pawnTable = "gold_pawn";break;
+        case "Vehicle": pawnTable = "vehicle_pawn";break;
+        case "Watch": pawnTable = "watch_pawn";break;
+        case "Other": pawnTable = "other_pawn";break;
+    }
+
+    const { rows: pawnRows } = await pool.query(`SELECT * FROM ${pawnTable} WHERE id = $1`, [pawnId]);
+    const pawn = pawnRows[0];
+    const { rows: clientRows } = await pool.query(`SELECT * FROM client WHERE id = $1`, [clientId]);
+    const client = clientRows[0];
+    return { pawn, client };
 }
 
 async function closePawn(id, tableName) {
@@ -134,7 +150,7 @@ async function closePawn(id, tableName) {
 
     await pool.query(`COMMIT;`)
 
-    return pawnMoney+provisionMoney;
+    return Number(pawnMoney)+Number(provisionMoney);
 }
 
 async function continuePawn(id, tableName) {
@@ -425,6 +441,7 @@ async function getAllClients() {
 
 module.exports = {
     getAllPawns,
+    getPawn,
     getAllSales,
     continuePawn,
     addNewPawn,
