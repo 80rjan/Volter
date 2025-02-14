@@ -451,6 +451,12 @@ async function getAllClients() {
     return rows;
 }
 
+async function getCashRegister() {
+    const { rows } = await pool.query(`SELECT * FROM cash_register`);
+
+    return rows;
+}
+
 module.exports = {
     getAllPawns,
     getPawn,
@@ -462,5 +468,7 @@ module.exports = {
     getSale,
     closeSale,
     addNewSale,
-    getAllClients
+    getAllClients,
+    getCashRegister,
+
 }

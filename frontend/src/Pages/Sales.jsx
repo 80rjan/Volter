@@ -5,6 +5,7 @@ import Nav from "../Components/Nav.jsx";
 import { Plus, X, Euro, RotateCcw, ChevronUp, ChevronDown, Minus} from "lucide-react";
 import ModalAddNewSale from "../Components/ModalAddNewSale.jsx";
 import Sale from "../Components/Sale.jsx";
+import CashRegister from "./CashRegister.jsx";
 
 export default function Sales() {
     const [allSales, setAllSales] = useState([]);
@@ -160,6 +161,7 @@ export default function Sales() {
                     </TableFooter>
                 </SalesWrapper>
 
+                <CashRegister refreshDependancy={refresh}/>
             </Container>
         </SalesPage>
     )
@@ -174,7 +176,7 @@ const SalesPage = styled.div`
 const Container = styled.div`
     display: flex;
     flex-direction: column;
-    padding: 2rem 2rem;
+    padding: 2rem 2rem 0 2rem;
     gap: 1rem;
     flex-grow: 1;
     overflow: hidden;

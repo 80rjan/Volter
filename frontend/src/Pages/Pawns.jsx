@@ -5,6 +5,7 @@ import Pawn from "../Components/Pawn.jsx";
 import Nav from "../Components/Nav.jsx";
 import { Plus, X, Euro, RotateCcw, ChevronUp, ChevronDown, Minus} from "lucide-react";
 import ModalAddNewPawn from "../Components/ModalAddNewPawn.jsx";
+import CashRegister from "./CashRegister.jsx";
 
 export default function Pawns() {
     const [allPawns, setAllPawns] = useState([]);
@@ -193,6 +194,7 @@ export default function Pawns() {
                     </TableFooter>
                 </PawnsWrapper>
 
+                <CashRegister refreshDependancy={refresh} />
             </Container>
         </PawnsPage>
     )
@@ -207,7 +209,7 @@ const PawnsPage = styled.div`
 const Container = styled.div`
     display: flex;
     flex-direction: column;
-    padding: 2rem 2rem;
+    padding: 2rem 2rem 0 2rem;
     gap: 1rem;
     flex-grow: 1;
     overflow: hidden;

@@ -60,7 +60,7 @@ export default function Sale({ sale, refresh, isOdd }) {
                 <ModalReadMoreSale
                     saleInfo={saleInfo}
                     closeModal={() => setModalReadMore(false)}
-                    sellItem={() => sellItem(sale.id)}
+                    sellItem={() => setModalSellItem(true)}
                 />
             }
         </Wrapper>

@@ -20,4 +20,6 @@ app.get('/sales/getSale', appController.getSale)
 app.post('/sales/insertSale', appController.insertSale)
 app.put('/sales/sellItem', appController.sellItem)
 
+app.get('/cashRegister', appController.getCashRegister)
+
 app.listen(3000);

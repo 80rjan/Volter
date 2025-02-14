@@ -212,7 +212,7 @@ const ButtonWrapper = styled.div`
         font-size: 1.2rem;
         color: white;
         width: max-content;
-        transition: scale 400ms ease-in-out;
+        transition: scale 300ms ease-in-out;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         background: var(--green);
     }

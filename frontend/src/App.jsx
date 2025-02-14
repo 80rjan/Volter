@@ -3,6 +3,7 @@ import './App.css'
 import Pawns from "./Pages/Pawns.jsx";
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import Sales from "./Pages/Sales.jsx";
+import CashRegisterTest from "./Pages/CashRegisterTest.jsx";
 
 const router = createBrowserRouter([
     {
@@ -14,8 +15,8 @@ const router = createBrowserRouter([
         element: <Sales />
     },
     {
-        path: '/cashRegister',
-        element: <h1>Cash Register</h1>
+        path: '/transactions',
+        element: <h1>Transactions</h1>
     },
     {
         path: '/monthlyReport',

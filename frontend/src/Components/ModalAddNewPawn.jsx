@@ -15,7 +15,6 @@ export default function ModalAddNewPawn({ closeModal }) {
             case "watch_pawn": return <WatchInputs />
             case "other_pawn": return <OtherInputs />
         }
-        console.log(category)
     }
 
     return ReactDom.createPortal(
@@ -53,7 +52,7 @@ export default function ModalAddNewPawn({ closeModal }) {
                         </PawnInputs>
                     </div>
                     <Button type="submit">
-                    <CheckCheck size={28} /> Confirm
+                        <CheckCheck size={28} /> Confirm
                     </Button>
                 </Form>
             </Wrapper>

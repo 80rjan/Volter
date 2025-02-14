@@ -53,7 +53,7 @@ const Wrapper = styled.div`
         font-size: 1.2rem;
     }
     
-    svg {
+    svg:first-child {
         margin-left: auto;
         transition: all 400ms ease-in-out;
         cursor: pointer;

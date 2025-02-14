@@ -9,7 +9,9 @@ export default function ModalSellItem({ closeModal, id, priceBought}) {
     const [showEnterPriceSold, setShowEnterPriceSold] = useState(true);
     const [successMsg, setSuccessMsg] = useState("");
     const [infoMsg, setInfoMsg] = useState("");
-    const [priceSold, setPriceSold] = useState(null);
+    const [priceSold, setPriceSold] = useState(0);
+    const [error, setError] = useState("");
+    const [showError, setShowError] = useState(true);
 
     const sellItem = (id, priceSold) => {
 
@@ -18,7 +20,7 @@ export default function ModalSellItem({ closeModal, id, priceBought}) {
             .then(response => {
                 console.log(response)
                 setSuccessMsg("Successfully sold item")
-                setInfoMsg(`Added ${response.data.moneyIntoCashReg.toLocaleString("de-DE")} into cash register!`)
+                setInfoMsg(`Added ${Number(response.data.moneyIntoCashReg).toLocaleString("de-DE")} into cash register!`)
                 setShowSuccMsg(true);
             } )
             .catch(error => console.error('Error selling item:', error));
@@ -42,15 +44,22 @@ export default function ModalSellItem({ closeModal, id, priceBought}) {
                             <form onSubmit={e => e.preventDefault()}>
                                 <span>
                                     <p>Price Bought: {priceBought}</p>
-                                    <StyledInput onChange={e => setPriceSold(e.target.value)} placeholder="Enter price"
-                                             required/>
+                                    <StyledInput onChange={e => setPriceSold(e.target.value)} placeholder="Enter price" required/>
                                 </span>
                                 <Button onClick={() => {
-                                    setShowEnterPriceSold(false)
+                                    if (priceSold.length > 0) {
+                                        isNaN(priceSold) ?
+                                            setError('You must enter a number!') && setError(true) :
+                                            setShowEnterPriceSold(false) && setShowError(false);
+                                    } else {
+                                        setShowError(true);
+                                        setError('You must enter a price!')
+                                    }
                                 }}>
                                     <CheckCheck size={28}/> Confirm
                                 </Button>
                             </form>
+                            {showError && <ErrorText>{error}</ErrorText>}
                         </>
                     )
                 }
@@ -158,5 +167,12 @@ const Button = styled.button`
     &:hover {
         scale: 1.05;
     }
+`
+
+const ErrorText = styled.span`
+    color: red;
+    font-style: italic;
+    font-size: 1.2rem;
+    font-weight: 400;
 `
 

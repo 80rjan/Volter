@@ -196,6 +196,17 @@ const sellItem = asyncHandler(async (req, res) => {
     }
 })
 
+const getCashRegister = asyncHandler(async (req, res) => {
+
+    try {
+        const cashReg = await db.getCashRegister();
+        console.log(cashReg[0])
+        res.status(200).json({ cashReg: cashReg[0] });
+    } catch (error) {
+        res.status(500).json({ message: "Error getting cash register" });
+    }
+})
+
 module.exports = {
     getAllPawns,
     getPawn,
@@ -207,4 +218,6 @@ module.exports = {
     getSale,
     insertSale,
     sellItem,
+    getCashRegister,
+
 }
