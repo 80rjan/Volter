@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const db = require('../model/queries');
+const {resume} = require("react-dom/server");
 
 const getAllPawns = asyncHandler(async (req, res) => {
     let searchByName = req.query.searchByName !== 'undefined' ? req.query.searchByName : '';
@@ -164,6 +165,37 @@ const getSale = asyncHandler(async (req, res) => {
     }
 })
 
+const insertSale = asyncHandler(async (req, res) => {
+    let clientObj = {
+        name: req.body.name,
+        embg: req.body.embg,
+        telephone: req.body.telephone,
+        city: req.body.city
+    }
+    let saleObj = {
+        priceBought: req.body.price_bought,
+        description: req.body.description
+    }
+
+    try {
+        await db.addNewSale(saleObj, clientObj);
+        res.status(200).redirect('http://localhost:5173/sales');
+    } catch (error) {
+        res.status(500).json({ message: "Error adding new sale " + error });
+    }
+})
+
+const sellItem = asyncHandler(async (req, res) => {
+    const { id, priceSold } = req.body;
+
+    try {
+        const moneyIntoCashReg = await db.closeSale(id, priceSold);
+        res.status(200).json({ moneyIntoCashReg });
+    } catch (error) {
+        res.status(500).json({ message: "Error selling item" });
+    }
+})
+
 module.exports = {
     getAllPawns,
     getPawn,
@@ -173,4 +205,6 @@ module.exports = {
     changePawnToSale,
     getAllSales,
     getSale,
+    insertSale,
+    sellItem,
 }

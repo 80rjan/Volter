@@ -404,6 +404,8 @@ async function closeSale(id, priceSold) {
     `, [priceBought, priceSold])
 
     await pool.query(`COMMIT;`)
+
+    return priceSold;
 }
 
 async function addNewSale(saleObj, clientObj) {

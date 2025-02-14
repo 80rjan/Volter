@@ -17,7 +17,7 @@ export default function ModalReadMoreSale({ saleInfo, closeModal, sellItem }) {
                     <ClientWrapper >
                         <div>
                             <UserRound size={32} />
-                            {client.name}
+                            <p>{client.name}</p>
                         </div>
                         <div>
                             <span>
@@ -120,7 +120,7 @@ const Wrapper = styled.div`
 const InformationWrapper = styled.div`
     display: flex;
     //flex-direction: column;
-    gap: 8rem;
+    gap: 4rem;
 `
 
 const ClientWrapper = styled.div`
@@ -131,17 +131,19 @@ const ClientWrapper = styled.div`
     & > div {
         display: flex;
         flex-direction: column;
-        gap: .4rem;
-    }
-    
-    & > div:first-child {
-        display: flex;
-        flex-direction: row;
         align-items: flex-start;
         gap: .4rem;
+    }
+    & > div:first-child {
+        flex-direction: row;
+        align-items: center;
+    }
+    & > div > p {
         font-size: 1.6rem;
         font-weight: 600;
+        text-wrap: wrap;
     }
+    
 
     span {
         display: flex;

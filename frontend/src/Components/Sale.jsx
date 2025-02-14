@@ -2,33 +2,20 @@ import styled from "styled-components";
 import axios from "axios";
 import {useEffect, useState} from "react";
 import { Euro, RotateCcw, X, Ellipsis } from 'lucide-react'
-import ModalShowMessage from "./ModalShowMessage.jsx";
 import ModalReadMoreSale from "./ModalReadMoreSale.jsx";
+import ModalSellItem from "./ModalSellItem.jsx";
 
 export default function Sale({ sale, refresh, isOdd }) {
-    const [modalSuccessMsg, setModalSuccessMsg] = useState(false);
+    const [modalSellItem, setModalSellItem] = useState(false);
     const [modalReadMore, setModalReadMore] = useState(false);
     const [successMsg, setSuccessMsg] = useState("");
     const [infoMsg, setInfoMsg] = useState("");
     const [saleInfo, setSaleInfo] = useState(null);
-    console.log(sale);
 
     useEffect(() => {
-        if (!modalSuccessMsg)
+        if (!modalSellItem)
             refresh();
-    }, [modalSuccessMsg])
-
-    const sellItem = (id, category) => {
-
-        //Put http which sends the id of the sale to sell item and close sale
-        axios.put(`http://localhost:3000/sales/saleItem`, { id })
-            .then(response => {
-                setSuccessMsg("Successfully sold item")
-                setInfoMsg(`Added ${response.data.moneyIntoCashReg.toLocaleString("de-DE")} into cash register!`)
-                setModalSuccessMsg(true);
-            } )
-            .catch(error => console.error('Error continuing pawn:', error));
-    }
+    }, [modalSellItem])
 
     useEffect(() =>{
         if (saleInfo != null)
@@ -55,17 +42,17 @@ export default function Sale({ sale, refresh, isOdd }) {
             <Text className="bold">{Number(sale["Item Cost"]).toLocaleString("de-DE")}</Text>
             <Text>{sale["Date Bought"].substring(0, 10)}</Text>
             <ButtonWrapper>
-                <Euro size={22} color="var(--green)" onClick={() => sellItem(sale.Id)} />
+                <Euro size={22} color="var(--green)" onClick={() => setModalSellItem(true)} />
             </ButtonWrapper>
             <Ellipsis size={28} color="#888"
                       onClick={() => fetchSale(sale["Client Id"], sale.Id)}
             />
 
-            {modalSuccessMsg &&
-                <ModalShowMessage
-                    closeModal={() => setModalSuccessMsg(false)}
-                    successMsg={successMsg}
-                    infoMsg={infoMsg}
+            {modalSellItem &&
+                <ModalSellItem
+                    closeModal={() => setModalSellItem(false)}
+                    id={sale.Id}
+                    priceBought={sale["Item Cost"]}
                 />
             }
 

@@ -2,7 +2,7 @@ import ReactDom from "react-dom";
 import styled from "styled-components";
 import { X, CircleCheckBig } from 'lucide-react'
 
-export default function ModalShowMessage({ closeModal, successMsg, infoMsg }) {
+export default function ModalShowMessagePawn({ closeModal, successMsg, infoMsg }) {
 
     return ReactDom.createPortal(
         <>
@@ -39,7 +39,7 @@ const Wrapper = styled.div`
     transform: translate(-50%, -50%);
     background: #eee;
     z-index: 1000;
-    padding: 1rem 2rem;
+    padding: 1rem 2rem 2rem 2rem;
     border-radius: 8px;
     min-width: fit-content;
     max-width: 90%;

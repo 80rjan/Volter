@@ -7,6 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/insertPawn': 'http://localhost:3000',
+      '/sales/insertSale': 'http://localhost:3000',
     }
   }
 })

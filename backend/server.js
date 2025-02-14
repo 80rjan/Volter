@@ -16,7 +16,8 @@ app.put('/closePawn', appController.closePawn)
 app.put('/changePawnToSale', appController.changePawnToSale)
 
 app.get('/sales', appController.getAllSales)
-app.put('/sales/saleItem', appController.getAllSales)
 app.get('/sales/getSale', appController.getSale)
+app.post('/sales/insertSale', appController.insertSale)
+app.put('/sales/sellItem', appController.sellItem)
 
 app.listen(3000);

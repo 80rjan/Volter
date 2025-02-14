@@ -2,7 +2,7 @@ import styled from "styled-components";
 import axios from "axios";
 import {useEffect, useState} from "react";
 import { Euro, RotateCcw, X, Ellipsis } from 'lucide-react'
-import ModalShowMessage from "./ModalShowMessage.jsx";
+import ModalShowMessagePawn from "./ModalShowMessagePawn.jsx";
 import ModalReadMorePawn from "./ModalReadMorePawn.jsx";
 
 export default function Pawn({ pawn, refresh, isOdd }) {
@@ -120,7 +120,7 @@ export default function Pawn({ pawn, refresh, isOdd }) {
             />
 
             {modalSuccessMsg &&
-                <ModalShowMessage
+                <ModalShowMessagePawn
                     closeModal={() => setModalSuccessMsg(false)}
                     successMsg={successMsg}
                     infoMsg={infoMsg}
