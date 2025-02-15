@@ -22,4 +22,6 @@ app.put('/sales/sellItem', appController.sellItem)
 
 app.get('/cashRegister', appController.getCashRegister)
 
+app.get('/transactions', appController.getAllTransactions)
+
 app.listen(3000);

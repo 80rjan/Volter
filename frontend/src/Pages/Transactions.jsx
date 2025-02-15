@@ -3,29 +3,31 @@ import axios from "axios";
 import styled from "styled-components";
 import Pawn from "../Components/Pawn.jsx";
 import Nav from "../Components/Nav.jsx";
-import { Plus, X, Euro, RotateCcw, ChevronUp, ChevronDown, Minus} from "lucide-react";
+import {Plus, X, Euro, RotateCcw, ChevronUp, ChevronDown, Minus, Ellipsis} from "lucide-react";
 import ModalAddNewPawn from "../Components/ModalAddNewPawn.jsx";
 import CashRegister from "./CashRegister.jsx";
+import ModalShowMessagePawn from "../Components/ModalShowMessagePawn.jsx";
+import ModalReadMorePawn from "../Components/ModalReadMorePawn.jsx";
 
-export default function Pawns() {
-    const [allPawns, setAllPawns] = useState([]);
-    const [orderBy, setOrderBy] = useState("Valid Until");
+export default function Transactions() {
+    const [allTransactions, setAllTransactions] = useState([]);
+    const [orderBy, setOrderBy] = useState("Date");
     const [orderDirectionArr, setOrderDirectionArr] = useState([0,0,0,0,0,0,1]); // -1=desc 0=normal 1=asc
     const [orderDirection, setOrderDirection] = useState("ASC");
     const [searchByName, setSearchByName] = useState("");
     const [searchByEmbg, setSearchByEmbg] = useState("");
-    const [searchByTel, setSearchByTel] = useState("");
-    const [modalAddNewPawn, setModalAddNewPawn] = useState(false);
+    const [searchByDate, setSearchByDate] = useState("");
     const [refresh, setRefresh] = useState(false);
 
-    const fetchPawns = (order, direction, searchByName, searchByEmbg, searchByTel) => {
-        axios.get(`http://localhost:3000?orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByTel=${searchByTel}`)
+    const fetchTransactions = (order, direction, searchByName, searchByEmbg, searchByDate) => {
+        axios.get(`http://localhost:3000/transactions?orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByDate=${searchByDate}`)
             .then(res => {
-                setAllPawns(res.data)
+                setAllTransactions(res.data)
                 console.log(res.data)
             })
             .catch(error => console.error('Error fetching all pawns:', error));
     }
+
 
     useEffect(() => {
         if (orderDirectionArr.includes(1)) {
@@ -38,27 +40,17 @@ export default function Pawns() {
     }, [orderDirectionArr]);
 
     useEffect(() => {
-        fetchPawns(orderBy, orderDirection, searchByName, searchByEmbg, searchByTel);
-    }, [orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, refresh]);
+        fetchTransactions(orderBy, orderDirection, searchByName, searchByEmbg, searchByDate);
+    }, [orderBy, orderDirection, searchByName, searchByEmbg, searchByDate, refresh]);
 
 
     return (
-        <PawnsPage >
+        <TransactionsPage >
             <Nav />
             <Container >
 
                 <HeaderWrapper >
-                    <h1>Pawns</h1>
-                    <ButtonAddNewPawn
-                        onClick={() => setModalAddNewPawn(true)}
-                    >
-                        <Plus size={22} color="white" strokeWidth={3} />
-                        Add New Pawn
-                    </ButtonAddNewPawn>
-
-                    {modalAddNewPawn && <ModalAddNewPawn
-                        closeModal={() => setModalAddNewPawn(false)}
-                    />}
+                    <h1>Transactions</h1>
                 </HeaderWrapper>
 
                 <FilterWrapper >
@@ -72,14 +64,14 @@ export default function Pawns() {
                                      setSearchByEmbg(e.target.value)
                                  }}
                     />
-                    <StyledInput placeholder="Search by telephone"
+                    <StyledInput placeholder="Search by date"
                                  onKeyUp={(e) => {
-                                     setSearchByTel(e.target.value)
+                                     setSearchByDate(e.target.value)
                                  }}
                     />
                 </FilterWrapper>
 
-                <PawnsWrapper>
+                <TransactionsWrapper>
                     <TableHeader >
                         <Text onClick={() => {
                             setOrderDirectionArr(prev => {
@@ -105,6 +97,9 @@ export default function Pawns() {
                         }}>
                             Name {orderDirectionArr[1] === 0 ? <Minus size={14} /> : orderDirectionArr[1] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
+                        <Text style={{cursor: "default"}}>
+                            Embg
+                        </Text>
                         <Text onClick={() => {
                             setOrderDirectionArr(prev => {
                                 const newDirection = [...prev];
@@ -125,9 +120,9 @@ export default function Pawns() {
                                 res[3] = newDirection[3];
                                 return res;
                             });
-                            setOrderBy("About")
+                            setOrderBy("Description")
                         }}>
-                            About {orderDirectionArr[3] === 0 ? <Minus size={14} /> : orderDirectionArr[3] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Description {orderDirectionArr[3] === 0 ? <Minus size={14} /> : orderDirectionArr[3] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={prev => {
                             setOrderDirectionArr(prev => {
@@ -137,9 +132,9 @@ export default function Pawns() {
                                 res[4] = newDirection[4];
                                 return res;
                             });
-                            setOrderBy("Item Cost")
+                            setOrderBy("Given")
                         }}>
-                            Item Cost {orderDirectionArr[4] === 0 ? <Minus size={14} /> : orderDirectionArr[4] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Given {orderDirectionArr[4] === 0 ? <Minus size={14} /> : orderDirectionArr[4] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={prev => {
                             setOrderDirectionArr(prev => {
@@ -149,9 +144,9 @@ export default function Pawns() {
                                 res[5] = newDirection[5];
                                 return res;
                             });
-                            setOrderBy("Provision")
+                            setOrderBy("Got")
                         }}>
-                            Provision {orderDirectionArr[5] === 0 ? <Minus size={14} /> : orderDirectionArr[5] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Got {orderDirectionArr[5] === 0 ? <Minus size={14} /> : orderDirectionArr[5] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={prev => {
                             setOrderDirectionArr(prev => {
@@ -161,49 +156,49 @@ export default function Pawns() {
                                 res[6] = newDirection[6];
                                 return res;
                             });
-                            setOrderBy("Days Left")
+                            setOrderBy("Profit")
                         }}>
-                            Days Left {orderDirectionArr[6] === 0 ? <Minus size={14} /> : orderDirectionArr[6] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Profit {orderDirectionArr[6] === 0 ? <Minus size={14} /> : orderDirectionArr[6] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
-                        <Text style={{cursor: "default"}}>Valid Until</Text>
-                        <Text style={{cursor: "default"}}>Actions</Text>
-                        <Text style={{cursor: "default"}}>More</Text>
+                        <Text onClick={prev => {
+                            setOrderDirectionArr(prev => {
+                                const newDirection = [...prev];
+                                newDirection[6] = newDirection[6] === 0 ? 1 : newDirection[6] === 1 ? -1 : 0;
+                                const res = [0,0,0,0,0,0,0]
+                                res[6] = newDirection[6];
+                                return res;
+                            });
+                            setOrderBy("Date")
+                        }}>
+                            Date {orderDirectionArr[6] === 0 ? <Minus size={14} /> : orderDirectionArr[6] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        </Text>
                     </TableHeader>
 
-                    <ScrollablePawns>
-                        { allPawns.map((pawn, index) => (
-                            <Pawn
-                                pawn={pawn}
-                                key={index}
-                                refresh={() => setRefresh(prev => !prev)}
-                                isOdd={index%2 !== 0}
-                            />
+                    <ScrollableTransactions>
+                        { allTransactions.map((transaction, index) => (
+                            <Transaction key={index} style={index % 2 === 1 ? {background: "#f0f0f0"} : {background: "#ffffff"}}>
+                                <TextTransaction>{transaction["Client Id"]}</TextTransaction>
+                                <TextTransaction>{transaction.Name}</TextTransaction>
+                                <TextTransaction>{transaction.Embg}</TextTransaction>
+                                <TextTransaction>{transaction.Category}</TextTransaction>
+                                <TextTransaction>{transaction.Description}</TextTransaction>
+                                <TextTransaction className="bold">{Number(transaction.Given).toLocaleString("de-DE")}</TextTransaction>
+                                <TextTransaction className="bold">{Number(transaction.Got).toLocaleString("de-DE")}</TextTransaction>
+                                <TextTransaction className="bold">{Number(transaction.Profit).toLocaleString("de-DE")}</TextTransaction>
+                                <TextTransaction>{transaction.Date.substring(0, 10)}</TextTransaction>
+                            </Transaction>
                         )) }
-                    </ScrollablePawns>
+                    </ScrollableTransactions>
 
-                    <TableFooter>
-                        <div>
-                            <X size={18} color="#000"/>
-                            <span> - Close Pawn</span>
-                        </div>
-                        <div>
-                            <RotateCcw size={18} color="var(--cta-color)" />
-                            <span> - Continue Pawn</span>
-                        </div>
-                        <div>
-                            <Euro size={18} color="var(--green)" />
-                            <span> - Move To Sale</span>
-                        </div>
-                    </TableFooter>
-                </PawnsWrapper>
+                </TransactionsWrapper>
 
                 <CashRegister refreshDependancy={refresh} />
             </Container>
-        </PawnsPage>
+        </TransactionsPage>
     )
 }
 
-const PawnsPage = styled.div`
+const TransactionsPage = styled.div`
     height: 100vh;
     display: grid;
     grid-template-columns: max(10%, 220px) auto;
@@ -224,32 +219,6 @@ const HeaderWrapper = styled.div`
     width: 100%;
 `
 
-const ButtonAddNewPawn = styled.button`
-    background: var(--green);
-    height: fit-content;
-    color: white;
-    border-radius: .4rem;
-    display: flex;
-    align-items: center;
-    padding: .6rem 1.6rem;
-    font-size: 1.2rem;
-    box-shadow: 4px 2px 6px rgba(0,0,0,0.2);
-    gap: .5rem;
-    transition: all 250ms ease-in-out;
-    
-    svg {
-        transition: all 500ms ease-in-out;
-    }
-    
-    &:hover {
-        scale: 1.05;
-        
-        svg {
-            transform: rotate(90deg);
-        }
-    }
-`
-
 const FilterWrapper = styled.div`
     display: flex;
     justify-content: space-between;
@@ -265,7 +234,7 @@ const StyledInput = styled.input`
     box-shadow: 0 0 8px rgba(0,0,0,0.2);
 `
 
-const PawnsWrapper = styled.div`
+const TransactionsWrapper = styled.div`
     display: flex;
     flex-direction: column;
     background: white;
@@ -279,7 +248,8 @@ const PawnsWrapper = styled.div`
 const TableHeader = styled.div`
     display: grid;
     place-items: center;
-    grid-template-columns: 2rem 1fr 1fr 2fr repeat(4, 1fr) 1.5fr .5fr;
+    grid-template-columns: 2rem repeat(3, 1fr) repeat(4, 1.5fr) 1fr;
+    gap: 1rem;
     padding: 1rem .5rem;
     //color: #eeeeee;
     border-bottom: rgba(0, 0, 0, 0.2) 2px solid;
@@ -294,7 +264,7 @@ const Text = styled.div`
     align-items: center;
 `
 
-const ScrollablePawns = styled.div`
+const ScrollableTransactions = styled.div`
     overflow-y: auto;
     flex-grow: 1;
     
@@ -311,6 +281,24 @@ const ScrollablePawns = styled.div`
         &:hover {
             background: #aaa;
         }
+    }
+`
+
+const Transaction = styled.div`
+    display: grid;
+    place-items: center;
+    grid-template-columns: 2rem repeat(3, 1fr) repeat(4, 1.5fr) 1fr;
+    gap: .4rem;
+    padding: .8rem;
+    border-bottom: rgba(0,0,0,0.2) 2px solid;
+`
+
+const TextTransaction = styled.p`
+    font-weight: 500;
+    font-size: .8rem;
+    
+    &.bold {
+        font-weight: bold;
     }
 `
 

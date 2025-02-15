@@ -25,7 +25,6 @@ export default function Sale({ sale, refresh, isOdd }) {
     const fetchSale = (clientId, saleId) => {
         axios.get(`http://localhost:3000/sales/getSale?clientId=${clientId}&saleId=${saleId}`)
             .then(res => {
-                console.log(res.data.saleInfo)
                 setSaleInfo(res.data.saleInfo)
             })
             .catch(error => {

@@ -7,9 +7,16 @@ const getAllPawns = asyncHandler(async (req, res) => {
     let searchByEmbg = req.query.searchByEmbg !== 'undefined' ? req.query.searchByEmbg : '';
     let searchByTel = req.query.searchByTel !== 'undefined' ? req.query.searchByTel : '';
 
-    const pawns = await db.getAllPawns(req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, searchByTel);
-    res.send(pawns);
-})
+    try {
+        const pawns = await db.getAllPawns(req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, searchByTel);
+        console.log("Pawns data:", pawns); // Log the data being sent
+        res.send(pawns);
+    } catch (error) {
+        console.error("Error fetching pawns:", error);
+        res.status(500).send({ message: 'Error fetching pawns' });
+    }
+});
+
 
 const getPawn = asyncHandler(async (req, res) => {
     try {
@@ -153,9 +160,6 @@ const getAllSales = asyncHandler(async (req, res) => {
 })
 
 const getSale = asyncHandler(async (req, res) => {
-    console.log("Im here")
-    console.log(req.query.clientId)
-    console.log(req.query.saleId)
 
     try {
         const saleInfo = await db.getSale(req.query.clientId, req.query.saleId);
@@ -200,11 +204,20 @@ const getCashRegister = asyncHandler(async (req, res) => {
 
     try {
         const cashReg = await db.getCashRegister();
-        console.log(cashReg[0])
         res.status(200).json({ cashReg: cashReg[0] });
     } catch (error) {
         res.status(500).json({ message: "Error getting cash register" });
     }
+})
+
+const getAllTransactions = asyncHandler(async (req, res) => {
+    let searchByName = req.query.searchByName !== 'undefined' ? req.query.searchByName : '';
+    let searchByEmbg = req.query.searchByEmbg !== 'undefined' ? req.query.searchByEmbg : '';
+    let searchByDate = req.query.searchByDate && req.query.searchByDate !== 'undefined' && req.query.searchByDate !== '' ? req.query.searchByDate : null;
+
+
+    const transactions = await db.getAllTransactions(req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, searchByDate);
+    res.send(transactions);
 })
 
 module.exports = {
@@ -219,5 +232,6 @@ module.exports = {
     insertSale,
     sellItem,
     getCashRegister,
+    getAllTransactions,
 
 }

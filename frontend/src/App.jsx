@@ -3,7 +3,7 @@ import './App.css'
 import Pawns from "./Pages/Pawns.jsx";
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import Sales from "./Pages/Sales.jsx";
-import CashRegisterTest from "./Pages/CashRegisterTest.jsx";
+import Transactions from "./Pages/Transactions.jsx";
 
 const router = createBrowserRouter([
     {
@@ -16,7 +16,7 @@ const router = createBrowserRouter([
     },
     {
         path: '/transactions',
-        element: <h1>Transactions</h1>
+        element: <Transactions />
     },
     {
         path: '/monthlyReport',

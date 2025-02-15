@@ -9,7 +9,7 @@ async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByE
         ep.id AS "Id",
         ep.brand || ' ' || ep.year || ' ' || ep.description AS "About", 
         ep.date_to AS "Valid Until", 
-        (ep.date_to - CURRENT_DATE) AS "Days Left",  
+        EXTRACT(DAY FROM (ep.date_to - CURRENT_TIMESTAMP)) AS "Days Left",  
         ep.price_pawned * (ep.provision / 100) AS "Provision", 
         ep.price_pawned AS "Item Cost"
     FROM client c
@@ -26,7 +26,7 @@ async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByE
         gp.id AS "Id",
         gp.weight || 'g ' || gp.carats || 'k ' || gp.type || ' ' || gp.description AS "About", 
         gp.date_to AS "Valid Until", 
-        (gp.date_to - CURRENT_DATE) AS "Days Left", 
+        EXTRACT(DAY FROM (gp.date_to - CURRENT_TIMESTAMP)) AS "Days Left", 
         gp.price_pawned * (gp.provision / 100) AS "Provision", 
         gp.price_pawned AS "Item Cost"
     FROM client c
@@ -43,7 +43,7 @@ async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByE
         op.id AS "Id",
         op.description AS "About", 
         op.date_to AS "Valid Until", 
-        (op.date_to - CURRENT_DATE) AS "Days Left", 
+        EXTRACT(DAY FROM (op.date_to - CURRENT_TIMESTAMP)) AS "Days Left", 
         op.price_pawned * (op.provision / 100) AS "Provision", 
         op.price_pawned AS "Item Cost"
     FROM client c
@@ -60,7 +60,7 @@ async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByE
         vp.id AS "Id",
         vp.brand || ' ' || vp.model || ' ' || vp.year || ' ' || vp.description AS "About", 
         vp.date_to AS "Valid Until", 
-        (vp.date_to - CURRENT_DATE) AS "Days Left",
+        EXTRACT(DAY FROM (vp.date_to - CURRENT_TIMESTAMP)) AS "Days Left",
         vp.price_pawned * (vp.provision / 100) AS "Provision", 
         vp.price_pawned AS "Item Cost"
     FROM client c
@@ -77,7 +77,7 @@ async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByE
         wp.id AS "Id",
         wp.brand || ' ' || wp.year || ', ' || wp.description AS "About", 
         wp.date_to AS "Valid Until", 
-        (wp.date_to - CURRENT_DATE) AS "Days Left",
+        EXTRACT(DAY FROM (wp.date_to - CURRENT_TIMESTAMP)) AS "Days Left",
         wp.price_pawned * (wp.provision / 100) AS "Provision", 
         wp.price_pawned AS "Item Cost"
     FROM client c
@@ -132,11 +132,18 @@ async function closePawn(id, tableName) {
         WHERE id = $1;
     `, [id])
 
+
+    let transactionCategory = tableName === "electronics_pawn" ? "Electronics" :
+                    tableName === "gold_pawn" ? "Gold" :
+                    tableName === "vehicle_pawn" ? "Vehicle" :
+                    tableName === "watch_pawn" ? "Watch" : "Other";
+    let transactionDescription = "Closed pawn";
+
     //Insert a new transaction with cash inserted and profit made
     await pool.query(`
-        INSERT INTO transaction (client_id, money_given, money_got, profit, date)
-        VALUES ($1, 0, $2, $3, CURRENT_DATE);
-    `, [clientId, pawnMoney, provisionMoney])
+        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
+        VALUES ($1, $2, $3, 0, $4, $5, CURRENT_TIMESTAMP);
+    `, [clientId, transactionCategory, transactionDescription, pawnMoney, provisionMoney])
 
     //Update cash register with money inserted, decrease numPawns and decrease moneyPawns
     await pool.query(`
@@ -177,11 +184,18 @@ async function continuePawn(id, tableName) {
         WHERE id = $1;
     `, [id])
 
+
+    let transactionCategory = tableName === "electronics_pawn" ? "Electronics" :
+        tableName === "gold_pawn" ? "Gold" :
+            tableName === "vehicle_pawn" ? "Vehicle" :
+                tableName === "watch_pawn" ? "Watch" : "Other";
+    let transactionDescription = "Continued pawn";
+
     //Insert a new transaction with profit made
     await pool.query(`
-        INSERT INTO transaction (client_id, money_given, money_got, profit, date)
-        VALUES ($1, 0, 0, $2, CURRENT_DATE);
-    `, [clientId, provisionMoney])
+        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
+        VALUES ($1, $2, $3, 0, 0, $4, CURRENT_TIMESTAMP);
+    `, [clientId, transactionCategory, transactionDescription, provisionMoney])
 
     //Update cash register with money inserted
     await pool.query(`
@@ -220,38 +234,44 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
     switch (pawnCategory) {
         case 'electronics_pawn': await pool.query(`
             INSERT INTO electronics_pawn (client_id, brand, year, price_pawned, price_to_redeem, provision, date_from, date_to, total_days, description)
-            VALUES ($1, $2, $3, $4, $5, $6, CURRENT_DATE, CURRENT_DATE + $7 * INTERVAL '1 day', $7, $8);
+            VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + $7 * INTERVAL '1 day', $7, $8);
         `, [clientId, pawnObj.brand, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description]);
             break;
         case 'gold_pawn': await pool.query(`
             INSERT INTO gold_pawn (client_id, weight, carats, price_per_gram, price_pawned, price_to_redeem, provision, date_from, date_to, total_days, description, type)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_DATE, CURRENT_DATE + $8 * INTERVAL '1 day', $8, $9, $10);
+            VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + $8 * INTERVAL '1 day', $8, $9, $10);
         `, [clientId, pawnObj.weight, pawnObj.carats, pawnObj.price_per_gram, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description, pawnObj.type]);
             break;
         case 'other_pawn': await pool.query(`
             INSERT INTO other_pawn (client_id, price_pawned, price_to_redeem, provision, date_from, date_to, total_days, description)
-            VALUES ($1, $2, $3, $4, CURRENT_DATE, CURRENT_DATE + $5 * INTERVAL '1 day', $5, $6);
+            VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + $5 * INTERVAL '1 day', $5, $6);
         `, [clientId, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description]);
             break;
         case 'vehicle_pawn': await pool.query(`
             INSERT INTO vehicle_pawn (client_id, brand, model, year, price_pawned, price_to_redeem, provision, date_from, date_to, total_days, description)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_DATE, CURRENT_DATE + $8 * INTERVAL '1 day',  $8, $9);
+            VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + $8 * INTERVAL '1 day',  $8, $9);
         `, [clientId, pawnObj.brand, pawnObj.model, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description]);
             break;
         case 'watch_pawn': await pool.query(`
             INSERT INTO watch_pawn (client_id, brand, year, price_pawned, price_to_redeem, provision, date_from, date_to, total_days, description)
-            VALUES ($1, $2, $3, $4, $5, $6, CURRENT_DATE, CURRENT_DATE + $7 * INTERVAL '1 day', $7, $8);
+            VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + $7 * INTERVAL '1 day', $7, $8);
         `, [clientId, pawnObj.brand, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description]);
             break;
         default:
             throw new Error("Invalid pawn table name to ADD PAWN");
     }
 
+    let transactionCategory = pawnCategory === "electronics_pawn" ? "Electronics" :
+                pawnCategory === "gold_pawn" ? "Gold" :
+                pawnCategory === "vehicle_pawn" ? "Vehicle" :
+                pawnCategory === "watch_pawn" ? "Watch" : "Other";
+    let transactionDescription = "Added new pawn";
+
     //Insert a new transaction where money is given to client for pawn
     await pool.query(`
-        INSERT INTO transaction (client_id, money_given, money_got, profit, date)
-        VALUES ($1, $2, 0, 0, CURRENT_DATE);
-    `, [clientId, pawnObj.price_pawned])
+        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
+        VALUES ($1, $2, $3, $4, 0, 0, CURRENT_TIMESTAMP);
+    `, [clientId, transactionCategory, transactionDescription, pawnObj.price_pawned])
 
     //Update cash register with money taken, increase numPawns and increase moneyPawns
     await pool.query(`
@@ -310,7 +330,7 @@ async function changePawnToSale(id, pawnCategory) {
     //Insert sale into sale table
     await pool.query(`
         INSERT INTO sale (client_id, price_bought, date_from, description)
-        VALUES ($1, $2, CURRENT_DATE, $3)
+        VALUES ($1, $2, CURRENT_TIMESTAMP, $3)
     `, [clientId, priceBought, description])
 
     //Delete pawn from pawn table
@@ -319,11 +339,17 @@ async function changePawnToSale(id, pawnCategory) {
         WHERE id = $1;
     `, [id])
 
+    let transactionCategory = pawnCategory === "electronics_pawn" ? "Electronics" :
+        pawnCategory === "gold_pawn" ? "Gold" :
+            pawnCategory === "vehicle_pawn" ? "Vehicle" :
+                pawnCategory === "watch_pawn" ? "Watch" : "Other";
+    let transactionDescription = "Transferred pawn to sale";
+
     //Insert a new transaction with profit made
     await pool.query(`
-        INSERT INTO transaction (client_id, money_given, money_got, profit, date)
-        VALUES ($1, 0, 0, $2, CURRENT_DATE);
-    `, [clientId, provisionMoney])
+        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
+        VALUES ($1, $2, $3, 0, 0, $4, CURRENT_TIMESTAMP);
+    `, [clientId, transactionCategory, transactionDescription, provisionMoney])
 
     //Update cash register with money inserted, decrease numPawns, decrease moneyPawns, increase numSales and increase moneySales
     await pool.query(`
@@ -387,11 +413,14 @@ async function closeSale(id, priceSold) {
         WHERE id = $1;
     `, [id])
 
+    let transactionCategory = "Sale";
+    let transactionDescription = "Closed sale";
+
     //Insert a new transaction with cash inserted and profit made
     await pool.query(`
-        INSERT INTO transaction (client_id, money_given, money_got, profit, date)
-        VALUES ($1, 0, $2, $3, CURRENT_DATE);
-    `, [clientId, priceBought, priceSold-priceBought])
+        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
+        VALUES ($1, $2, $3, 0, $4, $5, CURRENT_TIMESTAMP);
+    `, [clientId, transactionCategory, transactionDescription, priceBought, priceSold-priceBought])
 
     //Update cash register with money inserted, decrease numSales and decrease moneySales
     await pool.query(`
@@ -426,14 +455,17 @@ async function addNewSale(saleObj, clientObj) {
     //Insert a new sale into sale table
     await pool.query(`
         INSERT INTO sale (client_id, price_bought, date_from, description)
-        VALUES ($1, $2, CURRENT_DATE, $3)
+        VALUES ($1, $2, CURRENT_TIMESTAMP, $3)
     `, [clientId, saleObj.priceBought, saleObj.description])
+
+    let transactionCategory = "Sale";
+    let transactionDescription = "Added new sale";
 
     //Insert a new transaction with money given
     await pool.query(`
-        INSERT INTO transaction (client_id, money_given, money_got, profit, date)
-        VALUES ($1, $2, 0, 0, CURRENT_DATE);
-    `, [clientId, saleObj.priceBought])
+        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
+        VALUES ($1, $2, $3, $4, 0, 0, CURRENT_TIMESTAMP);
+    `, [clientId, transactionCategory, transactionDescription, saleObj.priceBought])
 
     //Update cash register with money given, increase numSales and increase moneySales
     await pool.query(`
@@ -457,6 +489,29 @@ async function getCashRegister() {
     return rows;
 }
 
+async function getAllTransactions(orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByDate = "") {
+    const { rows } = await pool.query(`
+    SELECT 
+        c.id AS "Client Id", 
+        c.name AS "Name", 
+        c.embg AS "Embg",
+        t.id AS "Id",
+        t.money_given AS "Given",
+        t.money_got AS "Got",
+        t.profit AS "Profit",
+        t.date AS "Date",
+        t.category AS "Category",
+        t.description AS "Description"
+    FROM client c
+    INNER JOIN transaction t
+        ON c.id = t.client_id
+    WHERE c.name LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND ($3::DATE IS NULL OR t.date = $3::DATE)
+    ORDER BY "${orderBy}" ${orderDirection};
+    `, [searchByName, searchByEmbg, searchByDate])
+
+    return rows;
+}
+
 module.exports = {
     getAllPawns,
     getPawn,
@@ -470,5 +525,6 @@ module.exports = {
     addNewSale,
     getAllClients,
     getCashRegister,
+    getAllTransactions,
 
 }

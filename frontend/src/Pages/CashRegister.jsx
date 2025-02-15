@@ -10,8 +10,6 @@ export default function CashRegister({ refreshDependancy }) {
         axios.get(`http://localhost:3000/cashRegister`)
             .then(res => {
                 setCashReg(res.data.cashReg)
-                console.log(res.data.cashReg)
-                console.log(res.data.cashReg.last_updated)
             })
             .catch(error => console.error('Error fetching cash register', error));
     }
