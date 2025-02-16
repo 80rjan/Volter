@@ -210,6 +210,28 @@ const getCashRegister = asyncHandler(async (req, res) => {
     }
 })
 
+const insertIntoCashRegister = asyncHandler(async (req, res) => {
+    const { amount, description } = req.body;
+
+    try {
+        await db.insertIntoCashRegister(Number(amount), description);
+        res.status(200).end();
+    } catch (error) {
+        res.status(500).json({ message: "Error inserting into cash register " + error });
+    }
+})
+
+const removeFromCashRegister = asyncHandler(async (req, res) => {
+    const { amount, description } = req.body;
+
+    try {
+        await db.removeFromCashRegister(Number(amount), description);
+        res.status(200).end();
+    } catch (error) {
+        res.status(500).json({ message: "Error removing from cash register " + error });
+    }
+})
+
 const getAllTransactions = asyncHandler(async (req, res) => {
     let searchByName = req.query.searchByName !== 'undefined' ? req.query.searchByName : '';
     let searchByEmbg = req.query.searchByEmbg !== 'undefined' ? req.query.searchByEmbg : '';
@@ -232,6 +254,8 @@ module.exports = {
     insertSale,
     sellItem,
     getCashRegister,
+    insertIntoCashRegister,
+    removeFromCashRegister,
     getAllTransactions,
 
 }

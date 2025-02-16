@@ -12,8 +12,8 @@ import ModalReadMorePawn from "../Components/ModalReadMorePawn.jsx";
 export default function Transactions() {
     const [allTransactions, setAllTransactions] = useState([]);
     const [orderBy, setOrderBy] = useState("Date");
-    const [orderDirectionArr, setOrderDirectionArr] = useState([0,0,0,0,0,0,1]); // -1=desc 0=normal 1=asc
-    const [orderDirection, setOrderDirection] = useState("ASC");
+    const [orderDirectionArr, setOrderDirectionArr] = useState([0,0,0,0,0,0, 0,-1]); // -1=desc 0=normal 1=asc
+    const [orderDirection, setOrderDirection] = useState("DESC");
     const [searchByName, setSearchByName] = useState("");
     const [searchByEmbg, setSearchByEmbg] = useState("");
     const [searchByDate, setSearchByDate] = useState("");
@@ -77,7 +77,7 @@ export default function Transactions() {
                             setOrderDirectionArr(prev => {
                                 const newDirection = [...prev];
                                 newDirection[0] = newDirection[0] === 0 ? 1 : newDirection[0] === 1 ? -1 : 0;
-                                const res = [0,0,0,0,0,0,0]
+                                const res = [0,0,0,0,0,0,0,0]
                                 res[0] = newDirection[0];
                                 return res;
                             });
@@ -89,7 +89,7 @@ export default function Transactions() {
                             setOrderDirectionArr(prev => {
                                 const newDirection = [...prev];
                                 newDirection[1] = newDirection[1] === 0 ? 1 : newDirection[1] === 1 ? -1 : 0;
-                                const res = [0,0,0,0,0,0,0]
+                                const res = [0,0,0,0,0,0,0,0]
                                 res[1] = newDirection[1];
                                 return res;
                             });
@@ -104,7 +104,7 @@ export default function Transactions() {
                             setOrderDirectionArr(prev => {
                                 const newDirection = [...prev];
                                 newDirection[2] = newDirection[2] === 0 ? 1 : newDirection[2] === 1 ? -1 : 0;
-                                const res = [0,0,0,0,0,0,0]
+                                const res = [0,0,0,0,0,0,0,0]
                                 res[2] = newDirection[2];
                                 return res;
                             });
@@ -116,7 +116,7 @@ export default function Transactions() {
                             setOrderDirectionArr(prev => {
                                 const newDirection = [...prev];
                                 newDirection[3] = newDirection[3] === 0 ? 1 : newDirection[3] === 1 ? -1 : 0;
-                                const res = [0,0,0,0,0,0,0]
+                                const res = [0,0,0,0,0,0,0,0]
                                 res[3] = newDirection[3];
                                 return res;
                             });
@@ -128,7 +128,7 @@ export default function Transactions() {
                             setOrderDirectionArr(prev => {
                                 const newDirection = [...prev];
                                 newDirection[4] = newDirection[4] === 0 ? 1 : newDirection[4] === 1 ? -1 : 0;
-                                const res = [0,0,0,0,0,0,0]
+                                const res = [0,0,0,0,0,0,0,0]
                                 res[4] = newDirection[4];
                                 return res;
                             });
@@ -140,7 +140,7 @@ export default function Transactions() {
                             setOrderDirectionArr(prev => {
                                 const newDirection = [...prev];
                                 newDirection[5] = newDirection[5] === 0 ? 1 : newDirection[5] === 1 ? -1 : 0;
-                                const res = [0,0,0,0,0,0,0]
+                                const res = [0,0,0,0,0,0,0,0]
                                 res[5] = newDirection[5];
                                 return res;
                             });
@@ -152,7 +152,7 @@ export default function Transactions() {
                             setOrderDirectionArr(prev => {
                                 const newDirection = [...prev];
                                 newDirection[6] = newDirection[6] === 0 ? 1 : newDirection[6] === 1 ? -1 : 0;
-                                const res = [0,0,0,0,0,0,0]
+                                const res = [0,0,0,0,0,0,0,0]
                                 res[6] = newDirection[6];
                                 return res;
                             });
@@ -163,14 +163,14 @@ export default function Transactions() {
                         <Text onClick={prev => {
                             setOrderDirectionArr(prev => {
                                 const newDirection = [...prev];
-                                newDirection[6] = newDirection[6] === 0 ? 1 : newDirection[6] === 1 ? -1 : 0;
-                                const res = [0,0,0,0,0,0,0]
-                                res[6] = newDirection[6];
+                                newDirection[7] = newDirection[7] === 0 ? 1 : newDirection[7] === 1 ? -1 : 0;
+                                const res = [0,0,0,0,0,0,0,0]
+                                res[7] = newDirection[7];
                                 return res;
                             });
                             setOrderBy("Date")
                         }}>
-                            Date {orderDirectionArr[6] === 0 ? <Minus size={14} /> : orderDirectionArr[6] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Date {orderDirectionArr[7] === 0 ? <Minus size={14} /> : orderDirectionArr[7] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                     </TableHeader>
 

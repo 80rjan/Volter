@@ -2,9 +2,13 @@ import {useEffect, useState} from "react";
 import axios from "axios";
 import { Handshake, Tag, Sigma, CalendarClock, Plus, Minus } from "lucide-react"
 import styled from "styled-components";
+import ModalAdjustCashRegister from "../Components/ModalAdjustCashRegister.jsx";
 
 export default function CashRegister({ refreshDependancy }) {
     const [cashReg, setCashReg] = useState({});
+    const [showModalInsert, setShowModalInsert] = useState(false);
+    const [showModalRemove, setShowModalRemove] = useState(false);
+    const [refresh, setRefresh] = useState(refreshDependancy);
 
     const fetchCashRegister = () => {
         axios.get(`http://localhost:3000/cashRegister`)
@@ -16,7 +20,7 @@ export default function CashRegister({ refreshDependancy }) {
 
     useEffect(() => {
         fetchCashRegister();
-    }, [refreshDependancy]);
+    }, [refreshDependancy, refresh]);
 
     return (
         <Wrapper >
@@ -43,9 +47,20 @@ export default function CashRegister({ refreshDependancy }) {
                 <Value >{ Object.keys(cashReg).length > 0 && cashReg.last_updated.substring(11, 16) }</Value>
             </TextWrapper>
             <ActionsWrapper >
-                <Minus size={24} color="var(--dark-red)"/>
-                <Plus size={24} color="var(--green)"/>
+                <Minus size={24} color="var(--dark-red)" onClick={() => setShowModalRemove(true)}/>
+                <Plus size={24} color="var(--green)" onClick={() => setShowModalInsert(true)}/>
             </ActionsWrapper>
+
+            {showModalInsert && <ModalAdjustCashRegister
+                closeModal={() => setShowModalInsert(false)}
+                isInsert={true}
+                refresh={() => setRefresh(prev => !prev)}
+            /> }
+            {showModalRemove && <ModalAdjustCashRegister
+                closeModal={() => setShowModalRemove(false)}
+                isInsert={false}
+                refresh={() => setRefresh(prev => !prev)}
+            /> }
         </Wrapper>
     )
 }

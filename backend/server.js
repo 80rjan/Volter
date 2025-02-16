@@ -21,6 +21,8 @@ app.post('/sales/insertSale', appController.insertSale)
 app.put('/sales/sellItem', appController.sellItem)
 
 app.get('/cashRegister', appController.getCashRegister)
+app.put('/cashRegister/insert', appController.insertIntoCashRegister)
+app.put('/cashRegister/remove', appController.removeFromCashRegister)
 
 app.get('/transactions', appController.getAllTransactions)
 

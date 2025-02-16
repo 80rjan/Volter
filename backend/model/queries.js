@@ -489,6 +489,36 @@ async function getCashRegister() {
     return rows;
 }
 
+async function insertIntoCashRegister(amount, description) {
+
+    await pool.query(`
+        UPDATE cash_register
+        SET
+            register_money = register_money + $1,
+            last_updated = NOW()
+    `, [amount])
+
+    await pool.query(`
+        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
+        VALUES (0, 'Insert', $1, 0, $2, 0, CURRENT_TIMESTAMP);
+    `, [description, amount])
+}
+
+async function removeFromCashRegister(amount, description) {
+
+    await pool.query(`
+        UPDATE cash_register
+        SET
+            register_money = register_money - $1,
+            last_updated = NOW()
+    `, [amount])
+
+    await pool.query(`
+        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
+        VALUES (0, 'Remove', $1, $2, 0, 0, CURRENT_TIMESTAMP);
+    `, [description, amount])
+}
+
 async function getAllTransactions(orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByDate = "") {
     const { rows } = await pool.query(`
     SELECT 
@@ -525,6 +555,8 @@ module.exports = {
     addNewSale,
     getAllClients,
     getCashRegister,
+    insertIntoCashRegister,
+    removeFromCashRegister,
     getAllTransactions,
 
 }

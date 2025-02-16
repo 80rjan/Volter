@@ -8,8 +8,6 @@ import ModalSellItem from "./ModalSellItem.jsx";
 export default function Sale({ sale, refresh, isOdd }) {
     const [modalSellItem, setModalSellItem] = useState(false);
     const [modalReadMore, setModalReadMore] = useState(false);
-    const [successMsg, setSuccessMsg] = useState("");
-    const [infoMsg, setInfoMsg] = useState("");
     const [saleInfo, setSaleInfo] = useState(null);
 
     useEffect(() => {

@@ -5,7 +5,6 @@ import { UserRound, Euro, X, Tag } from 'lucide-react'
 export default function ModalReadMoreSale({ saleInfo, closeModal, sellItem }) {
     const client = saleInfo.client;
     const sale = saleInfo.sale;
-    console.log(sale)
 
     return ReactDom.createPortal(
         <>
