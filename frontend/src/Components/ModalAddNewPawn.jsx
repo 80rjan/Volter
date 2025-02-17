@@ -1,11 +1,19 @@
 import styled from "styled-components";
 import ReactDom from "react-dom";
 import { X, CircleX, CopyPlus, CheckCheck, User, Database } from 'lucide-react'
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import axios from "axios";
+import {Autocomplete, TextField} from "@mui/material";
 
 export default function ModalAddNewPawn({ closeModal }) {
     const [category, setCategory] = useState("electronics_pawn")
+    const [clients, setClients] = useState([]);
+    const [formData, setFormData] = useState({
+        name: '',
+        embg: '',
+        telephone: '',
+        city: '',
+    });
 
     const renderCategoryInputs = () => {
         switch (category) {
@@ -16,6 +24,41 @@ export default function ModalAddNewPawn({ closeModal }) {
             case "other_pawn": return <OtherInputs />
         }
     }
+
+    const handleObjectSelect = (event, value) => {
+        console.log(value)
+        if (value) {
+            setFormData({
+                name: value.name,
+                embg: value.embg,
+                telephone: value.telephone,
+                city: value.city,
+            });
+        }
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
+
+    const fetchClients = () => {
+        axios.get(`http://localhost:3000/clients`)
+            .then(res => {
+                console.log(res.data.clients)
+                setClients(res.data.clients);
+            })
+            .catch(error => {
+                console.error('Error fetching all clients:', error);
+            });
+    }
+
+    useEffect(() => {
+        fetchClients()
+    }, []);
 
     return ReactDom.createPortal(
         <>
@@ -32,12 +75,68 @@ export default function ModalAddNewPawn({ closeModal }) {
                 </Header>
                 <Form method="post" action="/insertPawn" >
                     <div>
-                        <ClientInputs >
+                        <ClientInputs>
                             <span><User size={20} /> Enter Client Details</span>
-                            <StyledInput placeholder="Client name" name="name" required />
-                            <StyledInput placeholder="Client embg" name="embg" required />
-                            <StyledInput placeholder="Client telephone" name="telephone" required />
-                            <StyledInput placeholder="Client city" name="city" required />
+                            <Autocomplete
+                                options={clients}
+                                getOptionLabel={(option) => option.name}
+                                onChange={handleObjectSelect}
+                                renderInput={(params) => <TextField {...params} label="Search existing clients" />}
+                                isOptionEqualToValue={(option, value) => option.id === value.id} // Optional: ensures the correct option is selected
+                                renderOption={(props, option) => (
+                                    <li {...props} key={option.id} style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '.1rem',
+                                        alignItems: 'flex-start'
+                                    }}>
+                                        <strong>{option.name}</strong>
+                                        <span>{option.embg}</span>
+                                        <span>{option.telephone}</span>
+                                    </li>
+                                )}
+                                filterOptions={(options, state) =>
+                                    options.filter(option =>
+                                        option.name.toLowerCase().includes(state.inputValue.toLowerCase()) ||
+                                        option.embg.includes(state.inputValue) ||
+                                        option.telephone.includes(state.inputValue)
+                                    )
+                                }
+                                sx={{
+                                    background: "white",
+                                    borderRadius: ".3rem",
+                                    fontSize: "1rem",
+                                    boxShadow: "0 0 4px rgba(0,0,0,0.2)",
+                                }}
+                            />
+                            <StyledInput
+                                placeholder="Client name"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleInputChange}
+                                required
+                            />
+                            <StyledInput
+                                placeholder="Client embg"
+                                name="embg"
+                                value={formData.embg}
+                                onChange={handleInputChange}
+                                required
+                            />
+                            <StyledInput
+                                placeholder="Client telephone"
+                                name="telephone"
+                                value={formData.telephone}
+                                onChange={handleInputChange}
+                                required
+                            />
+                            <StyledInput
+                                placeholder="Client city"
+                                name="city"
+                                value={formData.city}
+                                onChange={handleInputChange}
+                                required
+                            />
                         </ClientInputs>
                         <PawnInputs>
                             <span><Database size={20}/> Enter Pawn Details</span> <p></p>

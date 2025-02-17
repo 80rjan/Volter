@@ -26,4 +26,6 @@ app.put('/cashRegister/remove', appController.removeFromCashRegister)
 
 app.get('/transactions', appController.getAllTransactions)
 
+app.get('/clients', appController.getAllClients)
+
 app.listen(3000);

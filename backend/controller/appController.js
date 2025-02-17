@@ -200,6 +200,16 @@ const sellItem = asyncHandler(async (req, res) => {
     }
 })
 
+const getAllClients = asyncHandler(async (req, res) => {
+
+    try {
+        const clients = await db.getAllClients();
+        res.status(200).json({ clients: clients });
+    } catch (error) {
+        res.status(500).json({ message: "Error getting all clients" });
+    }
+})
+
 const getCashRegister = asyncHandler(async (req, res) => {
 
     try {
@@ -253,6 +263,7 @@ module.exports = {
     getSale,
     insertSale,
     sellItem,
+    getAllClients,
     getCashRegister,
     insertIntoCashRegister,
     removeFromCashRegister,

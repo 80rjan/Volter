@@ -1,17 +1,60 @@
 import styled from "styled-components";
 import ReactDom from "react-dom";
-import { X, CopyPlus, CirclePlus, BookmarkPlus, CheckCheck, User, Tag } from 'lucide-react'
-import {useState} from "react";
+import { X, BookmarkPlus, CheckCheck, User, Tag } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { Autocomplete, TextField } from '@mui/material';
 import axios from "axios";
 
 export default function ModalAddNewSale({ closeModal }) {
+    const [clients, setClients] = useState([]);
+    const [formData, setFormData] = useState({
+        name: '',
+        embg: '',
+        telephone: '',
+        city: '',
+    });
+
+    const handleObjectSelect = (event, value) => {
+        console.log(value)
+        if (value) {
+            setFormData({
+                name: value.name,
+                embg: value.embg,
+                telephone: value.telephone,
+                city: value.city,
+            });
+        }
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
+
+    const fetchClients = () => {
+        axios.get(`http://localhost:3000/clients`)
+            .then(res => {
+                console.log(res.data.clients)
+                setClients(res.data.clients);
+            })
+            .catch(error => {
+                console.error('Error fetching all clients:', error);
+            });
+    }
+
+    useEffect(() => {
+        fetchClients()
+    }, []);
 
     return ReactDom.createPortal(
         <>
             <Overlay />
-            <Wrapper >
-                <Header >
-                    <div >
+            <Wrapper>
+                <Header>
+                    <div>
                         <BookmarkPlus size={32} />
                         <h1>Add New Sale</h1>
                     </div>
@@ -19,14 +62,70 @@ export default function ModalAddNewSale({ closeModal }) {
                         <X size={32} />
                     </ButtonClose>
                 </Header>
-                <Form method="post" action="/sales/insertSale" >
+                <Form method="post" action="/sales/insertSale">
                     <div>
-                        <ClientInputs >
+                        <ClientInputs>
                             <span><User size={20} /> Enter Client Details</span>
-                            <StyledInput placeholder="Client name" name="name" required />
-                            <StyledInput placeholder="Client embg" name="embg" required />
-                            <StyledInput placeholder="Client telephone" name="telephone" required />
-                            <StyledInput placeholder="Client city" name="city" required />
+                            <Autocomplete
+                                options={clients}
+                                getOptionLabel={(option) => option.name}
+                                onChange={handleObjectSelect}
+                                renderInput={(params) => <TextField {...params} label="Search existing clients" />}
+                                isOptionEqualToValue={(option, value) => option.id === value.id} // Optional: ensures the correct option is selected
+                                renderOption={(props, option) => (
+                                    <li {...props} key={option.id} style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '.1rem',
+                                        alignItems: 'flex-start'
+                                    }}>
+                                        <strong>{option.name}</strong>
+                                        <span>{option.embg}</span>
+                                        <span>{option.telephone}</span>
+                                    </li>
+                                )}
+                                filterOptions={(options, state) =>
+                                    options.filter(option =>
+                                        option.name.toLowerCase().includes(state.inputValue.toLowerCase()) ||
+                                        option.embg.includes(state.inputValue) ||
+                                        option.telephone.includes(state.inputValue)
+                                    )
+                                }
+                                sx={{
+                                    background: "white",
+                                    borderRadius: ".3rem",
+                                    fontSize: "1rem",
+                                    boxShadow: "0 0 4px rgba(0,0,0,0.2)",
+                                }}
+                            />
+                            <StyledInput
+                                placeholder="Client name"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleInputChange}
+                                required
+                            />
+                            <StyledInput
+                                placeholder="Client embg"
+                                name="embg"
+                                value={formData.embg}
+                                onChange={handleInputChange}
+                                required
+                            />
+                            <StyledInput
+                                placeholder="Client telephone"
+                                name="telephone"
+                                value={formData.telephone}
+                                onChange={handleInputChange}
+                                required
+                            />
+                            <StyledInput
+                                placeholder="Client city"
+                                name="city"
+                                value={formData.city}
+                                onChange={handleInputChange}
+                                required
+                            />
                         </ClientInputs>
                         <SaleInputs>
                             <span><Tag size={20}/> Enter Sale Details</span> <p></p>
@@ -43,9 +142,8 @@ export default function ModalAddNewSale({ closeModal }) {
             </Wrapper>
         </>,
         document.getElementById("portal")
-    )
+    );
 }
-
 
 const Overlay = styled.div`
     position: fixed;
@@ -53,9 +151,9 @@ const Overlay = styled.div`
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(0,0,0, .7);
+    background: rgba(0, 0, 0, .7);
     z-index: 1000;
-`
+`;
 
 const Wrapper = styled.div`
     display: flex;
@@ -71,70 +169,61 @@ const Wrapper = styled.div`
     border-radius: 8px;
     min-width: fit-content;
     max-width: 90%;
-`
-
-const Heading = styled.div`
-    
-`
+`;
 
 const Header = styled.div`
     display: flex;
     justify-content: space-between;
-    
     div {
         display: flex;
         align-items: center;
         gap: .4rem;
     }
-`
+`;
 
 const ButtonClose = styled.button`
-    
     svg {
         transition: all 400ms ease-in-out;
     }
     svg:hover {
         transform: rotate(90deg);
     }
-`
+`;
 
 const Form = styled.form`
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 2rem;
-    
-    &>div {
+    & > div {
         display: flex;
         gap: 2rem;
         align-items: flex-start;
     }
-    
     span {
         display: flex;
         align-items: center;
         gap: .4rem;
         font-weight: 500;
     }
-`
+`;
 
 const ClientInputs = styled.div`
     display: flex;
     flex-direction: column;
     gap: .8rem;
-`
+`;
 
 const SaleInputs = styled.div`
     display: flex;
     flex-direction: column;
     gap: .4rem;
-
     div {
         display: flex;
         flex-direction: column;
         gap: .8rem;
     }
-`
+`;
 
 const StyledInput = styled.input`
     border: none;
@@ -143,7 +232,7 @@ const StyledInput = styled.input`
     padding: .5rem;
     box-shadow: 0 0 4px rgba(0,0,0,0.2);
     height: fit-content;
-`
+`;
 
 const Button = styled.button`
     display: flex;
@@ -157,8 +246,7 @@ const Button = styled.button`
     font-size: 1.4rem;
     box-shadow: 0 0 8px rgba(0,0,0,0.2);
     transition: scale 400ms ease-in-out;
-    
     &:hover {
         scale: 1.05;
     }
-`
+`;
