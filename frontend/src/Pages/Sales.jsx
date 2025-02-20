@@ -18,7 +18,7 @@ export default function Sales() {
     const [modalAddNewSale, setModalAddNewSale] = useState(false);
     const [refresh, setRefresh] = useState(false);
     const offset = useRef(0);
-    const limit = 20;
+    const limit = 15;
     const [isLastPage, setIsLastPage] = useState(false);
     const prevSales = useRef([]);
     const scrollableSalesRef = useRef(null);
@@ -42,8 +42,8 @@ export default function Sales() {
             const scrollTop = scrollDiv.scrollTop; // Current scroll position
             const clientHeight = scrollDiv.clientHeight; // Visible height of the div
 
-            // Check if the scrollbar is 20% up from the bottom
-            if (scrollHeight - scrollTop - clientHeight <= scrollHeight * 0.2 && !isLastPage) {
+            // Check if the scrollbar is 30% up from the bottom
+            if (scrollHeight - scrollTop - clientHeight <= scrollHeight * 0.3 && !isLastPage) {
                 offset.current += limit; // Increase offset for the next fetch
                 fetchSales(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel);
             }

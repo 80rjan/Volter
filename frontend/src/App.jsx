@@ -4,6 +4,8 @@ import Pawns from "./Pages/Pawns.jsx";
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import Sales from "./Pages/Sales.jsx";
 import Transactions from "./Pages/Transactions.jsx";
+import MonthlyReport from "./Pages/MonthlyReport.jsx";
+import YearlyReport from "./Pages/YearlyReport.jsx";
 
 const router = createBrowserRouter([
     {
@@ -20,11 +22,11 @@ const router = createBrowserRouter([
     },
     {
         path: '/monthlyReport',
-        element: <h1>Monthly Report</h1>
+        element: <MonthlyReport />
     },
     {
         path: '/yearlyReport',
-        element: <h1>Yearly Report</h1>
+        element: <YearlyReport />
     },
 ])
 

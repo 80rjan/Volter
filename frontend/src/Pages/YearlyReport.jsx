@@ -2,7 +2,7 @@ import styled from "styled-components";
 import Nav from "../Components/Nav.jsx";
 import CashRegister from "./CashRegister.jsx";
 
-export default function MonthlyReport() {
+export default function YearlyReport() {
 
     return (
         <ReportPage >
@@ -10,7 +10,7 @@ export default function MonthlyReport() {
             <Container >
 
                 <HeaderWrapper >
-                    <h1>Monthly Report</h1>
+                    <h1>Yearly Report</h1>
 
                 </HeaderWrapper>
 
