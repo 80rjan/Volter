@@ -4,7 +4,7 @@ import { Handshake, Tag, Sigma, CalendarClock, Plus, Minus } from "lucide-react"
 import styled from "styled-components";
 import ModalAdjustCashRegister from "../Components/ModalAdjustCashRegister.jsx";
 
-export default function CashRegister({ refreshDependancy }) {
+export default function CashRegister({ refreshDependancy, refreshTransactionsPage }) {
     const [cashReg, setCashReg] = useState({});
     const [showModalInsert, setShowModalInsert] = useState(false);
     const [showModalRemove, setShowModalRemove] = useState(false);
@@ -20,6 +20,8 @@ export default function CashRegister({ refreshDependancy }) {
 
     useEffect(() => {
         fetchCashRegister();
+        if (refreshTransactionsPage)
+            refreshTransactionsPage();
     }, [refreshDependancy, refresh]);
 
     return (

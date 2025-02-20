@@ -1,6 +1,6 @@
 const pool = require('./pool');
 
-async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByTel = "") {
+async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByTel = "") {
     const { rows } = await pool.query(`
     SELECT 
         c.id AS "Client Id", 
@@ -15,7 +15,7 @@ async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByE
     FROM client c
     INNER JOIN electronics_pawn ep
         ON c.id = ep.client_id
-    WHERE c.name LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND c.telephone LIKE $3 || '%'
+    WHERE LOWER(c.name) LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND c.telephone LIKE $3 || '%'
     
     UNION ALL
     
@@ -32,7 +32,7 @@ async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByE
     FROM client c
     INNER JOIN gold_pawn gp
         ON c.id = gp.client_id
-    WHERE c.name LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND c.telephone LIKE $3 || '%'
+    WHERE LOWER(c.name) LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND c.telephone LIKE $3 || '%'
     
     UNION ALL
     
@@ -49,7 +49,7 @@ async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByE
     FROM client c
     INNER JOIN other_pawn op
         ON c.id = op.client_id
-    WHERE c.name LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND c.telephone LIKE $3 || '%'
+    WHERE LOWER(c.name) LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND c.telephone LIKE $3 || '%'
     
     UNION ALL
     
@@ -66,7 +66,7 @@ async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByE
     FROM client c
     INNER JOIN vehicle_pawn vp
         ON c.id = vp.client_id
-    WHERE c.name LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND c.telephone LIKE $3 || '%'
+    WHERE LOWER(c.name) LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND c.telephone LIKE $3 || '%'
     
     UNION ALL
     
@@ -83,9 +83,10 @@ async function getAllPawns(orderBy, orderDirection, searchByName = "", searchByE
     FROM client c
     INNER JOIN watch_pawn wp
         ON c.id = wp.client_id
-    WHERE c.name LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND c.telephone LIKE $3 || '%'
+    WHERE LOWER(c.name) LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND c.telephone LIKE $3 || '%'
     
-    ORDER BY "${orderBy}" ${orderDirection};
+    ORDER BY "${orderBy}" ${orderDirection}
+    LIMIT ${limit} OFFSET ${offset};
     `, [searchByName, searchByEmbg, searchByTel]);
     return rows;
 }
@@ -366,7 +367,7 @@ async function changePawnToSale(id, pawnCategory) {
     return provisionMoney;
 }
 
-async function getAllSales(orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByTel = "") {
+async function getAllSales(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByTel = "") {
     const { rows } = await pool.query(`
     SELECT 
         c.id AS "Client Id", 
@@ -378,8 +379,9 @@ async function getAllSales(orderBy, orderDirection, searchByName = "", searchByE
     FROM client c
     INNER JOIN sale s
         ON c.id = s.client_id
-    WHERE c.name LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND c.telephone LIKE $3 || '%'
-    ORDER BY "${orderBy}" ${orderDirection};
+    WHERE LOWER(c.name) LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND c.telephone LIKE $3 || '%'
+    ORDER BY "${orderBy}" ${orderDirection}
+    LIMIT ${limit} OFFSET ${offset};
     `, [searchByName, searchByEmbg, searchByTel])
 
     return rows;
@@ -478,8 +480,15 @@ async function addNewSale(saleObj, clientObj) {
     `, [saleObj.priceBought])
 }
 
-async function getAllClients() {
-    const { rows } = await pool.query(`SELECT * FROM client;`)
+async function getAllClients(limit, offset, search) {
+
+    const { rows } = await pool.query(`
+        SELECT * FROM client 
+        WHERE LOWER(name) LIKE $1 
+           OR embg LIKE $1 
+           OR telephone LIKE $1
+        LIMIT ${limit} OFFSET ${offset};
+    `, [`${search}%`]);
     return rows;
 }
 
@@ -519,7 +528,7 @@ async function removeFromCashRegister(amount, description) {
     `, [description, amount])
 }
 
-async function getAllTransactions(orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByDate = "") {
+async function getAllTransactions(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByDate = "") {
     const { rows } = await pool.query(`
     SELECT 
         c.id AS "Client Id", 
@@ -535,8 +544,9 @@ async function getAllTransactions(orderBy, orderDirection, searchByName = "", se
     FROM client c
     INNER JOIN transaction t
         ON c.id = t.client_id
-    WHERE c.name LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND ($3::DATE IS NULL OR t.date = $3::DATE)
-    ORDER BY "${orderBy}" ${orderDirection};
+    WHERE LOWER(c.name) LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND ($3::DATE IS NULL OR t.date = $3::DATE)
+    ORDER BY "${orderBy}" ${orderDirection}
+    LIMIT ${limit} OFFSET ${offset};
     `, [searchByName, searchByEmbg, searchByDate])
 
     return rows;

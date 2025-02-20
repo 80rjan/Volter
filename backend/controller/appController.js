@@ -3,20 +3,20 @@ const db = require('../model/queries');
 const {resume} = require("react-dom/server");
 
 const getAllPawns = asyncHandler(async (req, res) => {
-    let searchByName = req.query.searchByName !== 'undefined' ? req.query.searchByName : '';
+    let searchByName = req.query.searchByName !== 'undefined' ? req.query.searchByName.toLowerCase() : '';
     let searchByEmbg = req.query.searchByEmbg !== 'undefined' ? req.query.searchByEmbg : '';
     let searchByTel = req.query.searchByTel !== 'undefined' ? req.query.searchByTel : '';
+    const limit = req.query.limit;
+    const offset = req.query.offset;
 
     try {
-        const pawns = await db.getAllPawns(req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, searchByTel);
-        console.log("Pawns data:", pawns); // Log the data being sent
+        const pawns = await db.getAllPawns(limit, offset, req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, searchByTel);
         res.send(pawns);
     } catch (error) {
         console.error("Error fetching pawns:", error);
         res.status(500).send({ message: 'Error fetching pawns' });
     }
 });
-
 
 const getPawn = asyncHandler(async (req, res) => {
     try {
@@ -151,11 +151,13 @@ const changePawnToSale = asyncHandler(async (req, res) => {
 })
 
 const getAllSales = asyncHandler(async (req, res) => {
-    let searchByName = req.query.searchByName !== 'undefined' ? req.query.searchByName : '';
+    let searchByName = req.query.searchByName !== 'undefined' ? req.query.searchByName.toLowerCase() : '';
     let searchByEmbg = req.query.searchByEmbg !== 'undefined' ? req.query.searchByEmbg : '';
     let searchByTel = req.query.searchByTel !== 'undefined' ? req.query.searchByTel : '';
+    const limit = req.query.limit;
+    const offset = req.query.offset;
 
-    const sales = await db.getAllSales(req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, searchByTel);
+    const sales = await db.getAllSales(limit, offset, req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, searchByTel);
     res.send(sales);
 })
 
@@ -201,10 +203,13 @@ const sellItem = asyncHandler(async (req, res) => {
 })
 
 const getAllClients = asyncHandler(async (req, res) => {
+    const limit = req.query.limit;
+    const offset = req.query.offset;
+    const search = req.query.search.toLowerCase();
 
     try {
-        const clients = await db.getAllClients();
-        res.status(200).json({ clients: clients });
+        const clients = await db.getAllClients(limit, offset, search);
+        res.send(clients);
     } catch (error) {
         res.status(500).json({ message: "Error getting all clients" });
     }
@@ -243,12 +248,13 @@ const removeFromCashRegister = asyncHandler(async (req, res) => {
 })
 
 const getAllTransactions = asyncHandler(async (req, res) => {
-    let searchByName = req.query.searchByName !== 'undefined' ? req.query.searchByName : '';
+    let searchByName = req.query.searchByName !== 'undefined' ? req.query.searchByName.toLowerCase() : '';
     let searchByEmbg = req.query.searchByEmbg !== 'undefined' ? req.query.searchByEmbg : '';
     let searchByDate = req.query.searchByDate && req.query.searchByDate !== 'undefined' && req.query.searchByDate !== '' ? req.query.searchByDate : null;
+    const limit = req.query.limit;
+    const offset = req.query.offset;
 
-
-    const transactions = await db.getAllTransactions(req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, searchByDate);
+    const transactions = await db.getAllTransactions(limit, offset, req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, searchByDate);
     res.send(transactions);
 })
 

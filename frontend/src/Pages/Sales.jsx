@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import axios from "axios";
 import styled from "styled-components";
 import Nav from "../Components/Nav.jsx";
@@ -10,34 +10,70 @@ import CashRegister from "./CashRegister.jsx";
 export default function Sales() {
     const [allSales, setAllSales] = useState([]);
     const [orderBy, setOrderBy] = useState("Date Bought");
-    const [orderDirectionArr, setOrderDirectionArr] = useState([0,0,0,0,1]); // -1=desc 0=normal 1=asc
-    const [orderDirection, setOrderDirection] = useState("ASC");
+    const orderDirectionArr = useRef([0,0,0,0,-1]); // -1=desc 0=normal 1=asc
+    const [orderDirection, setOrderDirection] = useState("DESC");
     const [searchByName, setSearchByName] = useState("");
     const [searchByEmbg, setSearchByEmbg] = useState("");
     const [searchByTel, setSearchByTel] = useState("");
     const [modalAddNewSale, setModalAddNewSale] = useState(false);
     const [refresh, setRefresh] = useState(false);
+    const offset = useRef(0);
+    const limit = 20;
+    const [isLastPage, setIsLastPage] = useState(false);
+    const prevSales = useRef([]);
+    const scrollableSalesRef = useRef(null);
 
-    const fetchSales = (order, direction, searchByName, searchByEmbg, searchByTel) => {
-        axios.get(`http://localhost:3000/sales?orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByTel=${searchByTel}`)
-            .then(res => setAllSales(res.data))
+    const fetchSales = (limit, offset, order, direction, searchByName, searchByEmbg, searchByTel) => {
+        axios.get(`http://localhost:3000/sales?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByTel=${searchByTel}`)
+            .then(res => {
+                if (JSON.stringify(prevSales.current) !== JSON.stringify(res.data)) {
+                    setAllSales(prev => [...prev, ...res.data]);
+                    prevSales.current = [...prevSales.current, ...res.data];
+                    setIsLastPage(res.data.length < limit);
+                }
+            })
             .catch(error => console.error('Error fetching all pawns:', error));
     }
 
     useEffect(() => {
-        if (orderDirectionArr.includes(1)) {
-            setOrderDirection("ASC");
-        } else if (orderDirectionArr.includes(-1)) {
-            setOrderDirection("DESC");
-        } else {
-            setOrderDirection("ASC");
-        }
-    }, [orderDirectionArr]);
+        const handleScroll = () => {
+            const scrollDiv = scrollableSalesRef.current;
+            const scrollHeight = scrollDiv.scrollHeight; // Total content height
+            const scrollTop = scrollDiv.scrollTop; // Current scroll position
+            const clientHeight = scrollDiv.clientHeight; // Visible height of the div
+
+            // Check if the scrollbar is 20% up from the bottom
+            if (scrollHeight - scrollTop - clientHeight <= scrollHeight * 0.2 && !isLastPage) {
+                offset.current += limit; // Increase offset for the next fetch
+                fetchSales(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel);
+            }
+        };
+
+        const scrollableDiv = scrollableSalesRef.current;
+        scrollableDiv.addEventListener("scroll", handleScroll);
+
+        return () => {
+            scrollableDiv.removeEventListener("scroll", handleScroll);
+        };
+    }, [isLastPage, refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel])
 
     useEffect(() => {
-        fetchSales(orderBy, orderDirection, searchByName, searchByEmbg, searchByTel);
-    }, [orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, refresh]);
+        setAllSales([]);
+        prevSales.current = [];
+        offset.current = 0;
+        fetchSales(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel);
+    }, [refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel])
 
+
+    const handleOrder = (orderBy, index) => {
+        const oldDirection = [...orderDirectionArr.current];
+        const newDirection = new Array(oldDirection.length).fill(0);
+        newDirection[index] = oldDirection[index] === 0 ? 1 : oldDirection[index] === 1 ? -1 : 1;
+        orderDirectionArr.current = newDirection;
+        //0 -> 1 -> -1 -> 1
+        setOrderDirection(newDirection.includes(-1) ? "DESC" : "ASC");
+        setOrderBy(orderBy);
+    }
 
     return (
         <SalesPage >
@@ -78,71 +114,26 @@ export default function Sales() {
 
                 <SalesWrapper>
                     <TableHeader >
-                        <Text onClick={() => {
-                            setOrderDirectionArr(prev => {
-                                const newDirection = [...prev];
-                                newDirection[0] = newDirection[0] === 0 ? 1 : newDirection[0] === 1 ? -1 : 0;
-                                const res = [0,0,0,0,0]
-                                res[0] = newDirection[0];
-                                return res;
-                            });
-                            setOrderBy("Client Id")
-                        }}>
-                            Id {orderDirectionArr[0] === 0 ? <Minus size={14} /> : orderDirectionArr[0] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        <Text onClick={() => handleOrder("Client Id", 0)}>
+                            Id {orderDirectionArr.current[0] === 0 ? <Minus size={14} /> : orderDirectionArr.current[0] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
-                        <Text onClick={() => {
-                            setOrderDirectionArr(prev => {
-                                const newDirection = [...prev];
-                                newDirection[1] = newDirection[1] === 0 ? 1 : newDirection[1] === 1 ? -1 : 0;
-                                const res = [0,0,0,0,0]
-                                res[1] = newDirection[1];
-                                return res;
-                            });
-                            setOrderBy("Name")
-                        }}>
-                            Name {orderDirectionArr[1] === 0 ? <Minus size={14} /> : orderDirectionArr[1] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        <Text onClick={() => handleOrder("Name", 1)}>
+                            Name {orderDirectionArr.current[1] === 0 ? <Minus size={14} /> : orderDirectionArr.current[1] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
-                        <Text onClick={prev => {
-                            setOrderDirectionArr(prev => {
-                                const newDirection = [...prev];
-                                newDirection[3] = newDirection[3] === 0 ? 1 : newDirection[3] === 1 ? -1 : 0;
-                                const res = [0,0,0,0,0]
-                                res[3] = newDirection[3];
-                                return res;
-                            });
-                            setOrderBy("About")
-                        }}>
-                            About {orderDirectionArr[3] === 0 ? <Minus size={14} /> : orderDirectionArr[3] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            <Text onClick={() => handleOrder("About", 2)}>
+                            About {orderDirectionArr.current[2] === 0 ? <Minus size={14} /> : orderDirectionArr.current[2] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
-                        <Text onClick={() => {
-                            setOrderDirectionArr(prev => {
-                                const newDirection = [...prev];
-                                newDirection[2] = newDirection[2] === 0 ? 1 : newDirection[2] === 1 ? -1 : 0;
-                                const res = [0,0,0,0,0]
-                                res[2] = newDirection[2];
-                                return res;
-                            });
-                            setOrderBy("Item Cost")
-                        }}>
-                            Item Cost {orderDirectionArr[2] === 0 ? <Minus size={14} /> : orderDirectionArr[2] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        <Text onClick={() => handleOrder("Item Cost", 3)}>
+                            Item Cost {orderDirectionArr.current[3] === 0 ? <Minus size={14} /> : orderDirectionArr.current[3] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
-                        <Text onClick={prev => {
-                            setOrderDirectionArr(prev => {
-                                const newDirection = [...prev];
-                                newDirection[4] = newDirection[4] === 0 ? 1 : newDirection[4] === 1 ? -1 : 0;
-                                const res = [0,0,0,0,0,0,0]
-                                res[4] = newDirection[4];
-                                return res;
-                            });
-                            setOrderBy("Date Bought")
-                        }}>
-                            Date Bought {orderDirectionArr[4] === 0 ? <Minus size={14} /> : orderDirectionArr[4] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        <Text onClick={() => handleOrder("Date Bought", 4)}>
+                            Date Bought {orderDirectionArr.current[4] === 0 ? <Minus size={14} /> : orderDirectionArr.current[4] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text style={{cursor: "default"}}>Actions</Text>
                         <Text style={{cursor: "default"}}>More</Text>
                     </TableHeader>
 
-                    <ScrollableSales>
+                    <ScrollableSales ref={scrollableSalesRef}>
                         { allSales.map((sale, index) => (
                             <Sale
                                 sale={sale}

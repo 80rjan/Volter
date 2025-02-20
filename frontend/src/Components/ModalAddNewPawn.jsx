@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import ReactDom from "react-dom";
 import { X, CircleX, CopyPlus, CheckCheck, User, Database } from 'lucide-react'
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import axios from "axios";
 import {Autocomplete, TextField} from "@mui/material";
 
@@ -14,6 +14,11 @@ export default function ModalAddNewPawn({ closeModal }) {
         telephone: '',
         city: '',
     });
+    const offset = useRef(0);
+    const limit = 5;
+    const [isLastPage, setIsLastPage] = useState(false);
+    const scrollableClientsRef = useRef(null);
+    const [autocompleteValue, setAutocompleteValue] = useState("");
 
     const renderCategoryInputs = () => {
         switch (category) {
@@ -45,19 +50,36 @@ export default function ModalAddNewPawn({ closeModal }) {
         }));
     };
 
-    const fetchClients = () => {
-        axios.get(`http://localhost:3000/clients`)
+    const fetchClients = (limit, offset, search) => {
+        axios.get(`http://localhost:3000/clients?limit=${limit}&offset=${offset}&search=${search}`)
             .then(res => {
-                console.log(res.data.clients)
-                setClients(res.data.clients);
+                if (res.data.length > 0) {
+                    console.log(offset.current)
+                    offset === 0 ? setClients(res.data) : setClients(prev => [...prev, ...res.data]);
+                    setIsLastPage(res.data.length < limit);
+                }
             })
             .catch(error => {
                 console.error('Error fetching all clients:', error);
             });
     }
 
+    const handleScroll = (event) => {
+        const scrollDiv = event.target;
+        const scrollHeight = scrollDiv.scrollHeight; // Total content height
+        const scrollTop = scrollDiv.scrollTop; // Current scroll position
+        const clientHeight = scrollDiv.clientHeight; // Visible height of the div
+
+        // Check if the scrollbar is 20% up from the bottom
+        if (scrollHeight - scrollTop - clientHeight <= scrollHeight * 0.2 && !isLastPage) {
+            offset.current += limit;
+            fetchClients(limit, offset.current, autocompleteValue);
+        }
+    };
+
+
     useEffect(() => {
-        fetchClients()
+        fetchClients(limit, offset.current, autocompleteValue)
     }, []);
 
     return ReactDom.createPortal(
@@ -78,9 +100,16 @@ export default function ModalAddNewPawn({ closeModal }) {
                         <ClientInputs>
                             <span><User size={20} /> Enter Client Details</span>
                             <Autocomplete
+                                ref={scrollableClientsRef}
                                 options={clients}
                                 getOptionLabel={(option) => option.name}
                                 onChange={handleObjectSelect}
+                                onInputChange={(event, value) => {
+                                    offset.current = 0;
+                                    setAutocompleteValue(value)
+                                    fetchClients(limit, offset.current, value);
+                                }}
+                                ListboxProps={{ onScroll: handleScroll }}
                                 renderInput={(params) => <TextField {...params} label="Search existing clients" />}
                                 isOptionEqualToValue={(option, value) => option.id === value.id} // Optional: ensures the correct option is selected
                                 renderOption={(props, option) => (
