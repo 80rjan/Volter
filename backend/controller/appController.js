@@ -108,9 +108,6 @@ const insertPawn = asyncHandler(async (req, res) => {
         }; break;
     }
 
-    console.log(pawnObj);
-    console.log(category);
-    console.log(clientObj);
     try {
         await db.addNewPawn(category, pawnObj, clientObj);
         res.status(200).redirect('http://localhost:5173');

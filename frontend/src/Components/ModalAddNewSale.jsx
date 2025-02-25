@@ -13,6 +13,8 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
         embg: '',
         telephone: '',
         city: '',
+        price_bought: 0,
+        description: ''
     });
     const offset = useRef(0);
     const limit = 5;
@@ -23,12 +25,13 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
 
     const handleObjectSelect = (event, value) => {
         if (value) {
-            setFormData({
+            setFormData((prev) => ({
+                ...prev,
                 name: value.name,
                 embg: value.embg,
                 telephone: value.telephone,
                 city: value.city,
-            });
+            }));
         }
     };
 
@@ -69,8 +72,9 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         setLoading(true);
+        console.log(formData)
         axios.post('/sales/insertSale', formData)
-            .then(response => {
+            .then(() => {
                 refresh();
                 closeModal();
             })
@@ -175,8 +179,8 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
                                         <SaleInputs>
                                             <span><Tag size={20}/> Enter Sale Details</span> <p></p>
                                             <div>
-                                                <StyledInput placeholder="Price Bought" name="price_bought" required />
-                                                <StyledInput placeholder="Item description" name="description" required />
+                                                <StyledInput placeholder="Price Bought" name="price_bought" onChange={handleInputChange} required />
+                                                <StyledInput placeholder="Item description" name="description" onChange={handleInputChange} required />
                                             </div>
                                         </SaleInputs>
                                     </div>

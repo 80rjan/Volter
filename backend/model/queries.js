@@ -477,7 +477,7 @@ async function addNewSale(saleObj, clientObj) {
             money_sale_items = money_sale_items + $1,
             register_money = register_money - $1,
             last_updated = NOW();
-    `, [saleObj.priceBought])
+    `, [Number(saleObj.priceBought)])
 }
 
 async function getAllClients(limit, offset, search) {

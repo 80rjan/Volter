@@ -3,18 +3,22 @@ import axios from "axios";
 import { Handshake, Tag, Sigma, CalendarClock, Plus, Minus } from "lucide-react";
 import styled from "styled-components";
 import ModalAdjustCashRegister from "../Components/ModalAdjustCashRegister.jsx";
+import Loading from "../Components/Loading.jsx";
 
 export default function CashRegister({ refreshDependancy, refreshTransactions }) {
     const [cashReg, setCashReg] = useState({});
     const [showModalInsert, setShowModalInsert] = useState(false);
     const [showModalRemove, setShowModalRemove] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const fetchCashRegister = () => {
+        setLoading(true)
         axios.get(`http://localhost:3000/cashRegister`)
             .then(res => {
                 setCashReg(res.data.cashReg);
             })
-            .catch(error => console.error('Error fetching cash register', error));
+            .catch(error => console.error('Error fetching cash register', error))
+            .finally(() => setLoading(false));
     };
 
     useEffect(() => {
@@ -25,29 +29,54 @@ export default function CashRegister({ refreshDependancy, refreshTransactions })
         <Wrapper>
             <TextWrapper>
                 <Handshake size={24} />
-                <Value className="bold">{Number(cashReg.money_pawns).toLocaleString("de-DE")}</Value>
-                <Value>/</Value>
-                <Value>{Number(cashReg.num_pawns).toLocaleString("de-DE")}</Value>
+                {
+                    loading ? <Loading width={30} height={30}/> :
+                        <>
+                            <Value className="bold">{Number(cashReg.money_pawns).toLocaleString("de-DE")}</Value>
+                            <Value>/</Value>
+                            <Value>{Number(cashReg.num_pawns).toLocaleString("de-DE")}</Value>
+                        </>
+                }
             </TextWrapper>
             <TextWrapper>
                 <Tag size={24} />
-                <Value className="bold">{Number(cashReg.money_sale_items).toLocaleString("de-DE")}</Value>
-                <Value>/</Value>
-                <Value>{Number(cashReg.num_sale_items).toLocaleString("de-DE")}</Value>
+                {
+                    loading ? <Loading width={30} height={30}/> :
+                        <>
+                            <Value className="bold">{Number(cashReg.money_sale_items).toLocaleString("de-DE")}</Value>
+                            <Value>/</Value>
+                            <Value>{Number(cashReg.num_sale_items).toLocaleString("de-DE")}</Value>
+                        </>
+                }
             </TextWrapper>
             <TextWrapper>
                 <Sigma size={24} />
-                <Value className="bold">{Number(cashReg.register_money).toLocaleString("de-DE")}</Value>
+                {
+                    loading ? <Loading width={30} height={30}/> :
+                        <>
+                            <Value className="bold">{Number(cashReg.register_money).toLocaleString("de-DE")}</Value>
+                        </>
+                }
             </TextWrapper>
             <TextWrapper>
                 <CalendarClock size={24} />
-                <Value className="bold">{Object.keys(cashReg).length > 0 && cashReg.last_updated.substring(0, 10)}</Value>
-                <Value>/</Value>
-                <Value>{Object.keys(cashReg).length > 0 && cashReg.last_updated.substring(11, 16)}</Value>
+                {
+                    loading ? <Loading width={30} height={30}/> :
+                        <>
+                            <Value className="bold">{Object.keys(cashReg).length > 0 && cashReg.last_updated.substring(0, 10)}</Value>
+                            <Value>/</Value>
+                            <Value>{Object.keys(cashReg).length > 0 && cashReg.last_updated.substring(11, 16)}</Value>
+                        </>
+                }
             </TextWrapper>
             <ActionsWrapper>
-                <Minus size={24} color="var(--dark-red)" onClick={() => setShowModalRemove(true)} />
-                <Plus size={24} color="var(--green)" onClick={() => setShowModalInsert(true)} />
+                {
+                    loading ? <Loading width={30} height={30}/> :
+                        <>
+                            <Minus size={24} color="var(--dark-red)" onClick={() => setShowModalRemove(true)} />
+                            <Plus size={24} color="var(--green)" onClick={() => setShowModalInsert(true)} />
+                        </>
+                }
             </ActionsWrapper>
 
             {showModalInsert && <ModalAdjustCashRegister
