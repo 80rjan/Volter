@@ -142,8 +142,8 @@ const changePawnToSale = asyncHandler(async (req, res) => {
     const { id, tableName } = req.body;
 
     try {
-        const profit = await db.changePawnToSale(id, tableName);
-        res.status(200).json({ profit }); // Send a success response
+        await db.changePawnToSale(id, tableName);
+        res.status(200).end();
     } catch (error) {
         res.status(500).json({ message: "Error query change pawn to sale" }); // Send error message
     }

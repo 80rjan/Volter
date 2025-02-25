@@ -83,9 +83,9 @@ export default function Pawn({ pawn, refresh, isOdd }) {
 
         //Put http which sends the id of the pawn and the table name in which the pawn is closed and a new product goes for sale
         axios.put(`http://localhost:3000/changePawnToSale`, { id, tableName })
-            .then(response => {
+            .then(() => {
                 setSuccessMsg("Successfully moved pawn to sale")
-                setInfoMsg(`Added ${response.data.profit.toLocaleString("de-DE")} into cash register!`)
+                // setInfoMsg(`Added ${response.data.profit.toLocaleString("de-DE")} into cash register!`)
                 setModalSuccessMsg(true);
             })
             .catch(error => console.error('Error continuing pawn:', error))

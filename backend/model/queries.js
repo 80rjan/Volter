@@ -290,14 +290,12 @@ async function changePawnToSale(id, pawnCategory) {
     if (!validTables.includes(pawnCategory))
         throw new Error("Invalid pawn category in CHANGE PAWN TO SALE");
 
-    let query = await pool.query(`SELECT (price_pawned * (provision / 100)) AS provision_money, client_id, price_pawned FROM ${pawnCategory} WHERE id = $1;`, [id])
+    let query = await pool.query(`SELECT client_id, price_pawned FROM ${pawnCategory} WHERE id = $1;`, [id])
     let clientId = null;
     let priceBought = null;
-    let provisionMoney = null;
     if (query.rows.length > 0) {
         clientId = query.rows[0].client_id;
         priceBought = query.rows[0].price_pawned;
-        provisionMoney = query.rows[0].provision_money;
     } else {
         throw new Error("Cant find information in pawn table to CHANGE PAWN TO SALE");
     }
@@ -349,10 +347,10 @@ async function changePawnToSale(id, pawnCategory) {
     //Insert a new transaction with profit made
     await pool.query(`
         INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES ($1, $2, $3, 0, 0, $4, CURRENT_TIMESTAMP);
-    `, [clientId, transactionCategory, transactionDescription, provisionMoney])
+        VALUES ($1, $2, $3, 0, 0, 0, CURRENT_TIMESTAMP);
+    `, [clientId, transactionCategory, transactionDescription])
 
-    //Update cash register with money inserted, decrease numPawns, decrease moneyPawns, increase numSales and increase moneySales
+    //Update cash register with decrease numPawns, decrease moneyPawns, increase numSales and increase moneySales
     await pool.query(`
         UPDATE cash_register 
         SET
@@ -360,11 +358,8 @@ async function changePawnToSale(id, pawnCategory) {
             money_pawns = money_pawns - $1,
             num_sale_items = num_sale_items + 1,
             money_sale_items = money_sale_items + $1,
-            register_money = register_money + $2,
             last_updated = NOW();
-    `, [priceBought, provisionMoney])
-
-    return provisionMoney;
+    `, [priceBought])
 }
 
 async function getAllSales(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByTel = "") {
