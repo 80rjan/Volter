@@ -4,6 +4,7 @@ import {useEffect, useState} from "react";
 import { Euro, RotateCcw, X, Ellipsis } from 'lucide-react'
 import ModalShowMessagePawn from "./ModalShowMessagePawn.jsx";
 import ModalReadMorePawn from "./ModalReadMorePawn.jsx";
+import Loading from "./Loading.jsx";
 
 export default function Pawn({ pawn, refresh, isOdd }) {
     const [modalSuccessMsg, setModalSuccessMsg] = useState(false);
@@ -11,6 +12,7 @@ export default function Pawn({ pawn, refresh, isOdd }) {
     const [successMsg, setSuccessMsg] = useState("");
     const [infoMsg, setInfoMsg] = useState("");
     const [pawnInfo, setPawnInfo] = useState(null);
+    const [loading, setLoading] = useState(false);
 
 
     useEffect(() => {
@@ -19,6 +21,7 @@ export default function Pawn({ pawn, refresh, isOdd }) {
     }, [modalSuccessMsg])
 
     const continuePawn = (id, category) => {
+        setLoading(true);
         //Find the name of the table based on the category
         const tableName = {
             'Electronics': 'electronics_pawn',
@@ -37,10 +40,12 @@ export default function Pawn({ pawn, refresh, isOdd }) {
                 setInfoMsg(`Added ${response.data.profit.toLocaleString("de-DE")} into cash register!`)
                 setModalSuccessMsg(true);
             })
-            .catch(error => console.error('Error continuing pawn:', error));
+            .catch(error => console.error('Error continuing pawn:', error))
+            .finally(() => setLoading(false));
     }
 
     const closePawn = (id, category) => {
+        setLoading(true);
         //Find the name of the table based on the category
         const tableName = {
             'Electronics': 'electronics_pawn',
@@ -59,10 +64,12 @@ export default function Pawn({ pawn, refresh, isOdd }) {
                 setInfoMsg(`Added ${response.data.moneyIntoCashReg.toLocaleString("de-DE")} into cash register!`)
                 setModalSuccessMsg(true);
             } )
-            .catch(error => console.error('Error continuing pawn:', error));
+            .catch(error => console.error('Error continuing pawn:', error))
+            .finally(() => setLoading(false));
     }
 
     const movePawnToSale = (id, category) => {
+        setLoading(true);
         //Find the name of the pawn table based on the category
         const tableName = {
             'Electronics': 'electronics_pawn',
@@ -81,7 +88,8 @@ export default function Pawn({ pawn, refresh, isOdd }) {
                 setInfoMsg(`Added ${response.data.profit.toLocaleString("de-DE")} into cash register!`)
                 setModalSuccessMsg(true);
             })
-            .catch(error => console.error('Error continuing pawn:', error));
+            .catch(error => console.error('Error continuing pawn:', error))
+            .finally(() => setLoading(false));
     }
 
     useEffect(() =>{
@@ -90,13 +98,15 @@ export default function Pawn({ pawn, refresh, isOdd }) {
     }, [pawnInfo])
 
     const fetchPawn = (clientId, category, pawnId) => {
+        setLoading(true);
         axios.get(`http://localhost:3000/getPawn?clientId=${clientId}&category=${category}&pawnId=${pawnId}`)
             .then(res => {
                 setPawnInfo(res.data.pawnInfo)
             })
             .catch(error => {
                 console.error('Error fetching pawn:', error);
-            });
+            })
+            .finally(() => setLoading(false));
     }
 
 
@@ -110,14 +120,20 @@ export default function Pawn({ pawn, refresh, isOdd }) {
             <Text className="bold" >{Number(pawn.Provision).toLocaleString("de-DE")}</Text>
             <Text>{pawn["Days Left"]}</Text>
             <Text>{pawn["Valid Until"].substring(0, 10)}</Text>
-            <ButtonWrapper>
-                <X size={22} onClick={() => closePawn(pawn.Id, pawn.Category)} />
-                <RotateCcw size={22} color="var(--cta-color)" onClick={() => continuePawn(pawn.Id, pawn.Category)} />
-                <Euro size={22} color="var(--green)" onClick={() => movePawnToSale(pawn.Id, pawn.Category)} />
-            </ButtonWrapper>
-            <Ellipsis size={28} color="#888"
-                onClick={() => fetchPawn(pawn["Client Id"], pawn.Category, pawn.Id)}
-            />
+            {
+                loading ? <Loading width={30} height={30} /> :
+                    <>
+                        <ButtonWrapper>
+                            <X size={22} onClick={() => closePawn(pawn.Id, pawn.Category)} />
+                            <RotateCcw size={22} color="var(--cta-color)" onClick={() => continuePawn(pawn.Id, pawn.Category)} />
+                            <Euro size={22} color="var(--green)" onClick={() => movePawnToSale(pawn.Id, pawn.Category)} />
+                        </ButtonWrapper>
+                        <Ellipsis size={28} color="#888"
+                                  onClick={() => fetchPawn(pawn["Client Id"], pawn.Category, pawn.Id)}
+                        />
+                    </>
+            }
+
 
             {modalSuccessMsg &&
                 <ModalShowMessagePawn

@@ -6,6 +6,7 @@ import { Plus, X, Euro, RotateCcw, ChevronUp, ChevronDown, Minus} from "lucide-r
 import ModalAddNewSale from "../Components/ModalAddNewSale.jsx";
 import Sale from "../Components/Sale.jsx";
 import CashRegister from "./CashRegister.jsx";
+import Loading from "../Components/Loading.jsx";
 
 export default function Sales() {
     const [allSales, setAllSales] = useState([]);
@@ -22,8 +23,10 @@ export default function Sales() {
     const [isLastPage, setIsLastPage] = useState(false);
     const prevSales = useRef([]);
     const scrollableSalesRef = useRef(null);
+    const [loading, setLoading] = useState(false);
 
     const fetchSales = (limit, offset, order, direction, searchByName, searchByEmbg, searchByTel) => {
+        setLoading(true);
         axios.get(`http://localhost:3000/sales?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByTel=${searchByTel}`)
             .then(res => {
                 if (JSON.stringify(prevSales.current) !== JSON.stringify(res.data)) {
@@ -32,7 +35,10 @@ export default function Sales() {
                     setIsLastPage(res.data.length < limit);
                 }
             })
-            .catch(error => console.error('Error fetching all pawns:', error));
+            .catch(error => {
+                console.error('Error fetching all pawns:', error)
+            })
+            .finally(() => setLoading(false))
     }
 
     useEffect(() => {
@@ -91,6 +97,7 @@ export default function Sales() {
 
                     {modalAddNewSale && <ModalAddNewSale
                         closeModal={() => setModalAddNewSale(false)}
+                        refresh={() => setRefresh(prev => !prev)}
                     />}
                 </HeaderWrapper>
 
@@ -134,7 +141,9 @@ export default function Sales() {
                     </TableHeader>
 
                     <ScrollableSales ref={scrollableSalesRef}>
-                        { allSales.map((sale, index) => (
+                        { loading ?
+                            <Loading /> :
+                            allSales.map((sale, index) => (
                             <Sale
                                 sale={sale}
                                 key={index}

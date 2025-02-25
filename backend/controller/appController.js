@@ -13,8 +13,7 @@ const getAllPawns = asyncHandler(async (req, res) => {
         const pawns = await db.getAllPawns(limit, offset, req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, searchByTel);
         res.send(pawns);
     } catch (error) {
-        console.error("Error fetching pawns:", error);
-        res.status(500).send({ message: 'Error fetching pawns' });
+        res.status(500).send({ message: 'Error query get all pawns' });
     }
 });
 
@@ -23,7 +22,7 @@ const getPawn = asyncHandler(async (req, res) => {
         const pawnInfo = await db.getPawn(req.query.clientId, req.query.category, req.query.pawnId);
         res.status(200).json({ pawnInfo });
     } catch (error) {
-        res.status(500).json({ message: "Error getting specified pawn " + error });
+        res.status(500).json({ message: "Error query get specified pawn " + error });
     }
 })
 
@@ -109,11 +108,14 @@ const insertPawn = asyncHandler(async (req, res) => {
         }; break;
     }
 
+    console.log(pawnObj);
+    console.log(category);
+    console.log(clientObj);
     try {
         await db.addNewPawn(category, pawnObj, clientObj);
         res.status(200).redirect('http://localhost:5173');
     } catch (error) {
-        res.status(500).json({ message: "Error adding new pawn " + error });
+        res.status(500).json({ message: "Error query insert new pawn " + error });
     }
 })
 
@@ -124,7 +126,7 @@ const continuePawn = asyncHandler(async (req, res) => {
         const profit = await db.continuePawn(id, tableName);
         res.status(200).json({ profit });
     } catch (error) {
-        res.status(500).json({ message: "Error continuing pawn" });
+        res.status(500).json({ message: "Error query continuing pawn" });
     }
 })
 
@@ -135,7 +137,7 @@ const closePawn = asyncHandler(async (req, res) => {
         const moneyIntoCashReg = await db.closePawn(id, tableName);
         res.status(200).json({ moneyIntoCashReg });
     } catch (error) {
-        res.status(500).json({ message: "Error closing pawn" });
+        res.status(500).json({ message: "Error query closing pawn" });
     }
 })
 
@@ -146,7 +148,7 @@ const changePawnToSale = asyncHandler(async (req, res) => {
         const profit = await db.changePawnToSale(id, tableName);
         res.status(200).json({ profit }); // Send a success response
     } catch (error) {
-        res.status(500).json({ message: "Error closing pawn" }); // Send error message
+        res.status(500).json({ message: "Error query change pawn to sale" }); // Send error message
     }
 })
 
@@ -167,7 +169,7 @@ const getSale = asyncHandler(async (req, res) => {
         const saleInfo = await db.getSale(req.query.clientId, req.query.saleId);
         res.status(200).json({ saleInfo });
     } catch (error) {
-        res.status(500).json({ message: "Error getting specified sale " + error });
+        res.status(500).json({ message: "Error query get specific sale " + error });
     }
 })
 
@@ -187,7 +189,7 @@ const insertSale = asyncHandler(async (req, res) => {
         await db.addNewSale(saleObj, clientObj);
         res.status(200).redirect('http://localhost:5173/sales');
     } catch (error) {
-        res.status(500).json({ message: "Error adding new sale " + error });
+        res.status(500).json({ message: "Error query insert new sale " + error });
     }
 })
 
@@ -198,7 +200,7 @@ const sellItem = asyncHandler(async (req, res) => {
         const moneyIntoCashReg = await db.closeSale(id, priceSold);
         res.status(200).json({ moneyIntoCashReg });
     } catch (error) {
-        res.status(500).json({ message: "Error selling item" });
+        res.status(500).json({ message: "Error query sell item" });
     }
 })
 
@@ -211,7 +213,7 @@ const getAllClients = asyncHandler(async (req, res) => {
         const clients = await db.getAllClients(limit, offset, search);
         res.send(clients);
     } catch (error) {
-        res.status(500).json({ message: "Error getting all clients" });
+        res.status(500).json({ message: "Error query get all clients" });
     }
 })
 
@@ -221,7 +223,7 @@ const getCashRegister = asyncHandler(async (req, res) => {
         const cashReg = await db.getCashRegister();
         res.status(200).json({ cashReg: cashReg[0] });
     } catch (error) {
-        res.status(500).json({ message: "Error getting cash register" });
+        res.status(500).json({ message: "Error query get cash register" });
     }
 })
 
@@ -232,7 +234,7 @@ const insertIntoCashRegister = asyncHandler(async (req, res) => {
         await db.insertIntoCashRegister(Number(amount), description);
         res.status(200).end();
     } catch (error) {
-        res.status(500).json({ message: "Error inserting into cash register " + error });
+        res.status(500).json({ message: "Error query insert money into cash register " + error });
     }
 })
 
@@ -243,7 +245,7 @@ const removeFromCashRegister = asyncHandler(async (req, res) => {
         await db.removeFromCashRegister(Number(amount), description);
         res.status(200).end();
     } catch (error) {
-        res.status(500).json({ message: "Error removing from cash register " + error });
+        res.status(500).json({ message: "Error query remove money from cash register " + error });
     }
 })
 

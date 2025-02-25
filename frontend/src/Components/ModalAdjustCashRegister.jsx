@@ -1,10 +1,11 @@
 import ReactDom from "react-dom";
 import styled from "styled-components";
-import {X, CircleHelp, CheckCheck, CircleCheckBig} from 'lucide-react'
-import {useEffect, useState} from "react";
+import { X, CircleHelp, CheckCheck, CircleCheckBig } from 'lucide-react';
+import { useEffect, useState } from "react";
 import axios from "axios";
+import Loading from './Loading.jsx';
 
-export default function ModalAdjustCashRegister({ closeModal, isInsert, refresh}) {
+export default function ModalAdjustCashRegister({ closeModal, isInsert, refresh }) {
     const [showSuccMsg, setShowSuccMsg] = useState(false);
     const [showAdjust, setShowAdjust] = useState(true);
     const [successMsg, setSuccessMsg] = useState("");
@@ -13,45 +14,44 @@ export default function ModalAdjustCashRegister({ closeModal, isInsert, refresh}
     const [description, setDescription] = useState("/");
     const [error, setError] = useState("");
     const [showError, setShowError] = useState(true);
+    const [loading, setLoading] = useState(false);
 
     const insert = (amount, description) => {
-
-        //Put http which inserts money into cash register and adds a new transaction
+        setLoading(true);
         axios.put(`http://localhost:3000/cashRegister/insert`, { amount, description })
             .then(response => {
-                console.log(response)
-                setSuccessMsg("Successfully inserted money into cash register")
-                setInfoMsg(`Added ${Number(amount).toLocaleString("de-DE")} into cash register!`)
+                setSuccessMsg("Successfully inserted money into cash register");
+                setInfoMsg(`Added ${Number(amount).toLocaleString("de-DE")} into cash register!`);
                 setShowSuccMsg(true);
                 refresh();
-            } )
-            .catch(error => console.error('Error inserting money into cash register:', error));
-    }
+            })
+            .catch(error => console.error('Error inserting money into cash register:', error))
+            .finally(() => setLoading(false));
+    };
 
     const remove = (amount, description) => {
-
-        //Put http which removes money from cash register and adds a new transaction
+        setLoading(true);
         axios.put(`http://localhost:3000/cashRegister/remove`, { amount, description })
             .then(response => {
-                console.log(response)
-                setSuccessMsg("Successfully removed money from cash register")
-                setInfoMsg(`Removed ${Number(amount).toLocaleString("de-DE")} from cash register!`)
+                setSuccessMsg("Successfully removed money from cash register");
+                setInfoMsg(`Removed ${Number(amount).toLocaleString("de-DE")} from cash register!`);
                 setShowSuccMsg(true);
                 refresh();
-            } )
-            .catch(error => console.error('Error removing money from cash register:', error));
-    }
+            })
+            .catch(error => console.error('Error removing money from cash register:', error))
+            .finally(() => setLoading(false));
+    };
 
     useEffect(() => {
         if (!showAdjust)
             isInsert ? insert(amount, description) : remove(amount, description);
-    }, [showAdjust])
+    }, [showAdjust]);
 
     return ReactDom.createPortal(
         <>
             <Overlay />
-            <Wrapper >
-                <X size={32} onClick={closeModal}/>
+            <Wrapper>
+                <X size={32} onClick={closeModal} />
                 {
                     showAdjust && (
                         <>
@@ -59,8 +59,8 @@ export default function ModalAdjustCashRegister({ closeModal, isInsert, refresh}
                             <h1>How much do you want to {isInsert ? 'insert' : 'remove'}?</h1>
                             <form onSubmit={e => e.preventDefault()}>
                                 <span>
-                                    <StyledInput onChange={e => setAmount(e.target.value)} placeholder="Enter amount" required/>
-                                    <StyledInput onChange={e => setDescription(e.target.value)} placeholder="Enter description" required/>
+                                    <StyledInput onChange={e => setAmount(e.target.value)} placeholder="Enter amount" required />
+                                    <StyledInput onChange={e => setDescription(e.target.value)} placeholder="Enter description" required />
                                 </span>
                                 <Button onClick={() => {
                                     if (amount.length > 0) {
@@ -69,10 +69,10 @@ export default function ModalAdjustCashRegister({ closeModal, isInsert, refresh}
                                             setShowAdjust(false) && setShowError(false);
                                     } else {
                                         setShowError(true);
-                                        setError('You must enter a price!')
+                                        setError('You must enter a price!');
                                     }
                                 }}>
-                                    <CheckCheck size={28}/> Confirm
+                                    <CheckCheck size={28} /> Confirm
                                 </Button>
                             </form>
                             {showError && <ErrorText>{error}</ErrorText>}
@@ -80,18 +80,19 @@ export default function ModalAdjustCashRegister({ closeModal, isInsert, refresh}
                     )
                 }
                 {
-                    showSuccMsg && (
-                        <>
-                            <CircleCheckBig size={120} />
-                            <h1>{successMsg}</h1>
-                            <p>{infoMsg}</p>
-                        </>
-                    )
+                    loading ? <Loading /> :
+                        showSuccMsg && (
+                            <>
+                                <CircleCheckBig size={120} />
+                                <h1>{successMsg}</h1>
+                                <p>{infoMsg}</p>
+                            </>
+                        )
                 }
             </Wrapper>
         </>,
         document.getElementById("portal")
-    )
+    );
 }
 
 const Overlay = styled.div`
@@ -102,7 +103,7 @@ const Overlay = styled.div`
     right: 0;
     background: rgba(0,0,0, .7);
     z-index: 1000;
-`
+`;
 
 const Wrapper = styled.div`
     display: flex;
@@ -119,16 +120,16 @@ const Wrapper = styled.div`
     border-radius: 8px;
     min-width: fit-content;
     max-width: 90%;
-    
+
     h1 {
         text-align: center;
     }
-    
+
     p {
         font-weight: 400;
         font-size: 1.2rem;
     }
-    
+
     &>svg:first-child {
         margin-left: auto;
         transition: all 400ms ease-in-out;
@@ -137,13 +138,13 @@ const Wrapper = styled.div`
     &>svg:first-child:hover {
         transform: rotate(90deg);
     }
-    
+
     svg:nth-child(2) {
         color: var(--green);
         margin-left: auto;
         margin-right: auto;
     }
-    
+
     form {
         display: flex;
         flex-direction: column;
@@ -151,12 +152,12 @@ const Wrapper = styled.div`
         gap: 1rem;
         margin-top: 1rem;
     }
-    
+
     span {
         display: flex;
         gap: 2rem;
     }
-`
+`;
 
 const StyledInput = styled.input`
     border: none;
@@ -165,7 +166,7 @@ const StyledInput = styled.input`
     padding: .5rem;
     box-shadow: 0 0 4px rgba(0,0,0,0.2);
     height: fit-content;
-`
+`;
 
 const Button = styled.button`
     display: flex;
@@ -179,16 +180,15 @@ const Button = styled.button`
     font-size: 1.4rem;
     box-shadow: 0 0 8px rgba(0,0,0,0.2);
     transition: scale 400ms ease-in-out;
-    
+
     &:hover {
         scale: 1.05;
     }
-`
+`;
 
 const ErrorText = styled.span`
     color: red;
     font-style: italic;
     font-size: 1.2rem;
     font-weight: 400;
-`
-
+`;

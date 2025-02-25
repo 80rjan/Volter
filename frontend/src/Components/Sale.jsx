@@ -4,11 +4,13 @@ import {useEffect, useState} from "react";
 import { Euro, RotateCcw, X, Ellipsis } from 'lucide-react'
 import ModalReadMoreSale from "./ModalReadMoreSale.jsx";
 import ModalSellItem from "./ModalSellItem.jsx";
+import Loading from "./Loading.jsx";
 
 export default function Sale({ sale, refresh, isOdd }) {
     const [modalSellItem, setModalSellItem] = useState(false);
     const [modalReadMore, setModalReadMore] = useState(false);
     const [saleInfo, setSaleInfo] = useState(null);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (!modalSellItem)
@@ -21,13 +23,15 @@ export default function Sale({ sale, refresh, isOdd }) {
     }, [saleInfo])
 
     const fetchSale = (clientId, saleId) => {
+        setLoading(true);
         axios.get(`http://localhost:3000/sales/getSale?clientId=${clientId}&saleId=${saleId}`)
             .then(res => {
                 setSaleInfo(res.data.saleInfo)
             })
             .catch(error => {
                 console.error('Error fetching sale:', error);
-            });
+            })
+            .finally(() => setLoading(false))
     }
 
 
@@ -38,12 +42,17 @@ export default function Sale({ sale, refresh, isOdd }) {
             <Text>{sale.About}</Text>
             <Text className="bold">{Number(sale["Item Cost"]).toLocaleString("de-DE")}</Text>
             <Text>{sale["Date Bought"].substring(0, 10)}</Text>
-            <ButtonWrapper>
-                <Euro size={22} color="var(--green)" onClick={() => setModalSellItem(true)} />
-            </ButtonWrapper>
-            <Ellipsis size={28} color="#888"
-                      onClick={() => fetchSale(sale["Client Id"], sale.Id)}
-            />
+            {
+                loading ? <Loading width={30} height={30} /> :
+                    <>
+                        <ButtonWrapper>
+                            <Euro size={22} color="var(--green)" onClick={() => setModalSellItem(true)} />
+                        </ButtonWrapper>
+                        <Ellipsis size={28} color="#888"
+                                  onClick={() => fetchSale(sale["Client Id"], sale.Id)}
+                        />
+                    </>
+            }
 
             {modalSellItem &&
                 <ModalSellItem

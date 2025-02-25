@@ -1,70 +1,75 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import { Handshake, Tag, Sigma, CalendarClock, Plus, Minus } from "lucide-react"
+import { Handshake, Tag, Sigma, CalendarClock, Plus, Minus } from "lucide-react";
 import styled from "styled-components";
 import ModalAdjustCashRegister from "../Components/ModalAdjustCashRegister.jsx";
 
-export default function CashRegister({ refreshDependancy, refreshTransactionsPage }) {
+export default function CashRegister({ refreshDependancy, refreshTransactions }) {
     const [cashReg, setCashReg] = useState({});
     const [showModalInsert, setShowModalInsert] = useState(false);
     const [showModalRemove, setShowModalRemove] = useState(false);
-    const [refresh, setRefresh] = useState(refreshDependancy);
 
     const fetchCashRegister = () => {
         axios.get(`http://localhost:3000/cashRegister`)
             .then(res => {
-                setCashReg(res.data.cashReg)
+                setCashReg(res.data.cashReg);
             })
             .catch(error => console.error('Error fetching cash register', error));
-    }
+    };
 
     useEffect(() => {
         fetchCashRegister();
-        if (refreshTransactionsPage)
-            refreshTransactionsPage();
-    }, [refreshDependancy, refresh]);
+    }, [refreshDependancy]);
 
     return (
-        <Wrapper >
+        <Wrapper>
             <TextWrapper>
                 <Handshake size={24} />
-                <Value className="bold">{ Number(cashReg.money_pawns).toLocaleString("de-DE") }</Value>
-                <Value >/</Value>
-                <Value >{ Number(cashReg.num_pawns).toLocaleString("de-DE") }</Value>
+                <Value className="bold">{Number(cashReg.money_pawns).toLocaleString("de-DE")}</Value>
+                <Value>/</Value>
+                <Value>{Number(cashReg.num_pawns).toLocaleString("de-DE")}</Value>
             </TextWrapper>
             <TextWrapper>
                 <Tag size={24} />
-                <Value className="bold">{ Number(cashReg.money_sale_items).toLocaleString("de-DE") }</Value>
-                <Value >/</Value>
-                <Value >{ Number(cashReg.num_sale_items).toLocaleString("de-DE") }</Value>
+                <Value className="bold">{Number(cashReg.money_sale_items).toLocaleString("de-DE")}</Value>
+                <Value>/</Value>
+                <Value>{Number(cashReg.num_sale_items).toLocaleString("de-DE")}</Value>
             </TextWrapper>
             <TextWrapper>
                 <Sigma size={24} />
-                <Value className="bold">{ Number(cashReg.register_money).toLocaleString("de-DE") }</Value>
+                <Value className="bold">{Number(cashReg.register_money).toLocaleString("de-DE")}</Value>
             </TextWrapper>
-            <TextWrapper >
+            <TextWrapper>
                 <CalendarClock size={24} />
-                <Value className="bold">{ Object.keys(cashReg).length > 0 && cashReg.last_updated.substring(0, 10)} </Value>
-                <Value >/</Value>
-                <Value >{ Object.keys(cashReg).length > 0 && cashReg.last_updated.substring(11, 16) }</Value>
+                <Value className="bold">{Object.keys(cashReg).length > 0 && cashReg.last_updated.substring(0, 10)}</Value>
+                <Value>/</Value>
+                <Value>{Object.keys(cashReg).length > 0 && cashReg.last_updated.substring(11, 16)}</Value>
             </TextWrapper>
-            <ActionsWrapper >
-                <Minus size={24} color="var(--dark-red)" onClick={() => setShowModalRemove(true)}/>
-                <Plus size={24} color="var(--green)" onClick={() => setShowModalInsert(true)}/>
+            <ActionsWrapper>
+                <Minus size={24} color="var(--dark-red)" onClick={() => setShowModalRemove(true)} />
+                <Plus size={24} color="var(--green)" onClick={() => setShowModalInsert(true)} />
             </ActionsWrapper>
 
             {showModalInsert && <ModalAdjustCashRegister
                 closeModal={() => setShowModalInsert(false)}
                 isInsert={true}
-                refresh={() => setRefresh(prev => !prev)}
-            /> }
+                refresh={() => {
+                    fetchCashRegister()
+                    if (refreshTransactions)
+                        refreshTransactions()
+                }}
+            />}
             {showModalRemove && <ModalAdjustCashRegister
                 closeModal={() => setShowModalRemove(false)}
                 isInsert={false}
-                refresh={() => setRefresh(prev => !prev)}
-            /> }
+                refresh={() => {
+                    fetchCashRegister()
+                    if (refreshTransactions)
+                        refreshTransactions()
+                }}
+            />}
         </Wrapper>
-    )
+    );
 }
 
 const Wrapper = styled.div`
@@ -80,13 +85,12 @@ const Wrapper = styled.div`
         font-weight: bold;
         font-style: normal;
     }
-`
+`;
 const TextWrapper = styled.div`
     display: flex;
     align-items: center;
     gap: .4rem;
-`
-
+`;
 const ActionsWrapper = styled.div`
     display: flex;
     align-items: center;
@@ -99,9 +103,8 @@ const ActionsWrapper = styled.div`
     svg:hover {
         scale: 1.1;
     }
-`
-
+`;
 const Value = styled.p`
     font-size: .8rem;
     font-style: italic;
-`
+`;

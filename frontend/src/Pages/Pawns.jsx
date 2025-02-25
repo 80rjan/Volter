@@ -6,6 +6,7 @@ import Nav from "../Components/Nav.jsx";
 import { Plus, X, Euro, RotateCcw, ChevronUp, ChevronDown, Minus} from "lucide-react";
 import ModalAddNewPawn from "../Components/ModalAddNewPawn.jsx";
 import CashRegister from "./CashRegister.jsx";
+import Loading from "../Components/Loading.jsx";
 
 export default function Pawns() {
     const [allPawns, setAllPawns] = useState([]);
@@ -22,8 +23,10 @@ export default function Pawns() {
     const [isLastPage, setIsLastPage] = useState(false);
     const prevPawns = useRef([]);
     const scrollablePawnsRef = useRef(null);
+    const [loading, setLoading] = useState(false);
 
     const fetchPawns = (limit, offset, order, direction, searchByName, searchByEmbg, searchByTel) => {
+        setLoading(true);
         axios.get(`http://localhost:3000?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByTel=${searchByTel}`)
             .then(res => {
                 if (JSON.stringify(prevPawns.current) !== JSON.stringify(res.data)) {
@@ -32,7 +35,10 @@ export default function Pawns() {
                     setIsLastPage(res.data.length < limit);
                 }
             })
-            .catch(error => console.error('Error fetching all pawns:', error));
+            .catch(error => {
+                console.error('Error fetching all pawns:', error)
+            })
+            .finally(() => setLoading(false));
     }
 
     useEffect(() => {
@@ -93,6 +99,7 @@ export default function Pawns() {
 
                     {modalAddNewPawn && <ModalAddNewPawn
                         closeModal={() => setModalAddNewPawn(false)}
+                        refresh={() => setRefresh(prev => !prev)}
                     />}
                 </HeaderWrapper>
 
@@ -143,7 +150,9 @@ export default function Pawns() {
                     </TableHeader>
 
                     <ScrollablePawns ref={scrollablePawnsRef}>
-                        { allPawns.map((pawn, index) => (
+                        { loading ?
+                            <Loading /> :
+                            allPawns.map((pawn, index) => (
                             <Pawn
                                 pawn={pawn}
                                 key={index}

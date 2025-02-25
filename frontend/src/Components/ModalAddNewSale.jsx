@@ -4,8 +4,9 @@ import { X, BookmarkPlus, CheckCheck, User, Tag } from 'lucide-react';
 import {useEffect, useRef, useState} from "react";
 import { Autocomplete, TextField } from '@mui/material';
 import axios from "axios";
+import Loading from "./Loading.jsx";
 
-export default function ModalAddNewSale({ closeModal }) {
+export default function ModalAddNewSale({ closeModal, refresh }) {
     const [clients, setClients] = useState([]);
     const [formData, setFormData] = useState({
         name: '',
@@ -18,9 +19,9 @@ export default function ModalAddNewSale({ closeModal }) {
     const [isLastPage, setIsLastPage] = useState(false);
     const scrollableClientsRef = useRef(null);
     const [autocompleteValue, setAutocompleteValue] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const handleObjectSelect = (event, value) => {
-        console.log(value)
         if (value) {
             setFormData({
                 name: value.name,
@@ -65,6 +66,19 @@ export default function ModalAddNewSale({ closeModal }) {
         }
     };
 
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setLoading(true);
+        axios.post('/sales/insertSale', formData)
+            .then(response => {
+                refresh();
+                closeModal();
+            })
+            .catch(error => {
+                console.error('Error adding sale:', error);
+            })
+            .finally(() => setLoading(false))
+    };
 
     useEffect(() => {
         fetchClients(limit, offset.current, autocompleteValue)
@@ -73,101 +87,106 @@ export default function ModalAddNewSale({ closeModal }) {
     return ReactDom.createPortal(
         <>
             <Overlay />
-            <Wrapper>
-                <Header>
-                    <div>
-                        <BookmarkPlus size={32} />
-                        <h1>Add New Sale</h1>
-                    </div>
-                    <ButtonClose onClick={closeModal}>
-                        <X size={32} />
-                    </ButtonClose>
-                </Header>
-                <Form method="post" action="/sales/insertSale">
-                    <div>
-                        <ClientInputs>
-                            <span><User size={20} /> Enter Client Details</span>
-                            <Autocomplete
-                                ref={scrollableClientsRef}
-                                options={clients}
-                                getOptionLabel={(option) => option.name}
-                                onChange={handleObjectSelect}
-                                onInputChange={(event, value) => {
-                                    offset.current = 0;
-                                    setAutocompleteValue(value)
-                                    fetchClients(limit, offset.current, value);
-                                }}
-                                ListboxProps={{ onScroll: handleScroll }}
-                                renderInput={(params) => <TextField {...params} label="Search existing clients" />}
-                                isOptionEqualToValue={(option, value) => option.id === value.id} // Optional: ensures the correct option is selected
-                                renderOption={(props, option) => (
-                                    <li {...props} key={option.id} style={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '.1rem',
-                                        alignItems: 'flex-start'
-                                    }}>
-                                        <strong>{option.name}</strong>
-                                        <span>{option.embg}</span>
-                                        <span>{option.telephone}</span>
-                                    </li>
-                                )}
-                                filterOptions={(options, state) =>
-                                    options.filter(option =>
-                                        option.name.toLowerCase().includes(state.inputValue.toLowerCase()) ||
-                                        option.embg.includes(state.inputValue) ||
-                                        option.telephone.includes(state.inputValue)
-                                    )
-                                }
-                                sx={{
-                                    background: "white",
-                                    borderRadius: ".3rem",
-                                    fontSize: "1rem",
-                                    boxShadow: "0 0 4px rgba(0,0,0,0.2)",
-                                }}
-                            />
-                            <StyledInput
-                                placeholder="Client name"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleInputChange}
-                                required
-                            />
-                            <StyledInput
-                                placeholder="Client embg"
-                                name="embg"
-                                value={formData.embg}
-                                onChange={handleInputChange}
-                                required
-                            />
-                            <StyledInput
-                                placeholder="Client telephone"
-                                name="telephone"
-                                value={formData.telephone}
-                                onChange={handleInputChange}
-                                required
-                            />
-                            <StyledInput
-                                placeholder="Client city"
-                                name="city"
-                                value={formData.city}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </ClientInputs>
-                        <SaleInputs>
-                            <span><Tag size={20}/> Enter Sale Details</span> <p></p>
-                            <div>
-                                <StyledInput placeholder="Price Bought" name="price_bought" required />
-                                <StyledInput placeholder="Item description" name="description" required />
-                            </div>
-                        </SaleInputs>
-                    </div>
-                    <Button type="submit">
-                        <CheckCheck size={28} /> Confirm
-                    </Button>
-                </Form>
-            </Wrapper>
+                <Wrapper>
+                    {
+                        loading ? <Loading /> :
+                            <>
+                                <Header>
+                                    <div>
+                                        <BookmarkPlus size={32} />
+                                        <h1>Add New Sale</h1>
+                                    </div>
+                                    <ButtonClose onClick={closeModal}>
+                                        <X size={32} />
+                                    </ButtonClose>
+                                </Header>
+                                <Form onSubmit={handleSubmit}>
+                                    <div>
+                                        <ClientInputs>
+                                            <span><User size={20} /> Enter Client Details</span>
+                                            <Autocomplete
+                                                ref={scrollableClientsRef}
+                                                options={clients}
+                                                getOptionLabel={(option) => option.name}
+                                                onChange={handleObjectSelect}
+                                                onInputChange={(event, value) => {
+                                                    offset.current = 0;
+                                                    setAutocompleteValue(value)
+                                                    fetchClients(limit, offset.current, value);
+                                                }}
+                                                ListboxProps={{ onScroll: handleScroll }}
+                                                renderInput={(params) => <TextField {...params} label="Search existing clients" />}
+                                                isOptionEqualToValue={(option, value) => option.id === value.id} // Optional: ensures the correct option is selected
+                                                renderOption={(props, option) => (
+                                                    <li {...props} key={option.id} style={{
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        gap: '.1rem',
+                                                        alignItems: 'flex-start'
+                                                    }}>
+                                                        <strong>{option.name}</strong>
+                                                        <span>{option.embg}</span>
+                                                        <span>{option.telephone}</span>
+                                                    </li>
+                                                )}
+                                                filterOptions={(options, state) =>
+                                                    options.filter(option =>
+                                                        option.name.toLowerCase().includes(state.inputValue.toLowerCase()) ||
+                                                        option.embg.includes(state.inputValue) ||
+                                                        option.telephone.includes(state.inputValue)
+                                                    )
+                                                }
+                                                sx={{
+                                                    background: "white",
+                                                    borderRadius: ".3rem",
+                                                    fontSize: "1rem",
+                                                    boxShadow: "0 0 4px rgba(0,0,0,0.2)",
+                                                }}
+                                            />
+                                            <StyledInput
+                                                placeholder="Client name"
+                                                name="name"
+                                                value={formData.name}
+                                                onChange={handleInputChange}
+                                                required
+                                            />
+                                            <StyledInput
+                                                placeholder="Client embg"
+                                                name="embg"
+                                                value={formData.embg}
+                                                onChange={handleInputChange}
+                                                required
+                                            />
+                                            <StyledInput
+                                                placeholder="Client telephone"
+                                                name="telephone"
+                                                value={formData.telephone}
+                                                onChange={handleInputChange}
+                                                required
+                                            />
+                                            <StyledInput
+                                                placeholder="Client city"
+                                                name="city"
+                                                value={formData.city}
+                                                onChange={handleInputChange}
+                                                required
+                                            />
+                                        </ClientInputs>
+                                        <SaleInputs>
+                                            <span><Tag size={20}/> Enter Sale Details</span> <p></p>
+                                            <div>
+                                                <StyledInput placeholder="Price Bought" name="price_bought" required />
+                                                <StyledInput placeholder="Item description" name="description" required />
+                                            </div>
+                                        </SaleInputs>
+                                    </div>
+                                    <Button type="button" onClick={handleSubmit}>
+                                        <CheckCheck size={28} /> Confirm
+                                    </Button>
+                                </Form>
+                            </>
+                    }
+                </Wrapper>
         </>,
         document.getElementById("portal")
     );
