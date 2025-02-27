@@ -262,9 +262,9 @@ const TableHeader = styled.div`
     place-items: center;
     grid-template-columns: 2rem 1fr 1fr 2fr repeat(4, 1fr) 1.5fr .5fr;
     padding: 1rem .5rem;
-    //color: #eeeeee;
     border-bottom: rgba(0, 0, 0, 0.2) 2px solid;
-    //background: var(--green);
+    color: #eee;
+    background: #666;
 `
 
 const Text = styled.div`
@@ -277,6 +277,7 @@ const Text = styled.div`
 
 const ScrollablePawns = styled.div`
     overflow-y: auto;
+    overflow-x: hidden;
     flex-grow: 1;
     
     &::-webkit-scrollbar {

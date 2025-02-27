@@ -117,7 +117,7 @@ export default function Pawn({ pawn, refresh, isOdd }) {
             <Text>{pawn.Category}</Text>
             <Text>{pawn.About}</Text>
             <Text>{Number(pawn["Item Cost"]).toLocaleString("de-DE")}</Text>
-            <Text className="bold" >{Number(pawn.Provision).toLocaleString("de-DE")}</Text>
+            <Text className="bold color" >{Number(pawn.Provision).toLocaleString("de-DE")}</Text>
             <Text>{pawn["Days Left"]}</Text>
             <Text>{pawn["Valid Until"].substring(0, 10)}</Text>
             {
@@ -164,7 +164,16 @@ const Wrapper = styled.div`
     grid-template-columns: 2rem 1fr 1fr 2fr repeat(4, 1fr) 1.5fr .5fr;
     padding: .5rem;
     border-bottom: rgba(0,0,0,0.2) 2px solid;
-
+    //transition: all 200ms ease-in-out;
+    //z-index: 1;
+    //
+    //&:hover {
+    //    padding: 1rem;
+    //    box-shadow: 0 0 8px rgba(0,0,0,0.6);
+    //    z-index: 10;
+    //    scale: 1.001;
+    //    //border: none;
+    //}
     svg {
         cursor: pointer;
         transition: all 200ms ease-in-out;
@@ -180,6 +189,9 @@ const Text = styled.p`
     
     &.bold {
         font-weight: bold;
+    }
+    &.color {
+        font-style: italic;
     }
 `
 

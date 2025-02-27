@@ -18,7 +18,7 @@ function createWindow() {
     });
 
     if (process.env.NODE_ENV === 'development') {
-        win.loadURL('http://localhost:5175').catch((err) => {
+        win.loadURL('http://localhost:5173').catch((err) => {
             console.error('Failed to load URL:', err);
         }); // URL for Vite's development server
     } else {

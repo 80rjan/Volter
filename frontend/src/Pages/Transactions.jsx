@@ -126,9 +126,9 @@ export default function Transactions() {
                                     <TextTransaction>{transaction.Embg}</TextTransaction>
                                     <TextTransaction>{transaction.Category}</TextTransaction>
                                     <TextTransaction>{transaction.Description}</TextTransaction>
-                                    <TextTransaction className="bold">{Number(transaction.Given).toLocaleString("de-DE")}</TextTransaction>
-                                    <TextTransaction className="bold">{Number(transaction.Got).toLocaleString("de-DE")}</TextTransaction>
-                                    <TextTransaction className="bold">{Number(transaction.Profit).toLocaleString("de-DE")}</TextTransaction>
+                                    <TextTransaction className="bold color">{Number(transaction.Given).toLocaleString("de-DE")}</TextTransaction>
+                                    <TextTransaction className="bold color">{Number(transaction.Got).toLocaleString("de-DE")}</TextTransaction>
+                                    <TextTransaction className="bold color">{Number(transaction.Profit).toLocaleString("de-DE")}</TextTransaction>
                                     <TextTransaction>{transaction.Date.substring(0, 10)}</TextTransaction>
                                 </Transaction>
                             ))
@@ -195,6 +195,8 @@ const TableHeader = styled.div`
     gap: 1rem;
     padding: 1rem .5rem;
     border-bottom: rgba(0, 0, 0, 0.2) 2px solid;
+    color: #eee;
+    background: #666;
 `;
 
 const Text = styled.div`
@@ -207,6 +209,7 @@ const Text = styled.div`
 
 const ScrollableTransactions = styled.div`
     overflow-y: auto;
+    overflow-x: hidden;
     flex-grow: 1;
 
     &::-webkit-scrollbar {
@@ -232,6 +235,16 @@ const Transaction = styled.div`
     gap: .4rem;
     padding: .8rem;
     border-bottom: rgba(0,0,0,0.2) 2px solid;
+    transition: all 200ms ease-in-out;
+    z-index: 1;
+
+    &:hover {
+        padding: 1rem;
+        box-shadow: 0 0 8px rgba(0,0,0,0.6);
+        z-index: 10;
+        scale: 1.001;
+        //border: none;
+    }
 `;
 
 const TextTransaction = styled.p`
@@ -240,5 +253,8 @@ const TextTransaction = styled.p`
 
     &.bold {
         font-weight: bold;
+    }
+    &.color {
+        font-style: italic;
     }
 `;

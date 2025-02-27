@@ -40,7 +40,7 @@ export default function Sale({ sale, refresh, isOdd }) {
             <Text>{sale["Client Id"]}</Text>
             <Text>{sale.Name}</Text>
             <Text>{sale.About}</Text>
-            <Text className="bold">{Number(sale["Item Cost"]).toLocaleString("de-DE")}</Text>
+            <Text className="bold color">{Number(sale["Item Cost"]).toLocaleString("de-DE")}</Text>
             <Text>{sale["Date Bought"].substring(0, 10)}</Text>
             {
                 loading ? <Loading width={30} height={30} /> :
@@ -80,6 +80,16 @@ const Wrapper = styled.div`
     grid-template-columns: 2rem 1fr 2fr 1fr 1fr 1.5fr .5fr;
     padding: .5rem;
     border-bottom: rgba(0,0,0,0.2) 2px solid;
+    transition: all 200ms ease-in-out;
+    z-index: 1;
+
+    &:hover {
+        padding: 1rem;
+        box-shadow: 0 0 8px rgba(0,0,0,0.6);
+        z-index: 10;
+        scale: 1.001;
+        //border: none;
+    }
 
     svg {
         cursor: pointer;
@@ -96,6 +106,9 @@ const Text = styled.p`
 
     &.bold {
         font-weight: bold;
+    }
+    &.color {
+        font-style: italic;
     }
 `
 

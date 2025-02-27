@@ -106,9 +106,12 @@ const Wrapper = styled.div`
     justify-content: space-between;
     align-items: center;
     padding: 1rem 1rem;
-    background: #fff;
     border-radius: 8px 8px 0 0;
     box-shadow: 0 0 8px rgba(0,0,0,0.2);
+    background: #fff;
+    border: 2px solid rgba(0,0,0,0.4);
+    border-bottom: none;
+);  
 
     .bold {
         font-weight: bold;
