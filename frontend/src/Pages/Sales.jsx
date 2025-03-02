@@ -19,14 +19,16 @@ export default function Sales() {
     const [modalAddNewSale, setModalAddNewSale] = useState(false);
     const [refresh, setRefresh] = useState(false);
     const offset = useRef(0);
-    const limit = 15;
+    const limit = 20;
     const [isLastPage, setIsLastPage] = useState(false);
     const prevSales = useRef([]);
     const scrollableSalesRef = useRef(null);
     const [loading, setLoading] = useState(false);
+    const isFetching = useRef(false);
 
-    const fetchSales = (limit, offset, order, direction, searchByName, searchByEmbg, searchByTel) => {
-        setLoading(true);
+    const fetchSales = (limit, offset, order, direction, searchByName, searchByEmbg, searchByTel, isLoading) => {
+        setLoading(isLoading);
+        isFetching.current = true;
         axios.get(`http://localhost:3000/sales?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByTel=${searchByTel}`)
             .then(res => {
                 if (JSON.stringify(prevSales.current) !== JSON.stringify(res.data)) {
@@ -38,7 +40,10 @@ export default function Sales() {
             .catch(error => {
                 console.error('Error fetching all pawns:', error)
             })
-            .finally(() => setLoading(false))
+            .finally(() => {
+                setLoading(false)
+                isFetching.current = false;
+            })
     }
 
     useEffect(() => {
@@ -49,9 +54,9 @@ export default function Sales() {
             const clientHeight = scrollDiv.clientHeight; // Visible height of the div
 
             // Check if the scrollbar is 30% up from the bottom
-            if (scrollHeight - scrollTop - clientHeight <= scrollHeight * 0.3 && !isLastPage) {
+            if (scrollHeight - scrollTop - clientHeight <= scrollHeight * 0.3 && !isLastPage && !isFetching.current) {
                 offset.current += limit; // Increase offset for the next fetch
-                fetchSales(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel);
+                fetchSales(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, false);
             }
         };
 
@@ -67,7 +72,7 @@ export default function Sales() {
         setAllSales([]);
         prevSales.current = [];
         offset.current = 0;
-        fetchSales(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel);
+        fetchSales(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, true);
     }, [refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel])
 
 

@@ -7,7 +7,7 @@ import CashRegister from "./CashRegister.jsx";
 import Loading from "../Components/Loading.jsx";
 
 export default function Transactions() {
-    const allTransactions = useRef([]);
+    const [allTransactions, setAllTransactions] = useState([]);
     const [orderBy, setOrderBy] = useState("Date");
     const orderDirectionArr = useRef([0, 0, 0, 0, 0, 0, 0, -1]);
     const [orderDirection, setOrderDirection] = useState("DESC");
@@ -16,18 +16,20 @@ export default function Transactions() {
     const [searchByDate, setSearchByDate] = useState("");
     const [refresh, setRefresh] = useState(false);
     const offset = useRef(0);
-    const limit = 15;
+    const limit = 20;
     const [isLastPage, setIsLastPage] = useState(false);
     const prevTransactions = useRef([]);
     const scrollableTransactionsRef = useRef(null);
     const [loading, setLoading] = useState(false);
+    const isFetching = useRef(false);
 
     const fetchTransactions = (limit, offset, order, direction, searchByName, searchByEmbg, searchByDate, isLoading) => {
         setLoading(isLoading);
+        isFetching.current = true;
         axios.get(`http://localhost:3000/transactions?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByDate=${searchByDate}`)
             .then(res => {
                 if (JSON.stringify(prevTransactions.current) !== JSON.stringify(res.data)) {
-                    allTransactions.current = [...allTransactions.current, ...res.data];
+                    setAllTransactions(prev => [...prev, ...res.data]);
                     prevTransactions.current = [...prevTransactions.current, ...res.data];
                     setIsLastPage(res.data.length < limit);
                 }
@@ -35,7 +37,10 @@ export default function Transactions() {
             .catch(error => {
                 console.error('Error fetching all transactions:', error);
             })
-            .finally(() => setLoading(false));
+            .finally(() => {
+                setLoading(false);
+                isFetching.current = false;
+            });
     };
 
     useEffect(() => {
@@ -45,7 +50,7 @@ export default function Transactions() {
             const scrollTop = scrollDiv.scrollTop;
             const clientHeight = scrollDiv.clientHeight;
 
-            if (scrollHeight - scrollTop - clientHeight <= scrollHeight * 0.3 && !isLastPage) {
+            if (scrollHeight - scrollTop - clientHeight <= scrollHeight * 0.3 && !isLastPage && !isFetching.current) {
                 offset.current += limit;
                 fetchTransactions(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByDate, false);
             }
@@ -60,7 +65,7 @@ export default function Transactions() {
     }, [isLastPage, orderBy, orderDirection, searchByName, searchByEmbg, searchByDate]);
 
     useEffect(() => {
-        allTransactions.current = [];
+        setAllTransactions([]);
         prevTransactions.current = [];
         offset.current = 0;
         fetchTransactions(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByDate, true);
@@ -119,7 +124,7 @@ export default function Transactions() {
                         {loading ? (
                             <Loading />
                         ) : (
-                            allTransactions.current.map((transaction, index) => (
+                            allTransactions.map((transaction, index) => (
                                 <Transaction key={index} style={index % 2 === 1 ? { background: "#f0f0f0" } : { background: "#ffffff" }}>
                                     <TextTransaction>{transaction["Client Id"]}</TextTransaction>
                                     <TextTransaction>{transaction.Name}</TextTransaction>

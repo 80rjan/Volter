@@ -19,14 +19,16 @@ export default function Pawns() {
     const [modalAddNewPawn, setModalAddNewPawn] = useState(false);
     const [refresh, setRefresh] = useState(false);
     const offset = useRef(0);
-    const limit = 15;
+    const limit = 20;
     const [isLastPage, setIsLastPage] = useState(false);
     const prevPawns = useRef([]);
     const scrollablePawnsRef = useRef(null);
     const [loading, setLoading] = useState(false);
+    const isFetching = useRef(false);
 
-    const fetchPawns = (limit, offset, order, direction, searchByName, searchByEmbg, searchByTel) => {
-        setLoading(true);
+    const fetchPawns = (limit, offset, order, direction, searchByName, searchByEmbg, searchByTel, isLoading) => {
+        setLoading(isLoading);
+        isFetching.current = true;
         axios.get(`http://localhost:3000?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByTel=${searchByTel}`)
             .then(res => {
                 if (JSON.stringify(prevPawns.current) !== JSON.stringify(res.data)) {
@@ -38,7 +40,10 @@ export default function Pawns() {
             .catch(error => {
                 console.error('Error fetching all pawns:', error)
             })
-            .finally(() => setLoading(false));
+            .finally(() => {
+                setLoading(false)
+                isFetching.current = false;
+            });
     }
 
     useEffect(() => {
@@ -49,9 +54,9 @@ export default function Pawns() {
             const clientHeight = scrollDiv.clientHeight; // Visible height of the div
 
             // Check if the scrollbar is 30% up from the bottom
-            if (scrollHeight - scrollTop - clientHeight <= scrollHeight * 0.3 && !isLastPage) {
+            if (scrollHeight - scrollTop - clientHeight <= scrollHeight * 0.3 && !isLastPage && !isFetching.current) {
                 offset.current += limit; // Increase offset for the next fetch
-                fetchPawns(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel);
+                fetchPawns(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, false);
             }
         };
 
@@ -67,7 +72,7 @@ export default function Pawns() {
         setAllPawns([]);
         prevPawns.current = [];
         offset.current = 0;
-        fetchPawns(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel);
+        fetchPawns(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, true);
     }, [refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel])
 
 
