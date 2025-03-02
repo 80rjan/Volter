@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import navImage from "../assets/Volter zalozna kukja 3D slika.png"
 import { NavLink } from "react-router-dom";
-import { Percent, Tag, Landmark, Calendar1, CalendarDays, Handshake, ArrowLeftRight } from "lucide-react";
+import { Percent, Tag, Landmark, CalendarFold, Calendar1, CalendarDays, Handshake, ArrowLeftRight } from "lucide-react";
 
 export default function Nav() {
     return (
@@ -10,6 +10,7 @@ export default function Nav() {
             <StyledNavLink to="/"><Handshake size={28} /> Pawns</StyledNavLink>
             <StyledNavLink to="/sales" ><Tag size={28} /> Sales</StyledNavLink>
             <StyledNavLink to="/transactions" ><ArrowLeftRight size={28} /> Transactions</StyledNavLink>
+            <StyledNavLink to="/dailyReport" ><CalendarFold size={28} /> Daily Reports</StyledNavLink>
             <StyledNavLink to="/monthlyReport" ><Calendar1 size={28} /> Monthly Reports</StyledNavLink>
             <StyledNavLink to="/yearlyReport" ><CalendarDays size={28} /> Yearly Reports</StyledNavLink>
         </NavWrapper>

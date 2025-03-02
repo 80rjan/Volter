@@ -6,6 +6,7 @@ import Sales from "./Pages/Sales.jsx";
 import Transactions from "./Pages/Transactions.jsx";
 import MonthlyReport from "./Pages/MonthlyReport.jsx";
 import YearlyReport from "./Pages/YearlyReport.jsx";
+import DailyReport from "./Pages/DailyReport.jsx";
 
 const router = createBrowserRouter([
     {
@@ -19,6 +20,10 @@ const router = createBrowserRouter([
     {
         path: '/transactions',
         element: <Transactions />
+    },
+    {
+        path: '/dailyReport',
+        element: <DailyReport />
     },
     {
         path: '/monthlyReport',
