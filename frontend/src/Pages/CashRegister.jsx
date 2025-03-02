@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Handshake, Tag, Sigma, CalendarClock, Plus, Minus } from "lucide-react";
+import { Handshake, Tag, Sigma, CalendarClock, Plus, Minus, Coins, Percent } from "lucide-react";
 import styled from "styled-components";
 import ModalAdjustCashRegister from "../Components/ModalAdjustCashRegister.jsx";
 import Loading from "../Components/Loading.jsx";
@@ -35,6 +35,24 @@ export default function CashRegister({ refreshDependancy, refreshTransactions })
                             <Value className="bold">{Number(cashReg.money_pawns).toLocaleString("de-DE")}</Value>
                             <Value>/</Value>
                             <Value>{Number(cashReg.num_pawns).toLocaleString("de-DE")}</Value>
+                        </>
+                }
+            </TextWrapper>
+            <TextWrapper>
+                <Coins size={24} />
+                {
+                    loading ? <Loading width={30} height={30}/> :
+                        <>
+                            <Value className="bold">{Number(cashReg.gold_grams).toLocaleString("de-DE")} g</Value>
+                        </>
+                }
+            </TextWrapper>
+            <TextWrapper>
+                <Percent size={24} />
+                {
+                    loading ? <Loading width={30} height={30}/> :
+                        <>
+                            <Value className="bold">{Number(cashReg.average_provision).toLocaleString("de-DE")}</Value>
                         </>
                 }
             </TextWrapper>

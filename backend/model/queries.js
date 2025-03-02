@@ -115,6 +115,11 @@ async function closePawn(id, tableName) {
     }
 
     const query = await pool.query(`SELECT (price_pawned * (provision / 100)) AS provision_money, price_pawned, client_id FROM ${tableName} WHERE id = $1;`, [id])
+    let gold_grams = 0;
+    if (tableName === "gold_pawn") {
+        const result = await pool.query(`SELECT weight FROM gold_pawn WHERE id = $1;`, [id]);
+        gold_grams = result.rows[0]?.weight;
+    }
     let provisionMoney = null;
     let pawnMoney = null;
     let clientId = null;
@@ -146,15 +151,16 @@ async function closePawn(id, tableName) {
         VALUES ($1, $2, $3, 0, $4, $5, CURRENT_TIMESTAMP);
     `, [clientId, transactionCategory, transactionDescription, pawnMoney, provisionMoney])
 
-    //Update cash register with money inserted, decrease numPawns and decrease moneyPawns
+    //Update cash register with money inserted, decrease numPawns, decrease moneyPawns, update quantity of gold in grams
     await pool.query(`
         UPDATE cash_register 
         SET
             num_pawns = num_pawns - 1,
             money_pawns = money_pawns - $1,
             register_money = register_money + $1 + $2,
+            gold_grams = gold_grams - $3,
             last_updated = NOW();
-    `, [pawnMoney, provisionMoney])
+    `, [pawnMoney, provisionMoney, gold_grams])
 
     await pool.query(`COMMIT;`)
 
@@ -216,6 +222,9 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
     if (!validTables.includes(pawnCategory)) {
         throw new Error("Invalid pawn category in ADD NEW PAWN");
     }
+    let gold_grams = 0;
+    if (pawnCategory === "gold_pawn")
+        gold_grams = pawnObj.weight;
 
     //Insert a new client if name, embg and telephone arent already a combination in another client
     await pool.query(`
@@ -274,15 +283,16 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
         VALUES ($1, $2, $3, $4, 0, 0, CURRENT_TIMESTAMP);
     `, [clientId, transactionCategory, transactionDescription, pawnObj.price_pawned])
 
-    //Update cash register with money taken, increase numPawns and increase moneyPawns
+    //Update cash register with money taken, increase numPawns, increase moneyPawns, update quantity of gold in grams
     await pool.query(`
         UPDATE cash_register 
         SET
             num_pawns = num_pawns + 1,
             money_pawns = money_pawns + $1,
             register_money = register_money - $1,
+            gold_grams = gold_grams + $2,
             last_updated = NOW();
-    `, [pawnObj.price_pawned]);
+    `, [pawnObj.price_pawned, gold_grams]);
 }
 
 async function changePawnToSale(id, pawnCategory) {
@@ -307,8 +317,9 @@ async function changePawnToSale(id, pawnCategory) {
                 description = `${query.rows[0].brand} ${query.rows[0].year} ${query.rows[0].description}`;
             break;
         case "gold_pawn": query = await pool.query(`SELECT weight, carats, price_per_gram, description FROM gold_pawn WHERE id = $1;`, [id])
-            if (query.rows.length > 0)
+            if (query.rows.length > 0){
                 description = `${query.rows[0].weight}g ${query.rows[0].carats}k ${query.rows[0].price_per_gram} per gram ${query.rows[0].description}`;
+            }
             break;
         case "other_pawn": query = await pool.query(`SELECT description FROM other_pawn WHERE id = $1;`, [id])
             if (query.rows.length > 0)
@@ -350,7 +361,7 @@ async function changePawnToSale(id, pawnCategory) {
         VALUES ($1, $2, $3, 0, 0, 0, CURRENT_TIMESTAMP);
     `, [clientId, transactionCategory, transactionDescription])
 
-    //Update cash register with decrease numPawns, decrease moneyPawns, increase numSales and increase moneySales
+    //Update cash register with decrease numPawns, decrease moneyPawns, increase numSales, increase moneySales, update quantity of gold in grams
     await pool.query(`
         UPDATE cash_register 
         SET
