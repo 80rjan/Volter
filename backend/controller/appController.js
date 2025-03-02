@@ -38,6 +38,7 @@ const insertPawn = asyncHandler(async (req, res) => {
     let priceToRedeem = 0;
     let pricePawned = 0;
     let provision = 0;
+    let pricePerGram = 0;
 
     switch (category) {
         case 'electronics_pawn' :
@@ -55,19 +56,20 @@ const insertPawn = asyncHandler(async (req, res) => {
         }; break;
         case 'gold_pawn' :
             provision = Number(req.body.provision)
-            pricePawned = Number(req.body.weight) * Number(req.body.price_per_gram);
+            pricePawned = Number(req.body.price_pawned);
             priceToRedeem = pricePawned + (pricePawned * (provision / 100))
+            pricePerGram = Number(req.body.price_pawned) / Number(req.body.weight);
             pawnObj = {
             weight: req.body.weight,
             carats: req.body.carats,
             type: req.body.type,
-            price_per_gram: req.body.price_per_gram,
+            price_per_gram: pricePerGram,
             price_pawned: pricePawned,
             price_to_redeem: priceToRedeem,
             provision: provision,
             total_days: req.body.total_days,
             description: req.body.description,
-        }; break;
+        }; console.log(pawnObj); break;
         case 'vehicle_pawn' :
             provision = Number(req.body.provision);
             pricePawned = Number(req.body.price_pawned)

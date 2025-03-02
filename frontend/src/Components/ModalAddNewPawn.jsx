@@ -23,7 +23,6 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
         weight: '',
         carat: '',
         type: '',
-        price_per_gram: '',
         category: 'electronics_pawn' // Add category to formData
     });
     const offset = useRef(0);
@@ -237,7 +236,7 @@ function GoldInputs({ handleInputChange }) {
             <StyledInput placeholder="Gold weight" name="weight" onChange={handleInputChange} required />
             <StyledInput placeholder="Gold carats" name="carats" onChange={handleInputChange} required />
             <StyledInput placeholder="Gold type" name="type" onChange={handleInputChange} required />
-            <StyledInput placeholder="Price per gram" name="price_per_gram" onChange={handleInputChange} required />
+            <StyledInput placeholder="Price pawned" name="price_pawned" onChange={handleInputChange} required />
             <StyledInput placeholder="Monthly provision" name="provision" onChange={handleInputChange} required />
             <StyledInput placeholder="Total days" name="total_days" onChange={handleInputChange} required />
             <StyledInput placeholder="Item description" name="description" onChange={handleInputChange} required />

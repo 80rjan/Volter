@@ -225,6 +225,7 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
     let gold_grams = 0;
     if (pawnCategory === "gold_pawn")
         gold_grams = pawnObj.weight;
+    let average_provision = 0;
 
     //Insert a new client if name, embg and telephone arent already a combination in another client
     await pool.query(`
@@ -283,7 +284,7 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
         VALUES ($1, $2, $3, $4, 0, 0, CURRENT_TIMESTAMP);
     `, [clientId, transactionCategory, transactionDescription, pawnObj.price_pawned])
 
-    //Update cash register with money taken, increase numPawns, increase moneyPawns, update quantity of gold in grams
+    //Update cash register with money taken, increase numPawns, increase moneyPawns, update quantity of gold in grams and update average provision for pawns
     await pool.query(`
         UPDATE cash_register 
         SET
@@ -291,8 +292,9 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
             money_pawns = money_pawns + $1,
             register_money = register_money - $1,
             gold_grams = gold_grams + $2,
+            average_provision = (average_provision * num_pawns + $3) / (num_pawns + 1),
             last_updated = NOW();
-    `, [pawnObj.price_pawned, gold_grams]);
+    `, [pawnObj.price_pawned, gold_grams, pawnObj.provision]);
 }
 
 async function changePawnToSale(id, pawnCategory) {
@@ -310,6 +312,8 @@ async function changePawnToSale(id, pawnCategory) {
         throw new Error("Cant find information in pawn table to CHANGE PAWN TO SALE");
     }
 
+    let gold_grams = 0;
+
     let description = null;
     switch (pawnCategory) {
         case "electronics_pawn": query = await pool.query(`SELECT brand, year, description FROM electronics_pawn WHERE id = $1;`, [id])
@@ -318,6 +322,7 @@ async function changePawnToSale(id, pawnCategory) {
             break;
         case "gold_pawn": query = await pool.query(`SELECT weight, carats, price_per_gram, description FROM gold_pawn WHERE id = $1;`, [id])
             if (query.rows.length > 0){
+                gold_grams = query.rows[0].weight;
                 description = `${query.rows[0].weight}g ${query.rows[0].carats}k ${query.rows[0].price_per_gram} per gram ${query.rows[0].description}`;
             }
             break;
@@ -369,8 +374,9 @@ async function changePawnToSale(id, pawnCategory) {
             money_pawns = money_pawns - $1,
             num_sale_items = num_sale_items + 1,
             money_sale_items = money_sale_items + $1,
+            gold_grams = gold_grams - $2,
             last_updated = NOW();
-    `, [priceBought])
+    `, [priceBought, gold_grams])
 }
 
 async function getAllSales(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByTel = "") {
