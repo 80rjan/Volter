@@ -119,22 +119,22 @@ const insertPawn = asyncHandler(async (req, res) => {
 })
 
 const continuePawn = asyncHandler(async (req, res) => {
-    const { id, tableName } = req.body;
+    const { id, tableName, provision } = req.body;
 
     try {
-        const profit = await db.continuePawn(id, tableName);
-        res.status(200).json({ profit });
+        await db.continuePawn(id, tableName, provision);
+        res.status(200);
     } catch (error) {
         res.status(500).json({ message: "Error query continuing pawn" });
     }
 })
 
 const closePawn = asyncHandler(async (req, res) => {
-    const { id, tableName } = req.body;
+    const { id, tableName, priceClosed } = req.body;
 
     try {
-        const moneyIntoCashReg = await db.closePawn(id, tableName);
-        res.status(200).json({ moneyIntoCashReg });
+        await db.closePawn(id, tableName, priceClosed);
+        res.status(200);
     } catch (error) {
         res.status(500).json({ message: "Error query closing pawn" });
     }

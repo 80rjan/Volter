@@ -5,6 +5,7 @@ import { Euro, RotateCcw, X, Ellipsis } from 'lucide-react'
 import ModalShowMessagePawn from "./ModalShowMessagePawn.jsx";
 import ModalReadMorePawn from "./ModalReadMorePawn.jsx";
 import Loading from "./Loading.jsx";
+import ModalActions from "./ModalActions.jsx";
 
 export default function Pawn({ pawn, refresh, isOdd }) {
     const [modalSuccessMsg, setModalSuccessMsg] = useState(false);
@@ -13,6 +14,8 @@ export default function Pawn({ pawn, refresh, isOdd }) {
     const [infoMsg, setInfoMsg] = useState("");
     const [pawnInfo, setPawnInfo] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [modalClosePawn, setModalClosePawn] = useState(false);
+    const [modalContinuePawn, setModalContinuePawn] = useState(false);
 
 
     useEffect(() => {
@@ -20,7 +23,7 @@ export default function Pawn({ pawn, refresh, isOdd }) {
             refresh();
     }, [modalSuccessMsg])
 
-    const continuePawn = (id, category) => {
+    const continuePawn = (id, category, provision) => {
         setLoading(true);
         //Find the name of the table based on the category
         const tableName = {
@@ -34,17 +37,13 @@ export default function Pawn({ pawn, refresh, isOdd }) {
         if (!tableName) return console.error("Invalid category:", category);
 
         //Put http which sends the id of the pawn and the table name in which the pawn date is updated
-        axios.put(`http://localhost:3000/continuePawn`, { id, tableName })
-            .then(response => {
-                setSuccessMsg("Successfully continued pawn")
-                setInfoMsg(`Added ${response.data.profit.toLocaleString("de-DE")} into cash register!`)
-                setModalSuccessMsg(true);
-            })
+        axios.put(`http://localhost:3000/continuePawn`, { id, tableName, provision })
+            .then()
             .catch(error => console.error('Error continuing pawn:', error))
             .finally(() => setLoading(false));
     }
 
-    const closePawn = (id, category) => {
+    const closePawn = (id, category, priceClosed) => {
         setLoading(true);
         //Find the name of the table based on the category
         const tableName = {
@@ -58,13 +57,9 @@ export default function Pawn({ pawn, refresh, isOdd }) {
         if (!tableName) return console.error("Invalid category:", category);
 
         //Put http which sends the id of the pawn and the table name in which the pawn is closed
-        axios.put(`http://localhost:3000/closePawn`, { id, tableName })
-            .then(response => {
-                setSuccessMsg("Successfully closed pawn")
-                setInfoMsg(`Added ${response.data.moneyIntoCashReg.toLocaleString("de-DE")} into cash register!`)
-                setModalSuccessMsg(true);
-            } )
-            .catch(error => console.error('Error continuing pawn:', error))
+        axios.put(`http://localhost:3000/closePawn`, { id, tableName, priceClosed })
+            .then()
+            .catch(error => console.error('Error closing pawn:', error))
             .finally(() => setLoading(false));
     }
 
@@ -94,7 +89,7 @@ export default function Pawn({ pawn, refresh, isOdd }) {
 
     useEffect(() =>{
         if (pawnInfo != null)
-        setModalReadMore(true);
+            setModalReadMore(true);
     }, [pawnInfo])
 
     const fetchPawn = (clientId, category, pawnId) => {
@@ -124,8 +119,8 @@ export default function Pawn({ pawn, refresh, isOdd }) {
                 loading ? <Loading width={30} height={30} /> :
                     <>
                         <ButtonWrapper>
-                            <X size={22} onClick={() => closePawn(pawn.Id, pawn.Category)} />
-                            <RotateCcw size={22} color="var(--cta-color)" onClick={() => continuePawn(pawn.Id, pawn.Category)} />
+                            <X size={22} onClick={() => setModalClosePawn(true)} />
+                            <RotateCcw size={22} color="var(--cta-color)" onClick={() => setModalContinuePawn(true)} />
                             <Euro size={22} color="var(--green)" onClick={() => movePawnToSale(pawn.Id, pawn.Category)} />
                         </ButtonWrapper>
                         <Ellipsis size={28} color="#888"
@@ -134,6 +129,35 @@ export default function Pawn({ pawn, refresh, isOdd }) {
                     </>
             }
 
+            {modalClosePawn &&
+                <ModalActions
+                    action={closePawn}
+                    id={pawn.Id}
+                    category={pawn.Category}
+                    successMsg="Successfully closed pawn"
+                    closeModal={() => setModalClosePawn(false)}
+                    priceBought={Number(pawn["Item Cost"])}
+                    provision={Number(pawn.Provision)}
+                    suggestedPrice={Number(pawn["Item Cost"]) + Number(pawn.Provision)}
+                    title={"Enter price to close pawn"}
+                    refresh={refresh}
+                />
+            }
+
+            {modalContinuePawn &&
+                <ModalActions
+                    action={continuePawn}
+                    id={pawn.Id}
+                    category={pawn.Category}
+                    successMsg="Successfully continued pawn"
+                    closeModal={() => setModalContinuePawn(false)}
+                    priceBought={Number(pawn["Item Cost"])}
+                    provision={Number(pawn.Provision)}
+                    suggestedPrice={Number(pawn.Provision)}
+                    title={"Enter provision for continuing pawn"}
+                    refresh={refresh}
+                />
+            }
 
             {modalSuccessMsg &&
                 <ModalShowMessagePawn
@@ -148,8 +172,8 @@ export default function Pawn({ pawn, refresh, isOdd }) {
                     category={pawn.Category}
                     pawnInfo={pawnInfo}
                     closeModal={() => setModalReadMore(false)}
-                    closePawn={() => closePawn(pawn.Id, pawn.Category)}
-                    continuePawn={() => continuePawn(pawn.Id, pawn.Category)}
+                    closePawn={() => setModalClosePawn(true)}
+                    continuePawn={() => setModalContinuePawn(true)}
                     movePawnToSale={() => movePawnToSale(pawn.Id, pawn.Category)}
                 />
             }

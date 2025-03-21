@@ -3,14 +3,15 @@ import axios from "axios";
 import {useEffect, useState} from "react";
 import { Euro, RotateCcw, X, Ellipsis } from 'lucide-react'
 import ModalReadMoreSale from "./ModalReadMoreSale.jsx";
-import ModalSellItem from "./ModalSellItem.jsx";
 import Loading from "./Loading.jsx";
+import ModalActions from "./ModalActions.jsx";
 
 export default function Sale({ sale, refresh, isOdd }) {
     const [modalSellItem, setModalSellItem] = useState(false);
     const [modalReadMore, setModalReadMore] = useState(false);
     const [saleInfo, setSaleInfo] = useState(null);
     const [loading, setLoading] = useState(false);
+    console.log(sale)
 
     useEffect(() => {
         if (!modalSellItem)
@@ -34,6 +35,14 @@ export default function Sale({ sale, refresh, isOdd }) {
             .finally(() => setLoading(false))
     }
 
+    const sellItem = (id, priceSold) => {
+        //Put http which sends the id of the sale to sell item and close sale
+        axios.put(`http://localhost:3000/sales/sellItem`, { id, priceSold })
+            .then()
+            .catch(error => console.error('Error selling item:', error))
+            .finally(() => setLoading(false));
+    }
+
 
     return (
         <Wrapper style={isOdd ? {background: "#f0f0f0"} : {background: "#ffffff"}}>
@@ -55,10 +64,17 @@ export default function Sale({ sale, refresh, isOdd }) {
             }
 
             {modalSellItem &&
-                <ModalSellItem
-                    closeModal={() => setModalSellItem(false)}
+                <ModalActions
+                    action={sellItem}
                     id={sale.Id}
-                    priceBought={sale["Item Cost"]}
+                    category={"sale"}
+                    successMsg="Successfully sold item"
+                    closeModal={() => setModalSellItem(false)}
+                    priceBought={Number(sale["Item Cost"])}
+                    provision={undefined}
+                    suggestedPrice={undefined}
+                    title={"What price did you sell the item?"}
+                    refresh={refresh}
                 />
             }
 
