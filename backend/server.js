@@ -28,4 +28,6 @@ app.get('/transactions', appController.getAllTransactions)
 
 app.get('/clients', appController.getAllClients)
 
+app.get('/dailyReport', appController.getDailyReport)
+
 app.listen(3000);

@@ -110,6 +110,10 @@ const renderElectronicsOrWatch = (pawn) => {
                 <p>{pawn.provision}%</p>
             </span>
             <span>
+                <p>Daily Provision:</p>
+                <p>{Math.round(pawn.provision / pawn.total_days * 100) / 100}%</p>
+            </span>
+            <span>
                 <p>Date From:</p>
                 <p>{pawn.date_from.substring(0, 10)}</p>
             </span>
@@ -168,6 +172,10 @@ const renderGold = (pawn) => {
                 <p>{pawn.provision}%</p>
             </span>
             <span>
+                <p>Daily Provision:</p>
+                <p>{Math.round(pawn.provision / pawn.total_days * 100) / 100}%</p>
+            </span>
+            <span>
                 <p>Date From:</p>
                 <p>{pawn.date_from.substring(0, 10)}</p>
             </span>
@@ -222,6 +230,10 @@ const renderVehicle = (pawn) => {
                 <p>{pawn.provision}%</p>
             </span>
             <span>
+                <p>Daily Provision:</p>
+                <p>{Math.round(pawn.provision / pawn.total_days * 100) / 100}%</p>
+            </span>
+            <span>
                 <p>Date From:</p>
                 <p>{pawn.date_from.substring(0, 10)}</p>
             </span>
@@ -262,6 +274,10 @@ const renderOther = (pawn) => {
             <span>
                 <p>Provision:</p>
                 <p>{pawn.provision}%</p>
+            </span>
+            <span>
+                <p>Daily Provision:</p>
+                <p>{Math.round(pawn.provision / pawn.total_days * 100) / 100}%</p>
             </span>
             <span>
                 <p>Date From:</p>

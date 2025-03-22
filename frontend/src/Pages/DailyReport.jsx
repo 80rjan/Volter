@@ -1,8 +1,28 @@
 import styled from "styled-components";
 import Nav from "../Components/Nav.jsx";
 import CashRegister from "./CashRegister.jsx";
+import {DollarSign, Handshake, Landmark, Plus, Repeat, Tag} from "lucide-react";
+import {useState} from "react";
+import axios from "axios";
+import Loading from "../Components/Loading.jsx";
 
 export default function DailyReport() {
+    const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+    const [report, setReport] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    const getReport = (date) => {
+        setLoading(true)
+        axios.get(`http://localhost:3000/dailyReport?date=${date}`)
+            .then(res => {
+                setReport(res.data)
+                console.log(res.data)
+            })
+            .catch(error => {
+                console.error('Error fetching daily report:', error)
+            })
+            .finally(() => setLoading(false))
+    }
 
     return (
         <ReportPage >
@@ -10,11 +30,97 @@ export default function DailyReport() {
             <Container >
 
                 <HeaderWrapper >
-                    <h1>Daily Report</h1>
-
+                    <h1>Daily Report <span>{date}</span></h1>
+                    <div>
+                        <DateInput
+                            type="date"
+                            value={date}
+                            max={new Date().toISOString().split("T")[0]}
+                            onChange={(e) => setDate(e.target.value)}
+                        />
+                        <ButtonGetReport
+                            onClick={() => getReport(date)}
+                        >
+                            <Plus size={22} color="white" strokeWidth={3} />
+                            Get Report
+                        </ButtonGetReport>
+                    </div>
                 </HeaderWrapper>
 
-                <div style={{height:'100%'}}/>
+                {loading ? <Loading /> : report === null ? <div style={{height: "100%"}}/> :
+                    <ReportWrapper>
+                        <MainReports>
+                            <Report>
+                                <DollarSign size={48} />
+                                <div>
+                                    <h1>{Number(report.total.profit).toLocaleString("de-DE")}</h1>
+                                    <p>Profit</p>
+                                </div>
+                            </Report>
+                            <Report>
+                                <Landmark size={48} />
+                                <div>
+                                    <h1>{Number(report.total.moneyGiven).toLocaleString("de-DE")}</h1>
+                                    <p>Money Given</p>
+                                </div>
+                            </Report>
+                            <Report>
+                                <Repeat size={48} />
+                                <div>
+                                    <h1>{Number(report.total.turnover).toLocaleString("de-DE")}</h1>
+                                    <p>Turnover</p>
+                                </div>
+                            </Report>
+                            <Report>
+                                <Handshake size={48} />
+                                <div>
+                                    <h1>{Number(report.numPawns.numTransactions).toLocaleString("de-DE")}</h1>
+                                    <p>Number Pawns</p>
+                                </div>
+                            </Report>
+                            <Report>
+                                <Tag size={48} />
+                                <div>
+                                    <h1>{Number(report.total.numTransactions - report.numPawns.numTransactions).toLocaleString("de-DE")}</h1>
+                                    <p>Number Sales</p>
+                                </div>
+                            </Report>
+                        </MainReports>
+                        <PawnReports >
+                            {
+                                report.categories.map(category => {
+                                    return <div >
+                                        <h1>{category.category}</h1>
+                                        <span style={{display: "flex", height: "100%", gap: "2rem", alignItems: "center"}}>
+                                            <VerticalLine />
+                                            <div>
+                                                <Report>
+                                                    <div>
+                                                        <h3>{Number(category.numTransactions).toLocaleString("de-DE")}</h3>
+                                                        <p>Transactions</p>
+                                                    </div>
+                                                </Report>
+                                                <Report>
+                                                    <div>
+                                                        <h3>{Number(category.moneyGiven).toLocaleString("de-DE")}</h3>
+                                                        <p>Money Given</p>
+                                                    </div>
+                                                </Report>
+                                                <Report>
+                                                    <div>
+                                                        <h3>{Number(category.profit).toLocaleString("de-DE")}</h3>
+                                                        <p>Profit</p>
+                                                    </div>
+                                                </Report>
+                                            </div>
+                                        </span>
+                                    </div>
+                                })
+                            }
+                        </PawnReports>
+
+                    </ReportWrapper>
+                }
 
                 <CashRegister refreshDependancy={true} />
             </Container>
@@ -41,9 +147,35 @@ const HeaderWrapper = styled.div`
     display: flex;
     justify-content: space-between;
     width: 100%;
+    
+    & span {
+        margin-left: 2rem;
+        font-weight: 400;
+        font-size: 1.8rem;
+    }
+    
+    & > div {
+        display: flex;
+        flex-direction: row;
+        gap: 1rem;
+        align-items: center;
+    }
 `
 
-const ButtonAddNewPawn = styled.button`
+const DateInput = styled.input`
+    padding: .4rem 1rem;
+    height: fit-content;
+    border: 2px solid rgba(0, 96, 64, 0.4);
+    border-radius: .4rem;
+    box-shadow: 4px 2px 6px rgba(0,0,0,0.2);
+    font-size: 1rem;
+    
+    &:focus {
+        border-color: var(--green);
+    }
+`
+
+const ButtonGetReport = styled.button`
     background: var(--green);
     height: fit-content;
     color: white;
@@ -66,5 +198,81 @@ const ButtonAddNewPawn = styled.button`
         svg {
             transform: rotate(90deg);
         }
+    }
+`
+
+const ReportWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: .5rem;
+    box-shadow: 0 0 8px rgba(0,0,0,0.2);
+    overflow: hidden;
+    flex-grow: 1;
+    min-height: 0;
+    height: 100%;
+`
+
+const MainReports = styled.div`
+    display: flex;
+    justify-content: space-evenly;
+    padding: 2rem 0;
+    align-items: center;
+    gap: 4rem;
+`
+
+const PawnReports = styled.div`
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 2rem 4rem;
+    gap: 1rem 2rem;
+
+    & > div {
+        display: flex;
+        background: rgba(0, 96, 64, 0.1);
+        border: 2px solid rgba(0, 0, 0, 0.2);
+        border-radius: .4rem;
+        padding: 1rem 2rem;
+        //gap: 2rem;
+        align-items: center;
+        justify-content: space-between;
+        
+
+        & > span > div {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            align-items: center;
+            gap: 1rem;
+
+            & p {
+                font-size: .8rem;
+            }
+        }
+    }
+`
+
+const VerticalLine = styled.div`
+    width: 2px;
+    height: 90%;
+    background: rgba(0,0,0,0.2);
+    border-radius: .4rem;
+`
+
+const Report = styled.div`
+    display: flex;
+    align-items: center;
+    line-height: 1;
+    gap: 1rem;
+    
+    & > div {
+        display: flex;
+        flex-direction: column;
+        gap: .4rem;
+    }
+    
+    & p {
+        font-weight: 400;
+        font-size: 1rem;
     }
 `

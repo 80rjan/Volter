@@ -259,6 +259,15 @@ const getAllTransactions = asyncHandler(async (req, res) => {
     res.send(transactions);
 })
 
+const getDailyReport = asyncHandler(async (req, res) => {
+    try {
+        const report = await db.getDailyReport(req.query.date)
+        res.status(200).send(report);
+    } catch (error) {
+        res.status(500).json({ message: "Error query get daily report" });
+    }
+})
+
 module.exports = {
     getAllPawns,
     getPawn,
@@ -275,5 +284,5 @@ module.exports = {
     insertIntoCashRegister,
     removeFromCashRegister,
     getAllTransactions,
-
+    getDailyReport
 }

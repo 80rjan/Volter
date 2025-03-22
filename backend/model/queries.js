@@ -576,6 +576,46 @@ async function getAllTransactions(limit, offset, orderBy, orderDirection, search
     return rows;
 }
 
+async function getDailyReport(date) {
+    // First query: Get total money given, total profit, and total turnover
+    const { rows: totalRows } = await pool.query(`
+        SELECT 
+            COUNT(*) AS "numTransactions",
+            SUM(money_given) AS "moneyGiven",
+            SUM(profit) AS "profit", 
+            SUM(money_given + money_got) AS "turnover"
+        FROM transaction 
+        WHERE DATE(date) = $1 AND category != 'Insert' AND category != 'Remove'
+    `, [date]);
+
+    // Second query: Get the number of transactions excluding 'Sale' category
+    const { rows: numPawnsRows } = await pool.query(`
+        SELECT COUNT(*) AS "numTransactions"
+        FROM transaction 
+        WHERE DATE(date) = $1 AND category != 'Sale' AND category != 'Insert' AND category != 'Remove'
+    `, [date]);
+
+    // Third query: Get count and sums grouped by category
+    const { rows: categoryRows } = await pool.query(`
+        SELECT 
+            category,
+            COUNT(*) AS "numTransactions", 
+            SUM(money_given) AS "moneyGiven",
+            SUM(profit) AS "profit"
+        FROM transaction 
+        WHERE DATE(date) = $1 AND category != 'Insert' AND category != 'Remove'
+        GROUP BY category
+    `, [date]);
+
+    // Combine all the results into one object
+    return {
+        total: totalRows[0],
+        numPawns: numPawnsRows[0],
+        categories: categoryRows
+    };
+}
+
+
 module.exports = {
     getAllPawns,
     getPawn,
@@ -592,5 +632,5 @@ module.exports = {
     insertIntoCashRegister,
     removeFromCashRegister,
     getAllTransactions,
-
+    getDailyReport
 }

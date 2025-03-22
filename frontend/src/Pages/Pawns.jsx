@@ -84,8 +84,6 @@ export default function Pawns() {
         //0 -> 1 -> -1 -> 1
         setOrderDirection(newDirection.includes(-1) ? "DESC" : "ASC");
         setOrderBy(orderBy);
-        console.log(newDirection)
-        console.log(newDirection[index] === 1 ? "ASC" : newDirection[index] === -1 ? "DESC" : "ASC")
     }
 
     return (
