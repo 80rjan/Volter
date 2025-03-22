@@ -38,6 +38,9 @@ export default function ModalReadMorePawn({ category, pawnInfo, closeModal, clos
                         </div>
 
                     </ClientWrapper>
+
+                    <Separator />
+
                     <PawnWrapper>
                         <div>
                             <CircleDollarSign size={32}/>
@@ -318,6 +321,7 @@ const InformationWrapper = styled.div`
     width: 100%;
     //gap: 8rem;
     justify-content: space-around;
+    align-items: center;
 `
 
 const ClientWrapper = styled.div`
@@ -352,6 +356,13 @@ const ClientWrapper = styled.div`
         color: #666;
         margin-left: -.4rem;
     }
+`
+
+const Separator = styled.div`
+    width: 2px;
+    height: 250px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 100px;
 `
 
 const PawnWrapper = styled.div`

@@ -1,15 +1,16 @@
 import ReactDom from "react-dom";
 import styled from "styled-components";
 import {X, CircleHelp, CheckCheck, CircleCheckBig} from 'lucide-react'
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import axios from "axios";
 
 //This modal is for closing, continuing or moving a pawn to sale and for selling items
-export default function ModalActions({ id, category, successMsg, action, priceBought, provision, suggestedPrice, closeModal, title, refresh}) {
+export default function ModalActions({ id, category, successMsg, action, priceBought, provision, dailyProvision, suggestedPrice, daysLeft, closeModal, title, refresh}) {
     const [showSuccMsg, setShowSuccMsg] = useState(false);
     const [showEnterPrice, setShowEnterPrice] = useState(true);
     const [infoMsg, setInfoMsg] = useState("");
-    const [price, setPrice] = useState(suggestedPrice);
+    const penaltyPrice= daysLeft < 0 ? Math.abs(daysLeft) * dailyProvision : 0;
+    const [price, setPrice] = useState(category === "sale" ? suggestedPrice : suggestedPrice + penaltyPrice);
     const [error, setError] = useState("");
     const [showError, setShowError] = useState(true);
 
@@ -41,11 +42,12 @@ export default function ModalActions({ id, category, successMsg, action, priceBo
                             <CircleHelp size={120} />
                             <h1>{title}</h1>
                             <form onSubmit={e => e.preventDefault()}>
-                                <span>
-                                    <p>Price Bought: {priceBought}</p>
-                                    {category === "sale" ? undefined :<p>Provision: {provision}</p>}
+                                <div>
+                                    <p>Price Bought: <span style={{fontWeight: 600}}>{priceBought.toLocaleString("de-DE")}</span></p>
+                                    {category === "sale" ? undefined :<p>Provision: <span style={{fontWeight: 600}}>{provision.toLocaleString("de-DE")}</span></p>}
+                                    {category === "sale" ? undefined :<p>Penalty: <span style={{fontWeight: 600}}>{penaltyPrice.toLocaleString("de-DE")}</span></p>}
                                     <StyledInput onChange={e => setPrice(e.target.value)} placeholder="Enter price" value={price} required/>
-                                </span>
+                                </div>
                                 <Button onClick={() => {
                                     if (price.length > 0 || price > 0) {
                                         isNaN(price) ?
@@ -137,7 +139,7 @@ const Wrapper = styled.div`
         margin-top: 1rem;
     }
     
-    span {
+    form > div:first-child {
         display: flex;
         gap: 2rem;
     }

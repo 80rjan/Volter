@@ -72,7 +72,9 @@ export default function Sale({ sale, refresh, isOdd }) {
                     closeModal={() => setModalSellItem(false)}
                     priceBought={Number(sale["Item Cost"])}
                     provision={undefined}
+                    dailyProvision={undefined}
                     suggestedPrice={undefined}
+                    daysLeft={undefined}
                     title={"What price did you sell the item?"}
                     refresh={refresh}
                 />

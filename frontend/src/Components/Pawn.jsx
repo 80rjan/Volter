@@ -17,7 +17,6 @@ export default function Pawn({ pawn, refresh, isOdd }) {
     const [modalClosePawn, setModalClosePawn] = useState(false);
     const [modalContinuePawn, setModalContinuePawn] = useState(false);
 
-
     useEffect(() => {
         if (!modalSuccessMsg)
             refresh();
@@ -113,7 +112,9 @@ export default function Pawn({ pawn, refresh, isOdd }) {
             <Text>{pawn.About}</Text>
             <Text>{Number(pawn["Item Cost"]).toLocaleString("de-DE")}</Text>
             <Text className="bold color" >{Number(pawn.Provision).toLocaleString("de-DE")}</Text>
-            <Text>{pawn["Days Left"]}</Text>
+            <Text className={
+                pawn["Days Left"] < 0 ? "red" : pawn["Days Left"] < 5 ? "orange" : "green"
+            }>{pawn["Days Left"]}</Text>
             <Text>{pawn["Valid Until"].substring(0, 10)}</Text>
             {
                 loading ? <Loading width={30} height={30} /> :
@@ -138,7 +139,9 @@ export default function Pawn({ pawn, refresh, isOdd }) {
                     closeModal={() => setModalClosePawn(false)}
                     priceBought={Number(pawn["Item Cost"])}
                     provision={Number(pawn.Provision)}
+                    dailyProvision={Math.abs(Number(pawn.Provision) / Number(pawn["Total Days"]))}
                     suggestedPrice={Number(pawn["Item Cost"]) + Number(pawn.Provision)}
+                    daysLeft={Number(pawn["Days Left"])}
                     title={"Enter price to close pawn"}
                     refresh={refresh}
                 />
@@ -153,7 +156,9 @@ export default function Pawn({ pawn, refresh, isOdd }) {
                     closeModal={() => setModalContinuePawn(false)}
                     priceBought={Number(pawn["Item Cost"])}
                     provision={Number(pawn.Provision)}
+                    dailyProvision={Math.abs(Number(pawn.Provision) / Number(pawn["Total Days"]))}
                     suggestedPrice={Number(pawn.Provision)}
+                    daysLeft={Number(pawn["Days Left"])}
                     title={"Enter provision for continuing pawn"}
                     refresh={refresh}
                 />
@@ -217,6 +222,16 @@ const Text = styled.p`
     &.color {
         font-style: italic;
     }
+    &.red {
+        color: red;
+    }
+    &.orange {
+        color: orangered;
+    }
+    &.green {
+        color: var(--green);
+    }
+    
 `
 
 const ButtonWrapper = styled.div`

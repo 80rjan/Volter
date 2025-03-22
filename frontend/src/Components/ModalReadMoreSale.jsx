@@ -39,6 +39,8 @@ export default function ModalReadMoreSale({ saleInfo, closeModal, sellItem }) {
 
                     </ClientWrapper>
 
+                    <Separator />
+
                     <SaleWrapper>
                         <div>
                             <Tag size={32}/>
@@ -156,6 +158,13 @@ const ClientWrapper = styled.div`
         color: #666;
         margin-left: -.4rem;
     }
+`
+
+const Separator = styled.div`
+    width: 2px;
+    height: 250px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 100px;
 `
 
 const SaleWrapper = styled.div`

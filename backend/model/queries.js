@@ -11,7 +11,8 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
         ep.date_to AS "Valid Until", 
         EXTRACT(DAY FROM (ep.date_to - CURRENT_TIMESTAMP)) AS "Days Left",  
         ep.price_pawned * (ep.provision / 100) AS "Provision", 
-        ep.price_pawned AS "Item Cost"
+        ep.price_pawned AS "Item Cost",
+        ep.total_days AS "Total Days"
     FROM client c
     INNER JOIN electronics_pawn ep
         ON c.id = ep.client_id
@@ -28,7 +29,8 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
         gp.date_to AS "Valid Until", 
         EXTRACT(DAY FROM (gp.date_to - CURRENT_TIMESTAMP)) AS "Days Left", 
         gp.price_pawned * (gp.provision / 100) AS "Provision", 
-        gp.price_pawned AS "Item Cost"
+        gp.price_pawned AS "Item Cost",
+        gp.total_days AS "Total Days"
     FROM client c
     INNER JOIN gold_pawn gp
         ON c.id = gp.client_id
@@ -45,7 +47,8 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
         op.date_to AS "Valid Until", 
         EXTRACT(DAY FROM (op.date_to - CURRENT_TIMESTAMP)) AS "Days Left", 
         op.price_pawned * (op.provision / 100) AS "Provision", 
-        op.price_pawned AS "Item Cost"
+        op.price_pawned AS "Item Cost",
+        op.total_days AS "Total Days"
     FROM client c
     INNER JOIN other_pawn op
         ON c.id = op.client_id
@@ -62,7 +65,8 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
         vp.date_to AS "Valid Until", 
         EXTRACT(DAY FROM (vp.date_to - CURRENT_TIMESTAMP)) AS "Days Left",
         vp.price_pawned * (vp.provision / 100) AS "Provision", 
-        vp.price_pawned AS "Item Cost"
+        vp.price_pawned AS "Item Cost",
+        vp.total_days AS "Total Days"
     FROM client c
     INNER JOIN vehicle_pawn vp
         ON c.id = vp.client_id
@@ -79,7 +83,8 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
         wp.date_to AS "Valid Until", 
         EXTRACT(DAY FROM (wp.date_to - CURRENT_TIMESTAMP)) AS "Days Left",
         wp.price_pawned * (wp.provision / 100) AS "Provision", 
-        wp.price_pawned AS "Item Cost"
+        wp.price_pawned AS "Item Cost",
+        wp.total_days AS "Total Days"
     FROM client c
     INNER JOIN watch_pawn wp
         ON c.id = wp.client_id
