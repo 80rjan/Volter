@@ -1,77 +1,209 @@
+import React from "react";
 import ReactDom from "react-dom";
 import styled from "styled-components";
-import { UserRound, Euro, RotateCcw, X, CircleDollarSign } from 'lucide-react'
+import {UserRound, Euro, RotateCcw, X, CircleDollarSign, Printer} from 'lucide-react';
+import LoanAgreementDocument from "./LoanAgreementDocument.jsx";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import PawnAgreementDocument from "./PawnAgreementDocument.jsx";
 
-export default function ModalReadMorePawn({ category, pawnInfo, closeModal, closePawn, continuePawn, movePawnToSale }) {
+export default function ModalReadMorePawn({category, pawnInfo, closeModal, closePawn, continuePawn, movePawnToSale}) {
+    const [modalPrintDocument, setModalPrintDocument] = React.useState(false);
+    const [clientAddress, setClientAddress] = React.useState("");
+    const [idCard, setIdCard] = React.useState("");
+    const [moneyStr, setMoneyStr] = React.useState("");
+    const [daysPawnStr, setDaysPawnStr] = React.useState("");
+    const [pawnDescription, setPawnDescription] = React.useState("");
     const client = pawnInfo.client;
     const pawn = pawnInfo.pawn;
-    console.log(pawn)
+    const [isDownloading, setIsDownloading] = React.useState(false);
+    const hiddenDocRefLoan = React.useRef(null);
+    const hiddenDocRefPawn = React.useRef(null);
+
+    const handlePrintDoc = async (ref, isLoan) => {
+        setIsDownloading(true);
+        const element = ref.current;
+        if (!element) return;
+
+        const pdf = new jsPDF({
+            orientation: "portrait",
+            unit: "mm",
+            format: "a4",
+        });
+
+        try {
+            const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+            const imgData = canvas.toDataURL("image/png");
+
+            const imgWidth = 210; // A4 width in mm
+            const pageHeight = 297; // A4 height in mm
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+
+            while (heightLeft > pageHeight) {
+                position -= pageHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+
+            pdf.save(`${isLoan ? "loan_agreement" : "pawn_agreement"}.pdf`);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
+
+
 
     return ReactDom.createPortal(
         <>
-            <Overlay />
-            <Wrapper >
-                <X size={32} onClick={closeModal} />
-                <InformationWrapper >
-                    <ClientWrapper >
-                        <div>
-                            <UserRound size={32} />
-                            {client.name}
-                        </div>
-                        <div>
-                            <span>
-                                <p>Client Id:</p>
-                                <p>{client.id}</p>
-                            </span>
-                            <span>
-                                <p>Embg:</p>
-                                <p>{client.embg}</p>
-                            </span>
-                            <span>
-                                <p>Telephone:</p>
-                                <p>{client.telephone}</p>
-                            </span>
-                            <span>
-                                <p>City:</p>
-                                <p>{client.city}</p>
-                            </span>
-                        </div>
-
-                    </ClientWrapper>
-
-                    <Separator />
-
-                    <PawnWrapper>
-                        <div>
-                            <CircleDollarSign size={32}/>
-                            {category}
-                        </div>
-                        {category === 'Electronics' && renderElectronicsOrWatch(pawn)}
-                        {category === 'Watch' && renderElectronicsOrWatch(pawn)}
-                        {category === 'Vehicle' && renderVehicle(pawn)}
-                        {category === 'Gold' && renderGold(pawn)}
-                        {category === 'Other' && renderOther(pawn)}
-                    </PawnWrapper>
-                </InformationWrapper>
-                <ButtonWrapper>
-                    <button onClick={() => {
-                        closePawn();
-                        closeModal();
-                    }}><X size={32}/> Close Pawn </button>
-                    <button onClick={() => {
-                        continuePawn();
-                        closeModal();
-                    }}><RotateCcw size={32}/> Continue Pawn </button>
-                    <button onClick={() => {
-                        movePawnToSale();
-                        closeModal();
-                    }}><Euro size={32}/> Move Pawn To Sale </button>
-                </ButtonWrapper>
-
+            <Overlay/>
+            <Wrapper>
+                <X size={32} onClick={closeModal}/>
+                {
+                    !modalPrintDocument ?
+                        <>
+                            <InformationWrapper>
+                                <ClientWrapper>
+                                    <div>
+                                        <UserRound size={32}/>
+                                        {client.name}
+                                    </div>
+                                    <div>
+                                        <span>
+                                            <p>Client Id:</p>
+                                            <p>{client.id}</p>
+                                        </span>
+                                        <span>
+                                            <p>Embg:</p>
+                                            <p>{client.embg}</p>
+                                        </span>
+                                        <span>
+                                            <p>Telephone:</p>
+                                            <p>{client.telephone}</p>
+                                        </span>
+                                        <span>
+                                            <p>City:</p>
+                                            <p>{client.city}</p>
+                                        </span>
+                                    </div>
+                                </ClientWrapper>
+                                <Separator/>
+                                <PawnWrapper>
+                                    <div>
+                                        <CircleDollarSign size={32}/>
+                                        {category}
+                                    </div>
+                                    {category === 'Electronics' && renderElectronicsOrWatch(pawn)}
+                                    {category === 'Watch' && renderElectronicsOrWatch(pawn)}
+                                    {category === 'Vehicle' && renderVehicle(pawn)}
+                                    {category === 'Gold' && renderGold(pawn)}
+                                    {category === 'Other' && renderOther(pawn)}
+                                </PawnWrapper>
+                            </InformationWrapper>
+                            <ButtonWrapper>
+                                <button onClick={() => {
+                                    closePawn();
+                                    closeModal();
+                                }}><X size={32}/> Close Pawn
+                                </button>
+                                <button onClick={() => {
+                                    continuePawn();
+                                    closeModal();
+                                }}><RotateCcw size={32}/> Continue Pawn
+                                </button>
+                                <button onClick={() => {
+                                    movePawnToSale();
+                                    closeModal();
+                                }}><Euro size={32}/> Move Pawn To Sale
+                                </button>
+                                <Printer
+                                    size={40}
+                                    color="#444"
+                                    onClick={() => setModalPrintDocument(true)}
+                                />
+                            </ButtonWrapper>
+                        </> :
+                        <>
+                            <div style={{height: "0px", overflowY: "clip"}}>
+                                <LoanAgreementDocument
+                                    ref={hiddenDocRefLoan}
+                                    fullName={client.name}
+                                    city={client.city}
+                                    address={clientAddress}
+                                    embg={client.embg}
+                                    idCard={idCard}
+                                    telephone={client.telephone}
+                                    moneyGiven={pawn.price_pawned}
+                                    moneyGivenStr={moneyStr}
+                                    pawnDays={pawn.total_days}
+                                    pawnDaysStr={daysPawnStr}
+                                    dateFrom={pawn.date_from.substring(0, 10)}
+                                    dateTo={pawn.date_to.substring(0, 10)}
+                                />
+                            </div>
+                            <div style={{height: "0px", overflowY: "clip"}}>
+                                <PawnAgreementDocument
+                                    ref={hiddenDocRefPawn}
+                                    fullName={client.name}
+                                    city={client.city}
+                                    address={clientAddress}
+                                    embg={client.embg}
+                                    idCard={idCard}
+                                    telephone={client.telephone}
+                                    moneyGiven={pawn.price_pawned}
+                                    moneyGivenStr={moneyStr}
+                                    pawnDays={pawn.total_days}
+                                    pawnDaysStr={daysPawnStr}
+                                    dateFrom={pawn.date_from.substring(0, 10)}
+                                    dateTo={pawn.date_to.substring(0, 10)}
+                                    pawnInfo={pawnDescription}
+                                />
+                            </div>
+                            <form>
+                                <span>
+                                    Enter description of pawn:
+                                    <input onChange={(e) => setPawnDescription(e.target.value)}/>
+                                </span>
+                                <span>
+                                    Enter address and number of address:
+                                    <input onChange={(e) => setClientAddress(e.target.value)}/>
+                                </span>
+                                <span>
+                                    Enter card id number:
+                                    <input onChange={(e) => setIdCard(e.target.value)}/>
+                                </span>
+                                <span>
+                                    Enter amount of money in words:
+                                    <input placeholder={pawn.price_pawned}
+                                           onChange={(e) => setMoneyStr(e.target.value)}/>
+                                </span>
+                                <span>
+                                    Enter days of pawn validity in words:
+                                    <input placeholder={pawn.total_days}
+                                           onChange={(e) => setDaysPawnStr(e.target.value)}/>
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        handlePrintDoc(hiddenDocRefLoan, true);
+                                        handlePrintDoc(hiddenDocRefPawn, false);
+                                    }}
+                                >{isDownloading ? "Downloading..." : "Download"}</button>
+                            </form>
+                        </>
+                }
             </Wrapper>
         </>,
         document.getElementById("portal")
-    )
+    );
 }
 
 const renderElectronicsOrWatch = (pawn) => {
@@ -330,6 +462,27 @@ const Wrapper = styled.div`
     & > svg:hover {
         transform: rotate(90deg);
     }
+    
+    & form {
+        display: flex;
+        flex-direction: column;
+        gap: .4rem;
+        
+        & > span {
+            display: flex;
+            flex-direction: column;
+        }
+
+        & > button {
+            width: 100%;
+            background: var(--green);
+            color: white;
+            padding: .4rem;
+            border-radius: 2px;
+            font-size: 1.2rem;
+            margin-top: 1rem;
+        }
+    }
 `
 
 const InformationWrapper = styled.div`
@@ -350,7 +503,7 @@ const ClientWrapper = styled.div`
         flex-direction: column;
         gap: .4rem;
     }
-    
+
     & > div:first-child {
         display: flex;
         flex-direction: row;
@@ -377,7 +530,7 @@ const ClientWrapper = styled.div`
 const Separator = styled.div`
     width: 2px;
     height: 250px;
-    background: rgba(0,0,0,0.2);
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 100px;
 `
 
@@ -399,7 +552,7 @@ const PawnWrapper = styled.div`
         flex-direction: column;
         gap: 0;
         font-weight: 500;
-        
+
     }
 
     span > p:first-child {
@@ -414,7 +567,7 @@ const PawnDetailsWrapper = styled.div`
     grid-template-rows: repeat(4, max-content);
     gap: .4rem 2rem;
     grid-auto-flow: column;
-    
+
     p {
         min-width: fit-content;
     }
@@ -424,7 +577,7 @@ const ButtonWrapper = styled.div`
     display: flex;
     gap: 2rem;
     margin-top: 2rem;
-    
+
     button {
         display: flex;
         align-items: center;
@@ -437,16 +590,29 @@ const ButtonWrapper = styled.div`
         transition: scale 400ms ease-in-out;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
+
     button:hover {
         scale: 1.05;
     }
-    &>button:first-child {
+
+    & > button:first-child {
         background: #444;
     }
-    &>button:nth-child(2) {
+
+    & > button:nth-child(2) {
         background: var(--cta-color);
     }
-    &>button:nth-child(3) {
+
+    & > button:nth-child(3) {
         background: var(--green);
+    }
+
+    & > svg {
+        cursor: pointer;
+        transition: scale 400ms ease-in-out;
+
+        &:hover {
+            scale: 1.1;
+        }
     }
 `

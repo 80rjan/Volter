@@ -7,6 +7,7 @@ import Transactions from "./Pages/Transactions.jsx";
 import MonthlyReport from "./Pages/MonthlyReport.jsx";
 import YearlyReport from "./Pages/YearlyReport.jsx";
 import DailyReport from "./Pages/DailyReport.jsx";
+import LoanAgreementDocument from "./Components/LoanAgreementDocument.jsx";
 
 const router = createBrowserRouter([
     {
@@ -33,6 +34,10 @@ const router = createBrowserRouter([
         path: '/yearlyReport',
         element: <YearlyReport />
     },
+    {
+        path: '/document',
+        element: <LoanAgreementDocument />
+    }
 ])
 
 function App() {
