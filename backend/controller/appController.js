@@ -118,6 +118,17 @@ const insertPawn = asyncHandler(async (req, res) => {
     }
 })
 
+const updatePawn = asyncHandler(async (req, res) => {
+    const { tableName, id, pricePawned, provision, description } = req.body;
+
+    try {
+        const pawn = await db.updatePawn(tableName, id, parseInt(pricePawned), parseFloat(provision), description);
+        res.status(200).json({ pawn });
+    } catch (error) {
+        res.status(500).json({ message: "Error query update pawn" + error });
+    }
+})
+
 const continuePawn = asyncHandler(async (req, res) => {
     const { id, tableName, provision } = req.body;
 
@@ -272,6 +283,7 @@ module.exports = {
     getAllPawns,
     getPawn,
     insertPawn,
+    updatePawn,
     continuePawn,
     closePawn,
     changePawnToSale,

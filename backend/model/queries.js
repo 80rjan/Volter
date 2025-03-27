@@ -302,6 +302,34 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
     `, [pawnObj.price_pawned, gold_grams, pawnObj.provision]);
 }
 
+async function updatePawn(pawnTable, pawnId, pricePawned, provision, description) {
+    let query = `
+        UPDATE ${pawnTable}
+        SET price_pawned = CAST($2 AS NUMERIC), 
+            price_to_redeem = CAST($2 AS NUMERIC) + (CAST($2 AS NUMERIC) * CAST($3 AS REAL) / 100), 
+            provision = CAST($3 AS REAL), 
+            description = $4
+    `;
+
+    if (pawnTable === "gold_pawn") {
+        query += `, price_per_gram = CAST($2 AS NUMERIC) / weight`;
+    }
+
+    query += ` WHERE id = $1 RETURNING *;`;
+
+    const params = [pawnId, pricePawned, provision, description];
+
+    try {
+        const { rows } = await pool.query(query, params);
+        console.log("Rows: ", rows[0]);
+        return rows[0];
+    } catch (error) {
+        console.error("Error executing query: ", error);
+        throw error;
+    }
+}
+
+
 async function changePawnToSale(id, pawnCategory) {
     const validTables = ["electronics_pawn", "gold_pawn", "vehicle_pawn", "other_pawn", "watch_pawn"];
     if (!validTables.includes(pawnCategory))
@@ -616,11 +644,13 @@ async function getDailyReport(date) {
 }
 
 
+
 module.exports = {
     getAllPawns,
     getPawn,
     continuePawn,
     addNewPawn,
+    updatePawn,
     closePawn,
     changePawnToSale,
     getAllSales,

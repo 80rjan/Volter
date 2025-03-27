@@ -180,6 +180,7 @@ export default function Pawn({ pawn, refresh, isOdd }) {
                     closePawn={() => setModalClosePawn(true)}
                     continuePawn={() => setModalContinuePawn(true)}
                     movePawnToSale={() => movePawnToSale(pawn.Id, pawn.Category)}
+                    oldPawn={pawn}
                 />
             }
         </Wrapper>

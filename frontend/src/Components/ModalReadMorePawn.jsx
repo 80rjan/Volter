@@ -1,13 +1,14 @@
-import React from "react";
+import React, {useState} from "react";
 import ReactDom from "react-dom";
+import axios from "axios";
 import styled from "styled-components";
-import {UserRound, Euro, RotateCcw, X, CircleDollarSign, Printer} from 'lucide-react';
+import {UserRound, Euro, RotateCcw, X, CircleDollarSign, Printer, UserPen, Check} from 'lucide-react';
 import LoanAgreementDocument from "./LoanAgreementDocument.jsx";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import PawnAgreementDocument from "./PawnAgreementDocument.jsx";
 
-export default function ModalReadMorePawn({category, pawnInfo, closeModal, closePawn, continuePawn, movePawnToSale}) {
+export default function ModalReadMorePawn({category, pawnInfo, closeModal, closePawn, continuePawn, movePawnToSale, oldPawn}) {
     const [modalPrintDocument, setModalPrintDocument] = React.useState(false);
     const [clientAddress, setClientAddress] = React.useState("");
     const [idCard, setIdCard] = React.useState("");
@@ -15,10 +16,13 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
     const [daysPawnStr, setDaysPawnStr] = React.useState("");
     const [pawnDescription, setPawnDescription] = React.useState("");
     const client = pawnInfo.client;
-    const pawn = pawnInfo.pawn;
+    const [pawn, setPawn] = useState(pawnInfo.pawn);
     const [isDownloading, setIsDownloading] = React.useState(false);
     const hiddenDocRefLoan = React.useRef(null);
     const hiddenDocRefPawn = React.useRef(null);
+    const [isEditing, setIsEditing] = React.useState(false);
+    const editPawn = React.useRef({pricePawned: pawn.price_pawned, provision: pawn.provision, description: pawn.description });
+    console.log(oldPawn)
 
     const handlePrintDoc = async (ref, isLoan) => {
         setIsDownloading(true);
@@ -59,7 +63,24 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
         }
     };
 
-
+    const handleUpdatePawn = () => {
+        const tableName = {
+            Electronics: "electronics_pawn",
+            Watch: "watch_pawn",
+            Vehicle: "vehicle_pawn",
+            Gold: "gold_pawn",
+            Other: "other_pawn"
+        }
+        axios.put(`http://localhost:3000/updatePawn`, { tableName: tableName[category], id: pawn.id, pricePawned: editPawn.current.pricePawned, provision: editPawn.current.provision, description: editPawn.current.description })
+            .then(res => {
+                const data = res.data.pawn
+                oldPawn.About = data.description
+                oldPawn["Item Cost"] = data.price_pawned
+                oldPawn.Provision = data.price_pawned * data.provision / 100
+                setPawn(data);
+            })
+            .catch(err => console.error("Error updating pawn " + err));
+    }
 
 
     return ReactDom.createPortal(
@@ -70,7 +91,7 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                 {
                     !modalPrintDocument ?
                         <>
-                            <InformationWrapper>
+                            <InformationWrapper style={{gap: isEditing ? "4rem" : "0"}}>
                                 <ClientWrapper>
                                     <div>
                                         <UserRound size={32}/>
@@ -101,34 +122,47 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                                         <CircleDollarSign size={32}/>
                                         {category}
                                     </div>
-                                    {category === 'Electronics' && renderElectronicsOrWatch(pawn)}
-                                    {category === 'Watch' && renderElectronicsOrWatch(pawn)}
-                                    {category === 'Vehicle' && renderVehicle(pawn)}
-                                    {category === 'Gold' && renderGold(pawn)}
-                                    {category === 'Other' && renderOther(pawn)}
+                                    {category === 'Electronics' && renderElectronicsOrWatch(pawn, isEditing, editPawn)}
+                                    {category === 'Watch' && renderElectronicsOrWatch(pawn, isEditing, editPawn)}
+                                    {category === 'Vehicle' && renderVehicle(pawn, isEditing, editPawn)}
+                                    {category === 'Gold' && renderGold(pawn, isEditing, editPawn)}
+                                    {category === 'Other' && renderOther(pawn, isEditing, editPawn)}
                                 </PawnWrapper>
                             </InformationWrapper>
                             <ButtonWrapper>
-                                <button onClick={() => {
-                                    closePawn();
-                                    closeModal();
-                                }}><X size={32}/> Close Pawn
-                                </button>
-                                <button onClick={() => {
-                                    continuePawn();
-                                    closeModal();
-                                }}><RotateCcw size={32}/> Continue Pawn
-                                </button>
-                                <button onClick={() => {
-                                    movePawnToSale();
-                                    closeModal();
-                                }}><Euro size={32}/> Move Pawn To Sale
-                                </button>
-                                <Printer
-                                    size={40}
-                                    color="#444"
-                                    onClick={() => setModalPrintDocument(true)}
-                                />
+                                {
+                                    isEditing ?
+                                        <button style={{background: "var(--green)"}} onClick={() => {
+                                            handleUpdatePawn();
+                                            setIsEditing(false)
+                                        }}><Check size={32}/> Confirm Edits</button> :
+                                        <>
+                                            <button onClick={() => {
+                                                closePawn();
+                                                closeModal();
+                                            }}><X size={32}/> Close Pawn
+                                            </button>
+                                            <button onClick={() => {
+                                                continuePawn();
+                                                closeModal();
+                                            }}><RotateCcw size={32}/> Continue Pawn
+                                            </button>
+                                            <button onClick={() => {
+                                                movePawnToSale();
+                                                closeModal();
+                                            }}><Euro size={32}/> Move Pawn To Sale
+                                            </button>
+                                            <UserPen size={40} color="#444"
+                                                     onClick={() => {
+                                                         setIsEditing(true)
+                                                     }}/>
+                                            <Printer
+                                                size={40}
+                                                color="#444"
+                                                onClick={() => setModalPrintDocument(true)}
+                                            />
+                                        </>
+                                }
                             </ButtonWrapper>
                         </> :
                         <>
@@ -206,7 +240,7 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
     );
 }
 
-const renderElectronicsOrWatch = (pawn) => {
+const renderElectronicsOrWatch = (pawn, isEditing, editPawn) => {
     return (
         <PawnDetailsWrapper>
             <span>
@@ -223,7 +257,12 @@ const renderElectronicsOrWatch = (pawn) => {
             </span>
             <span>
                 <p>Description:</p>
-                <p>{pawn.description}</p>
+                {
+                    isEditing ?
+                        <input type="text" defaultValue={pawn.description} onChange={e => editPawn.current.description = e.target.value}/>
+                        :
+                        <p>{pawn.description}</p>
+                }
             </span>
             <span>
                 <p>Monthly Payment:</p>
@@ -231,7 +270,12 @@ const renderElectronicsOrWatch = (pawn) => {
             </span>
             <span>
                 <p>Price Pawned:</p>
-                <p>{Number(pawn.price_pawned).toLocaleString("de-DE")}</p>
+                {
+                    isEditing ?
+                        <input type="number" defaultValue={pawn.price_pawned} onChange={e => editPawn.current.pricePawned = e.target.value}/>
+                        :
+                        <p>{Number(pawn.price_pawned).toLocaleString("de-DE")}</p>
+                }
             </span>
             <span>
                 <p>Price To Redeem:</p>
@@ -239,7 +283,12 @@ const renderElectronicsOrWatch = (pawn) => {
             </span>
             <span>
                 <p>Provision:</p>
-                <p>{pawn.provision}%</p>
+                {
+                    isEditing ?
+                        <input type="number" defaultValue={pawn.provision} onChange={e => editPawn.current.provision = e.target.value}/>
+                        :
+                        <p>{pawn.provision}%</p>
+                }
             </span>
             <span>
                 <p>Daily Provision:</p>
@@ -260,7 +309,7 @@ const renderElectronicsOrWatch = (pawn) => {
         </PawnDetailsWrapper>
     )
 }
-const renderGold = (pawn) => {
+const renderGold = (pawn, isEditing, editPawn) => {
     return (
         <PawnDetailsWrapper>
             <span>
@@ -281,7 +330,12 @@ const renderGold = (pawn) => {
             </span>
             <span>
                 <p>Description:</p>
-                <p>{pawn.description}</p>
+                {
+                    isEditing ?
+                        <input type="text" defaultValue={pawn.description} onChange={e => editPawn.current.description = e.target.value}/>
+                        :
+                        <p>{pawn.description}</p>
+                }
             </span>
             <span>
                 <p>Price per gram:</p>
@@ -293,7 +347,12 @@ const renderGold = (pawn) => {
             </span>
             <span>
                 <p>Price Pawned:</p>
-                <p>{Number(pawn.price_pawned).toLocaleString("de-DE")}</p>
+                {
+                    isEditing ?
+                        <input type="number" defaultValue={pawn.price_pawned} onChange={e => editPawn.current.pricePawned = e.target.value}/>
+                        :
+                        <p>{Number(pawn.price_pawned).toLocaleString("de-DE")}</p>
+                }
             </span>
             <span>
                 <p>Price To Redeem:</p>
@@ -301,7 +360,12 @@ const renderGold = (pawn) => {
             </span>
             <span>
                 <p>Provision:</p>
-                <p>{pawn.provision}%</p>
+                {
+                    isEditing ?
+                        <input type="number" defaultValue={pawn.provision} onChange={e => editPawn.current.provision = e.target.value}/>
+                        :
+                        <p>{pawn.provision}%</p>
+                }
             </span>
             <span>
                 <p>Daily Provision:</p>
@@ -322,7 +386,7 @@ const renderGold = (pawn) => {
         </PawnDetailsWrapper>
     )
 }
-const renderVehicle = (pawn) => {
+const renderVehicle = (pawn, isEditing, editPawn) => {
     return (
         <PawnDetailsWrapper>
             <span>
@@ -343,7 +407,12 @@ const renderVehicle = (pawn) => {
             </span>
             <span>
                 <p>Description:</p>
-                <p>{pawn.description}</p>
+                {
+                    isEditing ?
+                        <input type="text" defaultValue={pawn.description} onChange={e => editPawn.current.description = e.target.value}/>
+                        :
+                        <p>{pawn.description}</p>
+                }
             </span>
             <span>
                 <p>Monthly Payment:</p>
@@ -351,7 +420,12 @@ const renderVehicle = (pawn) => {
             </span>
             <span>
                 <p>Price Pawned:</p>
-                <p>{Number(pawn.price_pawned).toLocaleString("de-DE")}</p>
+                {
+                    isEditing ?
+                        <input type="number" defaultValue={pawn.price_pawned} onChange={e => editPawn.current.pricePawned = e.target.value}/>
+                        :
+                        <p>{Number(pawn.price_pawned).toLocaleString("de-DE")}</p>
+                }
             </span>
             <span>
                 <p>Price To Redeem:</p>
@@ -359,7 +433,12 @@ const renderVehicle = (pawn) => {
             </span>
             <span>
                 <p>Provision:</p>
-                <p>{pawn.provision}%</p>
+                {
+                    isEditing ?
+                        <input type="number" defaultValue={pawn.provision} onChange={e => editPawn.current.provision = e.target.value}/>
+                        :
+                        <p>{pawn.provision}%</p>
+                }
             </span>
             <span>
                 <p>Daily Provision:</p>
@@ -380,7 +459,7 @@ const renderVehicle = (pawn) => {
         </PawnDetailsWrapper>
     )
 }
-const renderOther = (pawn) => {
+const renderOther = (pawn, isEditing, editPawn) => {
     return (
         <PawnDetailsWrapper>
             <span>
@@ -389,7 +468,12 @@ const renderOther = (pawn) => {
             </span>
             <span>
                 <p>Description:</p>
-                <p>{pawn.description}</p>
+                {
+                    isEditing ?
+                        <input type="text" defaultValue={pawn.description} onChange={e => editPawn.current.description = e.target.value}/>
+                        :
+                        <p>{pawn.description}</p>
+                }
             </span>
             <span>
                 <p>Monthly Payment:</p>
@@ -397,7 +481,12 @@ const renderOther = (pawn) => {
             </span>
             <span>
                 <p>Price Pawned:</p>
-                <p>{Number(pawn.price_pawned).toLocaleString("de-DE")}</p>
+                {
+                    isEditing ?
+                        <input type="number" defaultValue={pawn.price_pawned} onChange={e => editPawn.current.pricePawned = e.target.value}/>
+                        :
+                        <p>{Number(pawn.price_pawned).toLocaleString("de-DE")}</p>
+                }
             </span>
             <span>
                 <p>Price To Redeem:</p>
@@ -405,7 +494,12 @@ const renderOther = (pawn) => {
             </span>
             <span>
                 <p>Provision:</p>
-                <p>{pawn.provision}%</p>
+                {
+                    isEditing ?
+                        <input type="number" defaultValue={pawn.provision} onChange={e => editPawn.current.provision = e.target.value}/>
+                        :
+                        <p>{pawn.provision}%</p>
+                }
             </span>
             <span>
                 <p>Daily Provision:</p>
@@ -488,7 +582,6 @@ const Wrapper = styled.div`
 const InformationWrapper = styled.div`
     display: flex;
     width: 100%;
-    //gap: 8rem;
     justify-content: space-around;
     align-items: center;
 `
@@ -577,6 +670,8 @@ const ButtonWrapper = styled.div`
     display: flex;
     gap: 2rem;
     margin-top: 2rem;
+    //flex-wrap: wrap;
+    //justify-content: center;
 
     button {
         display: flex;
@@ -605,6 +700,12 @@ const ButtonWrapper = styled.div`
 
     & > button:nth-child(3) {
         background: var(--green);
+    }
+    
+    & > button:nth-child(4) {
+        background: var(--dark-blue);
+        //border: 2px solid var(--green);
+        //color: var(--green);
     }
 
     & > svg {
