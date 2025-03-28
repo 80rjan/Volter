@@ -51,35 +51,35 @@ export default function DailyReport() {
                     <ReportWrapper>
                         <MainReports>
                             <Report>
-                                <DollarSign size={48} />
+                                <DollarSign size={44} />
                                 <div>
                                     <h1>{Number(report.total.profit).toLocaleString("de-DE")}</h1>
                                     <p>Profit</p>
                                 </div>
                             </Report>
                             <Report>
-                                <Landmark size={48} />
+                                <Landmark size={44} />
                                 <div>
                                     <h1>{Number(report.total.moneyGiven).toLocaleString("de-DE")}</h1>
                                     <p>Money Given</p>
                                 </div>
                             </Report>
                             <Report>
-                                <Repeat size={48} />
+                                <Repeat size={44} />
                                 <div>
                                     <h1>{Number(report.total.turnover).toLocaleString("de-DE")}</h1>
                                     <p>Turnover</p>
                                 </div>
                             </Report>
                             <Report>
-                                <Handshake size={48} />
+                                <Handshake size={44} />
                                 <div>
                                     <h1>{Number(report.numPawns.numTransactions).toLocaleString("de-DE")}</h1>
                                     <p>Number Pawns</p>
                                 </div>
                             </Report>
                             <Report>
-                                <Tag size={48} />
+                                <Tag size={44} />
                                 <div>
                                     <h1>{Number(report.total.numTransactions - report.numPawns.numTransactions).toLocaleString("de-DE")}</h1>
                                     <p>Number Sales</p>
@@ -218,13 +218,13 @@ const MainReports = styled.div`
     justify-content: space-evenly;
     padding: 2rem 0;
     align-items: center;
-    gap: 4rem;
+    gap: 2rem;
 `
 
 const PawnReports = styled.div`
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    padding: 2rem 4rem;
+    grid-template-columns: repeat(3, 1fr);
+    padding: 2rem;
     gap: 1rem 2rem;
 
     & > div {
@@ -233,7 +233,7 @@ const PawnReports = styled.div`
         border: 2px solid rgba(0, 0, 0, 0.2);
         border-radius: .4rem;
         padding: 1rem 2rem;
-        //gap: 2rem;
+        gap: 2rem;
         align-items: center;
         justify-content: space-between;
         
@@ -269,6 +269,10 @@ const Report = styled.div`
         display: flex;
         flex-direction: column;
         gap: .4rem;
+        
+        & > h1 {
+            font-size: 1.8rem;
+        }
     }
     
     & p {

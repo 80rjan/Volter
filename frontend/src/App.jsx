@@ -7,7 +7,7 @@ import Transactions from "./Pages/Transactions.jsx";
 import MonthlyReport from "./Pages/MonthlyReport.jsx";
 import YearlyReport from "./Pages/YearlyReport.jsx";
 import DailyReport from "./Pages/DailyReport.jsx";
-import LoanAgreementDocument from "./Components/LoanAgreementDocument.jsx";
+import LoanAgreementDocument from "./Documents/LoanAgreementDocument.jsx";
 
 const router = createBrowserRouter([
     {

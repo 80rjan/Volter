@@ -3,10 +3,12 @@ import ReactDom from "react-dom";
 import axios from "axios";
 import styled from "styled-components";
 import {UserRound, Euro, RotateCcw, X, CircleDollarSign, Printer, UserPen, Check} from 'lucide-react';
-import LoanAgreementDocument from "./LoanAgreementDocument.jsx";
+import LoanAgreementDocument from "../Documents/LoanAgreementDocument.jsx";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import PawnAgreementDocument from "./PawnAgreementDocument.jsx";
+import PawnAgreementDocument from "../Documents/PawnAgreementDocument.jsx";
+import DogovorZaZaem from "../Documents/DogovorZaZaem.jsx";
+import DogovorZaRacenZalog from "../Documents/DogovorZaRacenZalog.jsx";
 
 export default function ModalReadMorePawn({category, pawnInfo, closeModal, closePawn, continuePawn, movePawnToSale, oldPawn}) {
     const [modalPrintDocument, setModalPrintDocument] = React.useState(false);
@@ -55,7 +57,7 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                 heightLeft -= pageHeight;
             }
 
-            pdf.save(`${isLoan ? "loan_agreement" : "pawn_agreement"}.pdf`);
+            pdf.save(`${isLoan ? "Dogovor_za_zaem" : "Dogovor_za_racen_zalog"}.pdf`);
         } catch (error) {
             console.error(error);
         } finally {
@@ -167,7 +169,7 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                         </> :
                         <>
                             <div style={{height: "0px", overflowY: "clip"}}>
-                                <LoanAgreementDocument
+                                <DogovorZaZaem
                                     ref={hiddenDocRefLoan}
                                     fullName={client.name}
                                     city={client.city}
@@ -184,7 +186,7 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                                 />
                             </div>
                             <div style={{height: "0px", overflowY: "clip"}}>
-                                <PawnAgreementDocument
+                                <DogovorZaRacenZalog
                                     ref={hiddenDocRefPawn}
                                     fullName={client.name}
                                     city={client.city}
@@ -660,9 +662,18 @@ const PawnDetailsWrapper = styled.div`
     grid-template-rows: repeat(4, max-content);
     gap: .4rem 2rem;
     grid-auto-flow: column;
+    width: max-content;
 
     p {
         min-width: fit-content;
+    }
+    
+    & input {
+        width: 100%;
+        font-size: 1rem;
+        padding: .2rem;
+        border: 2px solid var(--green);
+        border-radius: 4px;
     }
 `
 

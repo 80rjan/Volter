@@ -28,7 +28,7 @@ const PawnAgreementDocument = forwardRef((
                     vo iznos od {moneyGiven} denari koe go ima vrz Zalozniot dolznik vrz osnova na Dogovor za zaem br.__________
                     {/*DATEFROM DVA PATI, KOJ DATUM ZA STO E*/}
                     od {dateFrom} godina (vo ponatamosniot tekst: Dogovor za zaem), so rok na pristignatost na pobaruvanjeto na
-                    den {dateFrom} godina.
+                    den {dateTo} godina.
                     Racniot zalog se zasnova so predavanje na predmetot na ovoj Dogovor vo vladenie na Zalozniot doveritel
                     (vladetelski zalog).
                     Zalozniot doveritel se steknuva so pravoto na zalog vo momentot na sklucuvanje na ovoj Dogovor i so
