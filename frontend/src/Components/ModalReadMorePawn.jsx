@@ -2,13 +2,25 @@ import React, {useState} from "react";
 import ReactDom from "react-dom";
 import axios from "axios";
 import styled from "styled-components";
-import {UserRound, Euro, RotateCcw, X, CircleDollarSign, Printer, UserPen, Check} from 'lucide-react';
+import {
+    UserRound,
+    Euro,
+    RotateCcw,
+    X,
+    CircleDollarSign,
+    Printer,
+    UserPen,
+    Check,
+    ArrowLeft,
+    ArrowDownToLine
+} from 'lucide-react';
 import LoanAgreementDocument from "../Documents/LoanAgreementDocument.jsx";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import PawnAgreementDocument from "../Documents/PawnAgreementDocument.jsx";
 import DogovorZaZaem from "../Documents/DogovorZaZaem.jsx";
 import DogovorZaRacenZalog from "../Documents/DogovorZaRacenZalog.jsx";
+import Loading from "./Loading.jsx";
 
 export default function ModalReadMorePawn({category, pawnInfo, closeModal, closePawn, continuePawn, movePawnToSale, oldPawn}) {
     const [modalPrintDocument, setModalPrintDocument] = React.useState(false);
@@ -24,7 +36,7 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
     const hiddenDocRefPawn = React.useRef(null);
     const [isEditing, setIsEditing] = React.useState(false);
     const editPawn = React.useRef({pricePawned: pawn.price_pawned, provision: pawn.provision, description: pawn.description });
-    console.log(oldPawn)
+    const [isLoading, setIsLoading] = React.useState(false);
 
     const handlePrintDoc = async (ref, isLoan) => {
         setIsDownloading(true);
@@ -66,6 +78,7 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
     };
 
     const handleUpdatePawn = () => {
+        setIsLoading(true);
         const tableName = {
             Electronics: "electronics_pawn",
             Watch: "watch_pawn",
@@ -81,7 +94,8 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                 oldPawn.Provision = data.price_pawned * data.provision / 100
                 setPawn(data);
             })
-            .catch(err => console.error("Error updating pawn " + err));
+            .catch(err => console.error("Error updating pawn " + err))
+            .finally(() => setIsLoading(false));
     }
 
 
@@ -92,6 +106,7 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                 <X size={32} onClick={closeModal}/>
                 {
                     !modalPrintDocument ?
+                        isLoading ? <Loading /> :
                         <>
                             <InformationWrapper style={{gap: isEditing ? "4rem" : "0"}}>
                                 <ClientWrapper>
@@ -134,10 +149,15 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                             <ButtonWrapper>
                                 {
                                     isEditing ?
-                                        <button style={{background: "var(--green)"}} onClick={() => {
-                                            handleUpdatePawn();
-                                            setIsEditing(false)
-                                        }}><Check size={32}/> Confirm Edits</button> :
+                                        <>
+                                            <button onClick={() => setIsEditing(false)}>
+                                                <ArrowLeft size={32}/> Go Back</button>
+                                            <button style={{background: "var(--green)"}} onClick={() => {
+                                                handleUpdatePawn();
+                                                setIsEditing(false)
+                                            }}><Check size={32}/> Confirm Edits
+                                            </button>
+                                        </> :
                                         <>
                                             <button onClick={() => {
                                                 closePawn();
@@ -226,13 +246,21 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                                     <input placeholder={pawn.total_days}
                                            onChange={(e) => setDaysPawnStr(e.target.value)}/>
                                 </span>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        handlePrintDoc(hiddenDocRefLoan, true);
-                                        handlePrintDoc(hiddenDocRefPawn, false);
-                                    }}
-                                >{isDownloading ? "Downloading..." : "Download"}</button>
+                                <div>
+                                    <button onClick={() => setModalPrintDocument(false)} style={{background: "#444"}}>
+                                        <ArrowLeft size={32} /> Go Back </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            try {
+                                                handlePrintDoc(hiddenDocRefLoan, true);
+                                                handlePrintDoc(hiddenDocRefPawn, false);
+                                            } catch (error) {
+                                                console.error("Error downloading pdf: " + error);
+                                            }
+                                        }}
+                                    ><ArrowDownToLine size={32}/> {isDownloading ? "Downloading..." : "Download"}</button>
+                                </div>
                             </form>
                         </>
                 }
@@ -567,16 +595,40 @@ const Wrapper = styled.div`
         & > span {
             display: flex;
             flex-direction: column;
+            gap: .2rem;
+            font-size: 1.2rem;
+        }
+        
+        & input {
+            font-size: 1rem;
+            padding: .4rem;
+            border: 1px solid rgba(0,0,0,.8);
+            border-radius: 2px;
+        }
+        
+        & > div {
+            display: flex;
+            gap: 2rem;
         }
 
-        & > button {
-            width: 100%;
+        & button {
+            width: max-content;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
             background: var(--green);
             color: white;
-            padding: .4rem;
-            border-radius: 2px;
+            padding: .5rem 2rem;
+            border-radius: 4px;
             font-size: 1.2rem;
             margin-top: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: scale 400ms ease-in-out;
+        }
+
+        & button:hover {
+            scale: 1.05;
         }
     }
 `

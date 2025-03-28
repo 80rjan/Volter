@@ -16,7 +16,6 @@ export default function DailyReport() {
         axios.get(`http://localhost:3000/dailyReport?date=${date}`)
             .then(res => {
                 setReport(res.data)
-                console.log(res.data)
             })
             .catch(error => {
                 console.error('Error fetching daily report:', error)
