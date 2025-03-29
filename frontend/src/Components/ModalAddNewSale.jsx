@@ -180,7 +180,7 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
                                             <span><Tag size={20}/> Внеси Податоци за Предметот</span> <p></p>
                                             <div>
                                                 <StyledInput placeholder="Вредност на предметот" name="price_bought" onChange={handleInputChange} required />
-                                                <StyledInput placeholder="Дескрипција" name="description" onChange={handleInputChange} required />
+                                                <StyledInput placeholder="Опис" name="description" onChange={handleInputChange} required />
                                             </div>
                                         </SaleInputs>
                                     </div>

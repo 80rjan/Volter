@@ -26,6 +26,7 @@ export default function Pawns() {
     const [loading, setLoading] = useState(false);
     const isFetchingRef = useRef(false);
     const [isFetching, setIsFetching] = useState(false);
+    const [refreshCashReg, setRefreshCashReg] = useState(false);
 
     const fetchPawns = (limit, offset, order, direction, searchByName, searchByEmbg, searchByTel, isLoading) => {
         if (isFetching) return;
@@ -140,7 +141,7 @@ export default function Pawns() {
                             Категорија {orderDirectionArr.current[2] === 0 ? <Minus size={14} /> : orderDirectionArr.current[2] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("About", 3)} >
-                            Дескрипција {orderDirectionArr.current[3] === 0 ? <Minus size={14} /> : orderDirectionArr.current[3] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Опис {orderDirectionArr.current[3] === 0 ? <Minus size={14} /> : orderDirectionArr.current[3] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Item Cost", 4)} >
                             Вредност {orderDirectionArr.current[4] === 0 ? <Minus size={14} /> : orderDirectionArr.current[4] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
@@ -165,6 +166,7 @@ export default function Pawns() {
                                 key={index}
                                 refresh={() => setRefresh(prev => !prev)}
                                 isOdd={index%2 !== 0}
+                                refreshCashReg={() => setRefreshCashReg(prev => !prev)}
                             />
                         )) }
                     </ScrollablePawns>
@@ -185,7 +187,7 @@ export default function Pawns() {
                     </TableFooter>
                 </PawnsWrapper>
 
-                <CashRegister refreshDependancy={refresh} />
+                <CashRegister refreshDependancy={refresh} refreshDependancyAdjustPawn={refreshCashReg} />
             </Container>
         </PawnsPage>
     )

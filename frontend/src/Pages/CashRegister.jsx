@@ -5,7 +5,7 @@ import styled from "styled-components";
 import ModalAdjustCashRegister from "../Components/ModalAdjustCashRegister.jsx";
 import Loading from "../Components/Loading.jsx";
 
-export default function CashRegister({ refreshDependancy, refreshTransactions }) {
+export default function CashRegister({ refreshDependancy, refreshDependancyAdjustPawn, refreshTransactions }) {
     const [cashReg, setCashReg] = useState({});
     const [showModalInsert, setShowModalInsert] = useState(false);
     const [showModalRemove, setShowModalRemove] = useState(false);
@@ -23,7 +23,7 @@ export default function CashRegister({ refreshDependancy, refreshTransactions })
 
     useEffect(() => {
         fetchCashRegister();
-    }, [refreshDependancy]);
+    }, [refreshDependancy, refreshDependancyAdjustPawn]);
 
     return (
         <Wrapper>
@@ -43,7 +43,7 @@ export default function CashRegister({ refreshDependancy, refreshTransactions })
                 {
                     loading ? <Loading width={30} height={30}/> :
                         <>
-                            <Value className="bold">{Number(cashReg.average_provision).toLocaleString("de-DE")}</Value>
+                            <Value className="bold">{Number(cashReg.average_provision).toFixed(2).toLocaleString("de-DE")}</Value>
                         </>
                 }
             </TextWrapper>

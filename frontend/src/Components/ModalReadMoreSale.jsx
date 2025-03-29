@@ -56,7 +56,7 @@ export default function ModalReadMoreSale({ saleInfo, closeModal, sellItem }) {
                                 <p>{Number(sale.price_bought).toLocaleString("de-DE")}</p>
                             </span>
                                             <span>
-                                <p>Дескрипција:</p>
+                                <p>Опис:</p>
                                 <p>{sale.description}</p>
                             </span>
                             <span>

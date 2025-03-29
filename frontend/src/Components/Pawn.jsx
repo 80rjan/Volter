@@ -7,7 +7,7 @@ import ModalReadMorePawn from "./ModalReadMorePawn.jsx";
 import Loading from "./Loading.jsx";
 import ModalActions from "./ModalActions.jsx";
 
-export default function Pawn({ pawn, refresh, isOdd }) {
+export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
     const [modalSuccessMsg, setModalSuccessMsg] = useState(false);
     const [modalReadMore, setModalReadMore] = useState(false);
     const [successMsg, setSuccessMsg] = useState("");
@@ -189,6 +189,7 @@ export default function Pawn({ pawn, refresh, isOdd }) {
                     continuePawn={() => setModalContinuePawn(true)}
                     movePawnToSale={() => movePawnToSale(pawn.Id, pawn.Category)}
                     oldPawn={pawn}
+                    refreshCashReg={refreshCashReg}
                 />
             }
         </Wrapper>

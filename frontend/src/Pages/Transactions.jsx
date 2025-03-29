@@ -129,7 +129,7 @@ export default function Transactions() {
                             Категорија {orderDirectionArr.current[2] === 0 ? <Minus size={14} /> : orderDirectionArr.current[2] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Description", 3)}>
-                            Дескрипција {orderDirectionArr.current[3] === 0 ? <Minus size={14} /> : orderDirectionArr.current[3] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Опис {orderDirectionArr.current[3] === 0 ? <Minus size={14} /> : orderDirectionArr.current[3] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Given", 4)}>
                             Дадено {orderDirectionArr.current[4] === 0 ? <Minus size={14} /> : orderDirectionArr.current[4] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
@@ -153,7 +153,7 @@ export default function Transactions() {
                                     <TextTransaction>{transaction["Client Id"]}</TextTransaction>
                                     <TextTransaction>{transaction.Name}</TextTransaction>
                                     <TextTransaction>{transaction.Embg}</TextTransaction>
-                                    <TextTransaction>{getCat[transaction.Category]}</TextTransaction>
+                                    <TextTransaction>{getCat[transaction.Category] || transaction.Category}</TextTransaction>
                                     <TextTransaction>{getDesc[transaction.Description] || transaction.Description}</TextTransaction>
                                     <TextTransaction className="bold color">{Number(transaction.Given).toLocaleString("de-DE")}</TextTransaction>
                                     <TextTransaction className="bold color">{Number(transaction.Got).toLocaleString("de-DE")}</TextTransaction>

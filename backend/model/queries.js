@@ -303,6 +303,50 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
 }
 
 async function updatePawn(pawnTable, pawnId, pricePawned, provision, description) {
+    let oldPawn = null
+    try {
+        const { rows } = await pool.query(`SELECT price_pawned, client_id, provision FROM ${pawnTable} WHERE id = $1;`, [pawnId]);
+        oldPawn = rows
+    } catch (error) {
+        console.error("Error executing query old pawn: " + error)
+        throw new Error("Failed to fetch old pawn data")
+    }
+    const clientId = oldPawn[0].client_id;
+    const oldPrice = parseInt(oldPawn[0].price_pawned);
+    const oldProvision = parseInt(oldPawn[0].provision)
+
+    let s = ``
+    if (oldPrice !== pricePawned)
+        s += `Цена: ${oldPrice} во ${pricePawned}. `
+    if (oldProvision !== provision)
+        s += `Процент: ${oldProvision} во ${provision}.`
+
+    //Insert a new transaction with money given
+    try {
+        await pool.query(`
+        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
+        VALUES ($1, $2, $3, $4, 0, 0, CURRENT_TIMESTAMP);
+    `, [clientId, 'Промена залог', s, pricePawned - oldPrice])
+    } catch (error) {
+        console.error("Error executing query transaction: " + error)
+        throw new Error("Failed to modify transactions")
+    }
+
+    //Update cash register with balance of money in pawns, average percent, money removed
+    try {
+        await pool.query(`
+        UPDATE cash_register 
+        SET
+            register_money = register_money - $1,
+            money_pawns = money_pawns + $1,
+            average_provision = (average_provision * num_pawns + $2) / num_pawns,
+            last_updated = NOW();
+    `, [pricePawned - oldPrice, provision-oldProvision])
+    } catch (error) {
+        console.error("Error executing query cash reg: " + error)
+        throw new Error("Failed to modify cash reg")
+    }
+
     let query = `
         UPDATE ${pawnTable}
         SET price_pawned = CAST($2 AS NUMERIC), 
@@ -321,7 +365,6 @@ async function updatePawn(pawnTable, pawnId, pricePawned, provision, description
 
     try {
         const { rows } = await pool.query(query, params);
-        console.log("Rows: ", rows[0]);
         return rows[0];
     } catch (error) {
         console.error("Error executing query: ", error);
@@ -532,6 +575,7 @@ async function addNewSale(saleObj, clientObj) {
     `, [Number(saleObj.priceBought)])
 }
 
+
 async function getAllClients(limit, offset, search) {
 
     const { rows } = await pool.query(`
@@ -605,7 +649,7 @@ async function getAllTransactions(limit, offset, orderBy, orderDirection, search
 }
 
 async function getDailyReport(date) {
-    // First query: Get total money given, total profit, and total turnover
+    // Get total money given, total profit, and total turnover
     const { rows: totalRows } = await pool.query(`
         SELECT 
             COUNT(*) AS "numTransactions",
@@ -613,17 +657,24 @@ async function getDailyReport(date) {
             SUM(profit) AS "profit", 
             SUM(money_given + money_got) AS "turnover"
         FROM transaction 
-        WHERE DATE(date) = $1 AND category != 'Insert' AND category != 'Remove'
+        WHERE DATE(date) = $1 AND (category = 'Electronics' OR category = 'Watch' OR category = 'Gold' OR category = 'Vehicle' OR category = 'Other' OR category = 'Sale');
     `, [date]);
 
-    // Second query: Get the number of transactions excluding 'Sale' category
+    // Get the number of transactions excluding 'Sale' category
     const { rows: numPawnsRows } = await pool.query(`
         SELECT COUNT(*) AS "numTransactions"
         FROM transaction 
-        WHERE DATE(date) = $1 AND category != 'Sale' AND category != 'Insert' AND category != 'Remove'
+        WHERE DATE(date) = $1 AND description = 'Added new pawn' AND (category = 'Electronics' OR category = 'Watch' OR category = 'Gold' OR category = 'Vehicle' OR category = 'Other');
     `, [date]);
 
-    // Third query: Get count and sums grouped by category
+    // Second query: Get the number of transactions excluding 'Sale' category
+    const { rows: numSaleRows } = await pool.query(`
+        SELECT COUNT(*) AS "numTransactions"
+        FROM transaction 
+        WHERE DATE(date) = $1 AND category = 'Sale' AND (description = 'Added new sale' OR description = 'Transferred pawn to sale');
+    `, [date]);
+
+    // Get count and sums grouped by category
     const { rows: categoryRows } = await pool.query(`
         SELECT 
             category,
@@ -631,7 +682,7 @@ async function getDailyReport(date) {
             SUM(money_given) AS "moneyGiven",
             SUM(profit) AS "profit"
         FROM transaction 
-        WHERE DATE(date) = $1 AND category != 'Insert' AND category != 'Remove'
+        WHERE DATE(date) = $1 AND (category = 'Electronics' OR category = 'Watch' OR category = 'Gold' OR category = 'Vehicle' OR category = 'Other' OR category = 'Sale')
         GROUP BY category
     `, [date]);
 
@@ -639,6 +690,7 @@ async function getDailyReport(date) {
     return {
         total: totalRows[0],
         numPawns: numPawnsRows[0],
+        numSales: numSaleRows[0],
         categories: categoryRows
     };
 }

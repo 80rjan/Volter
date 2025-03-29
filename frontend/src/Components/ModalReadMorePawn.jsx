@@ -22,7 +22,7 @@ import DogovorZaZaem from "../Documents/DogovorZaZaem.jsx";
 import DogovorZaRacenZalog from "../Documents/DogovorZaRacenZalog.jsx";
 import Loading from "./Loading.jsx";
 
-export default function ModalReadMorePawn({category, pawnInfo, closeModal, closePawn, continuePawn, movePawnToSale, oldPawn}) {
+export default function ModalReadMorePawn({category, pawnInfo, closeModal, closePawn, continuePawn, movePawnToSale, oldPawn, refreshCashReg}) {
     const [modalPrintDocument, setModalPrintDocument] = React.useState(false);
     const [clientAddress, setClientAddress] = React.useState("");
     const [idCard, setIdCard] = React.useState("");
@@ -102,8 +102,14 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                 oldPawn.Provision = data.price_pawned * data.provision / 100
                 setPawn(data);
             })
-            .catch(err => console.error("Error updating pawn " + err))
-            .finally(() => setIsLoading(false));
+            .catch(err => {
+                console.log(err)
+                console.error("Error updating pawn " + err)
+            })
+            .finally(() => {
+                setIsLoading(false)
+                refreshCashReg()
+            });
     }
 
 
@@ -233,7 +239,7 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                             </div>
                             <form>
                                 <span>
-                                    Внеси дескрипција на залогот:
+                                    Внеси опис на залогот:
                                     <input onChange={(e) => setPawnDescription(e.target.value)}/>
                                 </span>
                                 <span>
@@ -294,7 +300,7 @@ const renderElectronicsOrWatch = (pawn, isEditing, editPawn) => {
                 <p>{pawn.year}</p>
             </span>
             <span>
-                <p>Дескрипција:</p>
+                <p>Опис:</p>
                 {
                     isEditing ?
                         <input type="text" defaultValue={pawn.description}
@@ -374,7 +380,7 @@ const renderGold = (pawn, isEditing, editPawn) => {
                 <p>{pawn.carats}</p>
             </span>
             <span>
-                <p>Дескрипција:</p>
+                <p>Опис:</p>
                 {
                     isEditing ?
                         <input type="text" defaultValue={pawn.description}
@@ -458,7 +464,7 @@ const renderVehicle = (pawn, isEditing, editPawn) => {
                 <p>{pawn.year}</p>
             </span>
             <span>
-                <p>Дескрипција:</p>
+                <p>Опис:</p>
                 {
                     isEditing ?
                         <input type="text" defaultValue={pawn.description}
@@ -526,7 +532,7 @@ const renderOther = (pawn, isEditing, editPawn) => {
                 <p>{pawn.id}</p>
             </span>
             <span>
-                <p>Дескрипција:</p>
+                <p>Опис:</p>
                 {
                     isEditing ?
                         <input type="text" defaultValue={pawn.description}

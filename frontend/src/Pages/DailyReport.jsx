@@ -74,14 +74,14 @@ export default function DailyReport() {
                                 <Handshake size={44} />
                                 <div>
                                     <h1>{Number(report.numPawns.numTransactions).toLocaleString("de-DE")}</h1>
-                                    <p>Број на залози</p>
+                                    <p>Нови залози</p>
                                 </div>
                             </Report>
                             <Report>
                                 <Tag size={44} />
                                 <div>
-                                    <h1>{Number(report.total.numTransactions - report.numPawns.numTransactions).toLocaleString("de-DE")}</h1>
-                                    <p>Број на продажби</p>
+                                    <h1>{Number(report.numSales.numTransactions).toLocaleString("de-DE")}</h1>
+                                    <p>Нови продажби</p>
                                 </div>
                             </Report>
                         </MainReports>
@@ -97,7 +97,7 @@ export default function DailyReport() {
                                         "Sale": "Продажба"
                                     }
                                     return <div >
-                                        <h1>{getCat[category.category]}</h1>
+                                        <h2>{getCat[category.category]}</h2>
                                         <span style={{display: "flex", height: "100%", gap: "2rem", alignItems: "center"}}>
                                             <VerticalLine />
                                             <div>
@@ -240,7 +240,7 @@ const PawnReports = styled.div`
         border: 2px solid rgba(0, 0, 0, 0.2);
         border-radius: .4rem;
         padding: 1rem 2rem;
-        gap: 2rem;
+        //gap: 2rem;
         align-items: center;
         justify-content: space-between;
         

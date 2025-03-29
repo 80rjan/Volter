@@ -225,7 +225,7 @@ function ElectronicsInputs({ handleInputChange }) {
             <StyledInput placeholder="Вредност на залогот" name="price_pawned" onChange={handleInputChange} required />
             <StyledInput placeholder="Провизија" name="provision" onChange={handleInputChange} required />
             <StyledInput placeholder="Валидност во денови" name="total_days" onChange={handleInputChange} required />
-            <StyledInput placeholder="Дескрипција" name="description" onChange={handleInputChange} required />
+            <StyledInput placeholder="Опис" name="description" onChange={handleInputChange} required />
         </>
     );
 }
@@ -239,7 +239,7 @@ function GoldInputs({ handleInputChange }) {
             <StyledInput placeholder="Вредност на залогот" name="price_pawned" onChange={handleInputChange} required />
             <StyledInput placeholder="Провизија" name="provision" onChange={handleInputChange} required />
             <StyledInput placeholder="Валидност во денови" name="total_days" onChange={handleInputChange} required />
-            <StyledInput placeholder="Дескрипција" name="description" onChange={handleInputChange} required />
+            <StyledInput placeholder="Опис" name="description" onChange={handleInputChange} required />
         </>
     );
 }
@@ -253,7 +253,7 @@ function VehicleInputs({ handleInputChange }) {
             <StyledInput placeholder="Вредност на залогот" name="price_pawned" onChange={handleInputChange} required />
             <StyledInput placeholder="Провизија" name="provision" onChange={handleInputChange} required />
             <StyledInput placeholder="Валидност во денови" name="total_days" onChange={handleInputChange} required />
-            <StyledInput placeholder="Дескрипција" name="description" onChange={handleInputChange} required />
+            <StyledInput placeholder="Опис" name="description" onChange={handleInputChange} required />
         </>
     );
 }
@@ -266,7 +266,7 @@ function WatchInputs({ handleInputChange }) {
             <StyledInput placeholder="Вредност на залогот" name="price_pawned" onChange={handleInputChange} required/>
             <StyledInput placeholder="Провизија" name="provision" onChange={handleInputChange} required />
             <StyledInput placeholder="Валидност во денови" name="total_days" onChange={handleInputChange} required />
-            <StyledInput placeholder="Дескрипција" name="description" onChange={handleInputChange} required />
+            <StyledInput placeholder="Опис" name="description" onChange={handleInputChange} required />
         </>
     );
 }
@@ -277,7 +277,7 @@ function OtherInputs({ handleInputChange }) {
             <StyledInput placeholder="Вредност на залогот" name="price_pawned" onChange={handleInputChange} required />
             <StyledInput placeholder="Провизија" name="provision" onChange={handleInputChange} required />
             <StyledInput placeholder="Валидност во денови" name="total_days" onChange={handleInputChange} required />
-            <StyledInput placeholder="Дескрипција" name="description" onChange={handleInputChange} required />
+            <StyledInput placeholder="Опис" name="description" onChange={handleInputChange} required />
         </>
     );
 }
