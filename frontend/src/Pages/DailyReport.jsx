@@ -29,7 +29,7 @@ export default function DailyReport() {
             <Container >
 
                 <HeaderWrapper >
-                    <h1>Daily Report <span>{date}</span></h1>
+                    <h1>Дневен Извештај <span>{date}</span></h1>
                     <div>
                         <DateInput
                             type="date"
@@ -41,7 +41,7 @@ export default function DailyReport() {
                             onClick={() => getReport(date)}
                         >
                             <Plus size={22} color="white" strokeWidth={3} />
-                            Get Report
+                            Генерирај Извештај
                         </ButtonGetReport>
                     </div>
                 </HeaderWrapper>
@@ -53,62 +53,70 @@ export default function DailyReport() {
                                 <DollarSign size={44} />
                                 <div>
                                     <h1>{Number(report.total.profit).toLocaleString("de-DE")}</h1>
-                                    <p>Profit</p>
+                                    <p>Профит</p>
                                 </div>
                             </Report>
                             <Report>
                                 <Landmark size={44} />
                                 <div>
                                     <h1>{Number(report.total.moneyGiven).toLocaleString("de-DE")}</h1>
-                                    <p>Money Given</p>
+                                    <p>Исплатени средства</p>
                                 </div>
                             </Report>
                             <Report>
                                 <Repeat size={44} />
                                 <div>
                                     <h1>{Number(report.total.turnover).toLocaleString("de-DE")}</h1>
-                                    <p>Turnover</p>
+                                    <p>Обрт</p>
                                 </div>
                             </Report>
                             <Report>
                                 <Handshake size={44} />
                                 <div>
                                     <h1>{Number(report.numPawns.numTransactions).toLocaleString("de-DE")}</h1>
-                                    <p>Number Pawns</p>
+                                    <p>Број на залози</p>
                                 </div>
                             </Report>
                             <Report>
                                 <Tag size={44} />
                                 <div>
                                     <h1>{Number(report.total.numTransactions - report.numPawns.numTransactions).toLocaleString("de-DE")}</h1>
-                                    <p>Number Sales</p>
+                                    <p>Број на продажби</p>
                                 </div>
                             </Report>
                         </MainReports>
                         <PawnReports >
                             {
                                 report.categories.map(category => {
+                                    const getCat = {
+                                        "Electronics": "Електроника",
+                                        "Watch": "Часовници",
+                                        "Vehicle": "Возила",
+                                        "Gold": "Злато",
+                                        "Other": "Останато",
+                                        "Sale": "Продажба"
+                                    }
                                     return <div >
-                                        <h1>{category.category}</h1>
+                                        <h1>{getCat[category.category]}</h1>
                                         <span style={{display: "flex", height: "100%", gap: "2rem", alignItems: "center"}}>
                                             <VerticalLine />
                                             <div>
                                                 <Report>
                                                     <div>
                                                         <h3>{Number(category.numTransactions).toLocaleString("de-DE")}</h3>
-                                                        <p>Transactions</p>
+                                                        <p>Трансакции</p>
                                                     </div>
                                                 </Report>
                                                 <Report>
                                                     <div>
                                                         <h3>{Number(category.moneyGiven).toLocaleString("de-DE")}</h3>
-                                                        <p>Money Given</p>
+                                                        <p>Исплата</p>
                                                     </div>
                                                 </Report>
                                                 <Report>
                                                     <div>
                                                         <h3>{Number(category.profit).toLocaleString("de-DE")}</h3>
-                                                        <p>Profit</p>
+                                                        <p>Профит</p>
                                                     </div>
                                                 </Report>
                                             </div>
@@ -130,7 +138,7 @@ export default function DailyReport() {
 const ReportPage = styled.div`
     height: 100vh;
     display: grid;
-    grid-template-columns: max(10%, 220px) auto;
+    grid-template-columns: max(15%, 240px) auto;
 `
 
 const Container = styled.div`

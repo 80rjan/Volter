@@ -20,19 +20,19 @@ export default function ModalReadMoreSale({ saleInfo, closeModal, sellItem }) {
                         </div>
                         <div>
                             <span>
-                                <p>Client Id:</p>
+                                <p>Шифра на клиент:</p>
                                 <p>{client.id}</p>
                             </span>
                             <span>
-                                <p>Embg:</p>
+                                <p>Ембг:</p>
                                 <p>{client.embg}</p>
                             </span>
                             <span>
-                                <p>Telephone:</p>
+                                <p>Телефон:</p>
                                 <p>{client.telephone}</p>
                             </span>
                             <span>
-                                <p>City:</p>
+                                <p>Град:</p>
                                 <p>{client.city}</p>
                             </span>
                         </div>
@@ -44,23 +44,23 @@ export default function ModalReadMoreSale({ saleInfo, closeModal, sellItem }) {
                     <SaleWrapper>
                         <div>
                             <Tag size={32}/>
-                            Sale
+                            Продажба
                         </div>
                         <SaleDetailsWrapper>
                             <span>
-                                <p>Sale Id:</p>
+                                <p>Шифра на продажба:</p>
                                 <p>{sale.id}</p>
                             </span>
                                             <span>
-                                <p>Item Cost:</p>
+                                <p>Вредност на предметот:</p>
                                 <p>{Number(sale.price_bought).toLocaleString("de-DE")}</p>
                             </span>
                                             <span>
-                                <p>Description:</p>
+                                <p>Дескрипција:</p>
                                 <p>{sale.description}</p>
                             </span>
                             <span>
-                                <p>Date Bought:</p>
+                                <p>Купено на:</p>
                                 <p>{sale.date_from.substring(0, 10)}</p>
                             </span>
                         </SaleDetailsWrapper>
@@ -71,7 +71,7 @@ export default function ModalReadMoreSale({ saleInfo, closeModal, sellItem }) {
                     <button onClick={() => {
                         sellItem();
                         closeModal();
-                    }}><Euro size={32}/> Sell Item </button>
+                    }}><Euro size={32}/> Продади </button>
                 </ButtonWrapper>
 
             </Wrapper>
@@ -127,7 +127,7 @@ const InformationWrapper = styled.div`
 const ClientWrapper = styled.div`
     display: flex;
     flex-direction: column;
-    gap: .4rem;
+    gap: 1rem;
 
     & > div {
         display: flex;
@@ -170,7 +170,7 @@ const Separator = styled.div`
 const SaleWrapper = styled.div`
     display: flex;
     flex-direction: column;
-    gap: .4rem;
+    gap: 1rem;
 
     div:first-child {
         display: flex;

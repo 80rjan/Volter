@@ -13,10 +13,10 @@ export default function Sale({ sale, refresh, isOdd }) {
     const [loading, setLoading] = useState(false);
     console.log(sale)
 
-    useEffect(() => {
-        if (!modalSellItem)
-            refresh();
-    }, [modalSellItem])
+    // useEffect(() => {
+    //     if (!modalSellItem)
+    //         refresh();
+    // }, [modalSellItem])
 
     useEffect(() =>{
         if (saleInfo != null)
@@ -68,14 +68,14 @@ export default function Sale({ sale, refresh, isOdd }) {
                     action={sellItem}
                     id={sale.Id}
                     category={"sale"}
-                    successMsg="Successfully sold item"
+                    successMsg="Успешно продадено!"
                     closeModal={() => setModalSellItem(false)}
                     priceBought={Number(sale["Item Cost"])}
                     provision={undefined}
                     dailyProvision={undefined}
                     suggestedPrice={undefined}
                     daysLeft={undefined}
-                    title={"What price did you sell the item?"}
+                    title={"По која цена е продаден предметот?"}
                     refresh={refresh}
                 />
             }

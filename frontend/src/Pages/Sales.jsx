@@ -24,11 +24,14 @@ export default function Sales() {
     const prevSales = useRef([]);
     const scrollableSalesRef = useRef(null);
     const [loading, setLoading] = useState(false);
-    const isFetching = useRef(false);
+    const isFetchingRef = useRef(false);
+    const [isFetching, setIsFetching] = useState(false);
 
     const fetchSales = (limit, offset, order, direction, searchByName, searchByEmbg, searchByTel, isLoading) => {
+        if (isFetching) return;
+        setIsFetching(true);
         setLoading(isLoading);
-        isFetching.current = true;
+        isFetchingRef.current = true;
         axios.get(`http://localhost:3000/sales?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByTel=${searchByTel}`)
             .then(res => {
                 if (JSON.stringify(prevSales.current) !== JSON.stringify(res.data)) {
@@ -42,7 +45,8 @@ export default function Sales() {
             })
             .finally(() => {
                 setLoading(false)
-                isFetching.current = false;
+                isFetchingRef.current = false;
+                setIsFetching(false);
             })
     }
 
@@ -54,7 +58,7 @@ export default function Sales() {
             const clientHeight = scrollDiv.clientHeight; // Visible height of the div
 
             // Check if the scrollbar is 30% up from the bottom
-            if (scrollHeight - scrollTop - clientHeight <= scrollHeight * 0.3 && !isLastPage && !isFetching.current) {
+            if (scrollHeight - scrollTop - clientHeight <= scrollHeight * 0.3 && !isLastPage && !isFetchingRef.current) {
                 offset.current += limit; // Increase offset for the next fetch
                 fetchSales(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, false);
             }
@@ -92,12 +96,12 @@ export default function Sales() {
             <Container >
 
                 <HeaderWrapper >
-                    <h1>Sales</h1>
+                    <h1>Продажба</h1>
                     <ButtonAddNewSale
                         onClick={() => setModalAddNewSale(true)}
                     >
                         <Plus size={22} color="white" strokeWidth={3} />
-                        Add New Sale
+                        Внеси Нова Продажба
                     </ButtonAddNewSale>
 
                     {modalAddNewSale && <ModalAddNewSale
@@ -107,17 +111,17 @@ export default function Sales() {
                 </HeaderWrapper>
 
                 <FilterWrapper >
-                    <StyledInput placeholder="Search by name"
+                    <StyledInput placeholder="Пребарувај по име"
                                  onKeyUp={(e) => {
                                      setSearchByName(e.target.value)
                                  }}
                     />
-                    <StyledInput placeholder="Search by embg"
+                    <StyledInput placeholder="Пребарувај по ембг"
                                  onKeyUp={(e) => {
                                      setSearchByEmbg(e.target.value)
                                  }}
                     />
-                    <StyledInput placeholder="Search by telephone"
+                    <StyledInput placeholder="Пребарувај по телефон"
                                  onKeyUp={(e) => {
                                      setSearchByTel(e.target.value)
                                  }}
@@ -127,22 +131,22 @@ export default function Sales() {
                 <SalesWrapper>
                     <TableHeader >
                         <Text onClick={() => handleOrder("Client Id", 0)}>
-                            Id {orderDirectionArr.current[0] === 0 ? <Minus size={14} /> : orderDirectionArr.current[0] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Ид {orderDirectionArr.current[0] === 0 ? <Minus size={14} /> : orderDirectionArr.current[0] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Name", 1)}>
-                            Name {orderDirectionArr.current[1] === 0 ? <Minus size={14} /> : orderDirectionArr.current[1] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Име {orderDirectionArr.current[1] === 0 ? <Minus size={14} /> : orderDirectionArr.current[1] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                             <Text onClick={() => handleOrder("About", 2)}>
-                            About {orderDirectionArr.current[2] === 0 ? <Minus size={14} /> : orderDirectionArr.current[2] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Дескрипција {orderDirectionArr.current[2] === 0 ? <Minus size={14} /> : orderDirectionArr.current[2] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Item Cost", 3)}>
-                            Item Cost {orderDirectionArr.current[3] === 0 ? <Minus size={14} /> : orderDirectionArr.current[3] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Вредност {orderDirectionArr.current[3] === 0 ? <Minus size={14} /> : orderDirectionArr.current[3] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Date Bought", 4)}>
-                            Date Bought {orderDirectionArr.current[4] === 0 ? <Minus size={14} /> : orderDirectionArr.current[4] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Датум Купено {orderDirectionArr.current[4] === 0 ? <Minus size={14} /> : orderDirectionArr.current[4] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
-                        <Text style={{cursor: "default"}}>Actions</Text>
-                        <Text style={{cursor: "default"}}>More</Text>
+                        <Text style={{cursor: "default"}}>Акции</Text>
+                        <Text style={{cursor: "default"}}>Повеќе</Text>
                     </TableHeader>
 
                     <ScrollableSales ref={scrollableSalesRef}>
@@ -161,7 +165,7 @@ export default function Sales() {
                     <TableFooter>
                         <div>
                             <Euro size={18} color="var(--green)" />
-                            <span> - Sell Item</span>
+                            <span> - Продади предмет</span>
                         </div>
                     </TableFooter>
                 </SalesWrapper>
@@ -175,7 +179,7 @@ export default function Sales() {
 const SalesPage = styled.div`
     height: 100vh;
     display: grid;
-    grid-template-columns: max(10%, 220px) auto;
+    grid-template-columns: max(15%, 240px) auto;
 `
 
 const Container = styled.div`

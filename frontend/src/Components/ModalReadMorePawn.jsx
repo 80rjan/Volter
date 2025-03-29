@@ -30,13 +30,21 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
     const [daysPawnStr, setDaysPawnStr] = React.useState("");
     const [pawnDescription, setPawnDescription] = React.useState("");
     const client = pawnInfo.client;
-    const [pawn, setPawn] = useState(pawnInfo.pawn);
+    const [pawn, setPawn] = useState({...pawnInfo.pawn, "Days Left": pawnInfo["Days Left"]});
     const [isDownloading, setIsDownloading] = React.useState(false);
     const hiddenDocRefLoan = React.useRef(null);
     const hiddenDocRefPawn = React.useRef(null);
     const [isEditing, setIsEditing] = React.useState(false);
     const editPawn = React.useRef({pricePawned: pawn.price_pawned, provision: pawn.provision, description: pawn.description });
     const [isLoading, setIsLoading] = React.useState(false);
+
+    const getCat = {
+        "Electronics": "Електроника",
+        "Watch": "Часовници",
+        "Vehicle": "Возила",
+        "Gold": "Злато",
+        "Other": "Останато"
+    }
 
     const handlePrintDoc = async (ref, isLoan) => {
         setIsDownloading(true);
@@ -116,19 +124,19 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                                     </div>
                                     <div>
                                         <span>
-                                            <p>Client Id:</p>
+                                            <p>Шифра на клиент:</p>
                                             <p>{client.id}</p>
                                         </span>
                                         <span>
-                                            <p>Embg:</p>
+                                            <p>Ембг:</p>
                                             <p>{client.embg}</p>
                                         </span>
                                         <span>
-                                            <p>Telephone:</p>
+                                            <p>Телефон:</p>
                                             <p>{client.telephone}</p>
                                         </span>
                                         <span>
-                                            <p>City:</p>
+                                            <p>Град:</p>
                                             <p>{client.city}</p>
                                         </span>
                                     </div>
@@ -137,7 +145,7 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                                 <PawnWrapper>
                                     <div>
                                         <CircleDollarSign size={32}/>
-                                        {category}
+                                        {getCat[category]}
                                     </div>
                                     {category === 'Electronics' && renderElectronicsOrWatch(pawn, isEditing, editPawn)}
                                     {category === 'Watch' && renderElectronicsOrWatch(pawn, isEditing, editPawn)}
@@ -151,28 +159,28 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                                     isEditing ?
                                         <>
                                             <button onClick={() => setIsEditing(false)}>
-                                                <ArrowLeft size={32}/> Go Back</button>
+                                                <ArrowLeft size={32}/> Врати се назад</button>
                                             <button style={{background: "var(--green)"}} onClick={() => {
                                                 handleUpdatePawn();
                                                 setIsEditing(false)
-                                            }}><Check size={32}/> Confirm Edits
+                                            }}><Check size={32}/> Потврди промени
                                             </button>
                                         </> :
                                         <>
                                             <button onClick={() => {
                                                 closePawn();
                                                 closeModal();
-                                            }}><X size={32}/> Close Pawn
+                                            }}><X size={32}/> Затвори Залог
                                             </button>
                                             <button onClick={() => {
                                                 continuePawn();
                                                 closeModal();
-                                            }}><RotateCcw size={32}/> Continue Pawn
+                                            }}><RotateCcw size={32}/> Продолжи Залог
                                             </button>
                                             <button onClick={() => {
                                                 movePawnToSale();
                                                 closeModal();
-                                            }}><Euro size={32}/> Move Pawn To Sale
+                                            }}><Euro size={32}/> Премести Залог во Продажба
                                             </button>
                                             <UserPen size={40} color="#444"
                                                      onClick={() => {
@@ -225,30 +233,30 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                             </div>
                             <form>
                                 <span>
-                                    Enter description of pawn:
+                                    Внеси дескрипција на залогот:
                                     <input onChange={(e) => setPawnDescription(e.target.value)}/>
                                 </span>
                                 <span>
-                                    Enter address and number of address:
+                                    Внеси адреса и број на адреса:
                                     <input onChange={(e) => setClientAddress(e.target.value)}/>
                                 </span>
                                 <span>
-                                    Enter card id number:
+                                    Внеси број на лична карта:
                                     <input onChange={(e) => setIdCard(e.target.value)}/>
                                 </span>
                                 <span>
-                                    Enter amount of money in words:
+                                    Внеси износ на залог во зборови:
                                     <input placeholder={pawn.price_pawned}
                                            onChange={(e) => setMoneyStr(e.target.value)}/>
                                 </span>
                                 <span>
-                                    Enter days of pawn validity in words:
+                                    Внеси денови на валидност на залогот во зборови:
                                     <input placeholder={pawn.total_days}
                                            onChange={(e) => setDaysPawnStr(e.target.value)}/>
                                 </span>
                                 <div>
                                     <button onClick={() => setModalPrintDocument(false)} style={{background: "#444"}}>
-                                        <ArrowLeft size={32} /> Go Back </button>
+                                        <ArrowLeft size={32} /> Врати се назад </button>
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -259,7 +267,7 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                                                 console.error("Error downloading pdf: " + error);
                                             }
                                         }}
-                                    ><ArrowDownToLine size={32}/> {isDownloading ? "Downloading..." : "Download"}</button>
+                                    ><ArrowDownToLine size={32}/> {isDownloading ? "Се Симнува..." : "Симни"}</button>
                                 </div>
                             </form>
                         </>
@@ -274,67 +282,74 @@ const renderElectronicsOrWatch = (pawn, isEditing, editPawn) => {
     return (
         <PawnDetailsWrapper>
             <span>
-                <p>Pawn Id:</p>
+                <p>Шифра на залог:</p>
                 <p>{pawn.id}</p>
             </span>
             <span>
-                <p>Brand:</p>
+                <p>Бренд:</p>
                 <p>{pawn.brand}</p>
             </span>
             <span>
-                <p>Year:</p>
+                <p>Година:</p>
                 <p>{pawn.year}</p>
             </span>
             <span>
-                <p>Description:</p>
+                <p>Дескрипција:</p>
                 {
                     isEditing ?
-                        <input type="text" defaultValue={pawn.description} onChange={e => editPawn.current.description = e.target.value}/>
+                        <input type="text" defaultValue={pawn.description}
+                               onChange={e => editPawn.current.description = e.target.value}/>
                         :
                         <p>{pawn.description}</p>
                 }
             </span>
             <span>
-                <p>Monthly Payment:</p>
+                <p>Месечна исплата:</p>
                 <p>{(Number(pawn.price_to_redeem) - Number(pawn.price_pawned)).toLocaleString("de-DE")}</p>
             </span>
             <span>
-                <p>Price Pawned:</p>
+                <p>Вредност на залогот:</p>
                 {
                     isEditing ?
-                        <input type="number" defaultValue={pawn.price_pawned} onChange={e => editPawn.current.pricePawned = e.target.value}/>
+                        <input type="number" defaultValue={pawn.price_pawned}
+                               onChange={e => editPawn.current.pricePawned = e.target.value}/>
                         :
                         <p>{Number(pawn.price_pawned).toLocaleString("de-DE")}</p>
                 }
             </span>
             <span>
-                <p>Price To Redeem:</p>
+                <p>Цена за подигање:</p>
                 <p>{Number(pawn.price_to_redeem).toLocaleString("de-DE")}</p>
             </span>
             <span>
-                <p>Provision:</p>
+                <p>Провизија:</p>
                 {
                     isEditing ?
-                        <input type="number" defaultValue={pawn.provision} onChange={e => editPawn.current.provision = e.target.value}/>
+                        <input type="number" defaultValue={pawn.provision}
+                               onChange={e => editPawn.current.provision = e.target.value}/>
                         :
                         <p>{pawn.provision}%</p>
                 }
             </span>
             <span>
-                <p>Daily Provision:</p>
+                <p>Дневна провизија:</p>
                 <p>{Math.round(pawn.provision / pawn.total_days * 100) / 100}%</p>
             </span>
             <span>
-                <p>Date From:</p>
+                <p>Денови валидно:</p>
+                <p>{pawn.total_days}</p>
+            </span>
+            <span>
+                <p>Валидно од:</p>
                 <p>{pawn.date_from.substring(0, 10)}</p>
             </span>
             <span>
-                <p>Date To:</p>
+                <p>Валидно до:</p>
                 <p>{pawn.date_to.substring(0, 10)}</p>
             </span>
             <span>
-                <p>Total Days:</p>
-                <p>{pawn.total_days}</p>
+                <p>Преостанато:</p>
+                <p>{pawn["Days Left"]}</p>
             </span>
         </PawnDetailsWrapper>
     )
@@ -343,75 +358,82 @@ const renderGold = (pawn, isEditing, editPawn) => {
     return (
         <PawnDetailsWrapper>
             <span>
-                <p>Pawn Id:</p>
+                <p>Шифра на залог:</p>
                 <p>{pawn.id}</p>
             </span>
             <span>
-                <p>Type:</p>
+                <p>Тип:</p>
                 <p>{pawn.type}</p>
             </span>
             <span>
-                <p>Weight:</p>
+                <p>Тежина во грам:</p>
                 <p>{pawn.weight}</p>
             </span>
             <span>
-                <p>Carats:</p>
+                <p>Каратажа:</p>
                 <p>{pawn.carats}</p>
             </span>
             <span>
-                <p>Description:</p>
+                <p>Дескрипција:</p>
                 {
                     isEditing ?
-                        <input type="text" defaultValue={pawn.description} onChange={e => editPawn.current.description = e.target.value}/>
+                        <input type="text" defaultValue={pawn.description}
+                               onChange={e => editPawn.current.description = e.target.value}/>
                         :
                         <p>{pawn.description}</p>
                 }
             </span>
             <span>
-                <p>Price per gram:</p>
+                <p>Цена по грам:</p>
                 <p>{Number(pawn.price_per_gram).toLocaleString("de-DE")}</p>
             </span>
             <span>
-                <p>Monthly Payment:</p>
+                <p>Месечна исплата:</p>
                 <p>{(Number(pawn.price_to_redeem) - Number(pawn.price_pawned)).toLocaleString("de-DE")}</p>
             </span>
             <span>
-                <p>Price Pawned:</p>
+                <p>Вредност на залогот:</p>
                 {
                     isEditing ?
-                        <input type="number" defaultValue={pawn.price_pawned} onChange={e => editPawn.current.pricePawned = e.target.value}/>
+                        <input type="number" defaultValue={pawn.price_pawned}
+                               onChange={e => editPawn.current.pricePawned = e.target.value}/>
                         :
                         <p>{Number(pawn.price_pawned).toLocaleString("de-DE")}</p>
                 }
             </span>
             <span>
-                <p>Price To Redeem:</p>
+                <p>Цена за подигање:</p>
                 <p>{Number(pawn.price_to_redeem).toLocaleString("de-DE")}</p>
             </span>
             <span>
-                <p>Provision:</p>
+                <p>Провизија:</p>
                 {
                     isEditing ?
-                        <input type="number" defaultValue={pawn.provision} onChange={e => editPawn.current.provision = e.target.value}/>
+                        <input type="number" defaultValue={pawn.provision}
+                               onChange={e => editPawn.current.provision = e.target.value}/>
                         :
                         <p>{pawn.provision}%</p>
                 }
             </span>
             <span>
-                <p>Daily Provision:</p>
+                <p>Дневна провизија:</p>
                 <p>{Math.round(pawn.provision / pawn.total_days * 100) / 100}%</p>
             </span>
             <span>
-                <p>Date From:</p>
+                <p>Денови валидно:</p>
+                <p>{pawn.total_days}</p>
+            </span>
+            <span>
+                <p>Валидно од:</p>
                 <p>{pawn.date_from.substring(0, 10)}</p>
             </span>
             <span>
-                <p>Date To:</p>
+                <p>Валидно до:</p>
                 <p>{pawn.date_to.substring(0, 10)}</p>
             </span>
             <span>
-                <p>Total Days:</p>
-                <p>{pawn.total_days}</p>
+                <p>Преостанато:</p>
+                <p>{pawn["Days Left"]}</p>
             </span>
         </PawnDetailsWrapper>
     )
@@ -420,71 +442,78 @@ const renderVehicle = (pawn, isEditing, editPawn) => {
     return (
         <PawnDetailsWrapper>
             <span>
-                <p>Pawn Id:</p>
+                <p>Шифра на залог:</p>
                 <p>{pawn.id}</p>
             </span>
             <span>
-                <p>Brand:</p>
+                <p>Бренд:</p>
                 <p>{pawn.brand}</p>
             </span>
             <span>
-                <p>Model:</p>
+                <p>Модел:</p>
                 <p>{pawn.model}</p>
             </span>
             <span>
-                <p>Year:</p>
+                <p>Година:</p>
                 <p>{pawn.year}</p>
             </span>
             <span>
-                <p>Description:</p>
+                <p>Дескрипција:</p>
                 {
                     isEditing ?
-                        <input type="text" defaultValue={pawn.description} onChange={e => editPawn.current.description = e.target.value}/>
+                        <input type="text" defaultValue={pawn.description}
+                               onChange={e => editPawn.current.description = e.target.value}/>
                         :
                         <p>{pawn.description}</p>
                 }
             </span>
             <span>
-                <p>Monthly Payment:</p>
+                <p>Месечна исплата:</p>
                 <p>{(Number(pawn.price_to_redeem) - Number(pawn.price_pawned)).toLocaleString("de-DE")}</p>
             </span>
             <span>
-                <p>Price Pawned:</p>
+                <p>Вредност на залогот:</p>
                 {
                     isEditing ?
-                        <input type="number" defaultValue={pawn.price_pawned} onChange={e => editPawn.current.pricePawned = e.target.value}/>
+                        <input type="number" defaultValue={pawn.price_pawned}
+                               onChange={e => editPawn.current.pricePawned = e.target.value}/>
                         :
                         <p>{Number(pawn.price_pawned).toLocaleString("de-DE")}</p>
                 }
             </span>
             <span>
-                <p>Price To Redeem:</p>
+                <p>Цена за подигање:</p>
                 <p>{Number(pawn.price_to_redeem).toLocaleString("de-DE")}</p>
             </span>
             <span>
-                <p>Provision:</p>
+                <p>Провизија:</p>
                 {
                     isEditing ?
-                        <input type="number" defaultValue={pawn.provision} onChange={e => editPawn.current.provision = e.target.value}/>
+                        <input type="number" defaultValue={pawn.provision}
+                               onChange={e => editPawn.current.provision = e.target.value}/>
                         :
                         <p>{pawn.provision}%</p>
                 }
             </span>
             <span>
-                <p>Daily Provision:</p>
+                <p>Дневна провизија:</p>
                 <p>{Math.round(pawn.provision / pawn.total_days * 100) / 100}%</p>
             </span>
             <span>
-                <p>Date From:</p>
+                <p>Денови валидно:</p>
+                <p>{pawn.total_days}</p>
+            </span>
+            <span>
+                <p>Валидно од:</p>
                 <p>{pawn.date_from.substring(0, 10)}</p>
             </span>
             <span>
-                <p>Date To:</p>
+                <p>Валидно до:</p>
                 <p>{pawn.date_to.substring(0, 10)}</p>
             </span>
             <span>
-                <p>Total Days:</p>
-                <p>{pawn.total_days}</p>
+                <p>Преостанато:</p>
+                <p>{pawn["Days Left"]}</p>
             </span>
         </PawnDetailsWrapper>
     )
@@ -493,59 +522,66 @@ const renderOther = (pawn, isEditing, editPawn) => {
     return (
         <PawnDetailsWrapper>
             <span>
-                <p>Pawn Id:</p>
+                <p>Шифра на залог:</p>
                 <p>{pawn.id}</p>
             </span>
             <span>
-                <p>Description:</p>
+                <p>Дескрипција:</p>
                 {
                     isEditing ?
-                        <input type="text" defaultValue={pawn.description} onChange={e => editPawn.current.description = e.target.value}/>
+                        <input type="text" defaultValue={pawn.description}
+                               onChange={e => editPawn.current.description = e.target.value}/>
                         :
                         <p>{pawn.description}</p>
                 }
             </span>
             <span>
-                <p>Monthly Payment:</p>
+                <p>Месечна исплата:</p>
                 <p>{(Number(pawn.price_to_redeem) - Number(pawn.price_pawned)).toLocaleString("de-DE")}</p>
             </span>
             <span>
-                <p>Price Pawned:</p>
+                <p>Вредност на залогот:</p>
                 {
                     isEditing ?
-                        <input type="number" defaultValue={pawn.price_pawned} onChange={e => editPawn.current.pricePawned = e.target.value}/>
+                        <input type="number" defaultValue={pawn.price_pawned}
+                               onChange={e => editPawn.current.pricePawned = e.target.value}/>
                         :
                         <p>{Number(pawn.price_pawned).toLocaleString("de-DE")}</p>
                 }
             </span>
             <span>
-                <p>Price To Redeem:</p>
+                <p>Цена за подигање:</p>
                 <p>{Number(pawn.price_to_redeem).toLocaleString("de-DE")}</p>
             </span>
             <span>
-                <p>Provision:</p>
+                <p>Провизија:</p>
                 {
                     isEditing ?
-                        <input type="number" defaultValue={pawn.provision} onChange={e => editPawn.current.provision = e.target.value}/>
+                        <input type="number" defaultValue={pawn.provision}
+                               onChange={e => editPawn.current.provision = e.target.value}/>
                         :
                         <p>{pawn.provision}%</p>
                 }
             </span>
             <span>
-                <p>Daily Provision:</p>
+                <p>Дневна провизија:</p>
                 <p>{Math.round(pawn.provision / pawn.total_days * 100) / 100}%</p>
             </span>
             <span>
-                <p>Date From:</p>
+                <p>Денови валидно:</p>
+                <p>{pawn.total_days}</p>
+            </span>
+            <span>
+                <p>Валидно од:</p>
                 <p>{pawn.date_from.substring(0, 10)}</p>
             </span>
             <span>
-                <p>Date To:</p>
+                <p>Валидно до:</p>
                 <p>{pawn.date_to.substring(0, 10)}</p>
             </span>
             <span>
-                <p>Total Days:</p>
-                <p>{pawn.total_days}</p>
+                <p>Преостанато:</p>
+                <p>{pawn["Days Left"]}</p>
             </span>
         </PawnDetailsWrapper>
     )
@@ -602,7 +638,8 @@ const Wrapper = styled.div`
         & input {
             font-size: 1rem;
             padding: .4rem;
-            border: 1px solid rgba(0,0,0,.8);
+            //border: 1px solid rgba(0,0,0,.8);
+            border: none;
             border-radius: 2px;
         }
         
@@ -643,7 +680,7 @@ const InformationWrapper = styled.div`
 const ClientWrapper = styled.div`
     display: flex;
     flex-direction: column;
-    gap: .4rem;
+    gap: 1rem;
 
     & > div {
         display: flex;
@@ -684,7 +721,7 @@ const Separator = styled.div`
 const PawnWrapper = styled.div`
     display: flex;
     flex-direction: column;
-    gap: .4rem;
+    gap: 1rem;
 
     div:first-child {
         display: flex;

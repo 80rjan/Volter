@@ -24,11 +24,14 @@ export default function Pawns() {
     const prevPawns = useRef([]);
     const scrollablePawnsRef = useRef(null);
     const [loading, setLoading] = useState(false);
-    const isFetching = useRef(false);
+    const isFetchingRef = useRef(false);
+    const [isFetching, setIsFetching] = useState(false);
 
     const fetchPawns = (limit, offset, order, direction, searchByName, searchByEmbg, searchByTel, isLoading) => {
+        if (isFetching) return;
+        setIsFetching(true);
         setLoading(isLoading);
-        isFetching.current = true;
+        isFetchingRef.current = true;
         axios.get(`http://localhost:3000?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByTel=${searchByTel}`)
             .then(res => {
                 if (JSON.stringify(prevPawns.current) !== JSON.stringify(res.data)) {
@@ -42,7 +45,8 @@ export default function Pawns() {
             })
             .finally(() => {
                 setLoading(false)
-                isFetching.current = false;
+                isFetchingRef.current = false;
+                setIsFetching(false);
             });
     }
 
@@ -54,7 +58,7 @@ export default function Pawns() {
             const clientHeight = scrollDiv.clientHeight; // Visible height of the div
 
             // Check if the scrollbar is 30% up from the bottom
-            if (scrollHeight - scrollTop - clientHeight <= scrollHeight * 0.3 && !isLastPage && !isFetching.current) {
+            if (scrollHeight - scrollTop - clientHeight <= scrollHeight * 0.3 && !isLastPage && !isFetchingRef.current) {
                 offset.current += limit; // Increase offset for the next fetch
                 fetchPawns(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, false);
             }
@@ -92,12 +96,12 @@ export default function Pawns() {
             <Container >
 
                 <HeaderWrapper >
-                    <h1>Pawns</h1>
+                    <h1>Залози</h1>
                     <ButtonAddNewPawn
                         onClick={() => setModalAddNewPawn(true)}
                     >
                         <Plus size={22} color="white" strokeWidth={3} />
-                        Add New Pawn
+                        Внеси Нов Залог
                     </ButtonAddNewPawn>
 
                     {modalAddNewPawn && <ModalAddNewPawn
@@ -107,17 +111,17 @@ export default function Pawns() {
                 </HeaderWrapper>
 
                 <FilterWrapper >
-                    <StyledInput placeholder="Search by name"
+                    <StyledInput placeholder="Пребарувај по име"
                                  onKeyUp={(e) => {
                                      setSearchByName(e.target.value)
                                  }}
                     />
-                    <StyledInput placeholder="Search by embg"
+                    <StyledInput placeholder="Пребарувај по ембг"
                                  onKeyUp={(e) => {
                                      setSearchByEmbg(e.target.value)
                                  }}
                     />
-                    <StyledInput placeholder="Search by telephone"
+                    <StyledInput placeholder="Пребарувај по телефон"
                                  onKeyUp={(e) => {
                                      setSearchByTel(e.target.value)
                                  }}
@@ -127,29 +131,29 @@ export default function Pawns() {
                 <PawnsWrapper>
                     <TableHeader >
                         <Text onClick={() => handleOrder("Client Id", 0)} >
-                            Id {orderDirectionArr.current[0] === 0 ? <Minus size={14} /> : orderDirectionArr.current[0] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Ид {orderDirectionArr.current[0] === 0 ? <Minus size={14} /> : orderDirectionArr.current[0] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Name", 1)} >
-                            Name {orderDirectionArr.current[1] === 0 ? <Minus size={14} /> : orderDirectionArr.current[1] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Име {orderDirectionArr.current[1] === 0 ? <Minus size={14} /> : orderDirectionArr.current[1] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Category", 2)} >
-                            Category {orderDirectionArr.current[2] === 0 ? <Minus size={14} /> : orderDirectionArr.current[2] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Категорија {orderDirectionArr.current[2] === 0 ? <Minus size={14} /> : orderDirectionArr.current[2] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("About", 3)} >
-                            About {orderDirectionArr.current[3] === 0 ? <Minus size={14} /> : orderDirectionArr.current[3] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Дескрипција {orderDirectionArr.current[3] === 0 ? <Minus size={14} /> : orderDirectionArr.current[3] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Item Cost", 4)} >
-                            Item Cost {orderDirectionArr.current[4] === 0 ? <Minus size={14} /> : orderDirectionArr.current[4] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Вредност {orderDirectionArr.current[4] === 0 ? <Minus size={14} /> : orderDirectionArr.current[4] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Provision", 5)} >
-                            Provision {orderDirectionArr.current[5] === 0 ? <Minus size={14} /> : orderDirectionArr.current[5] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Провизија {orderDirectionArr.current[5] === 0 ? <Minus size={14} /> : orderDirectionArr.current[5] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Days Left", 6)} >
-                            Days Left {orderDirectionArr.current[6] === 0 ? <Minus size={14} /> : orderDirectionArr.current[6] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Рок {orderDirectionArr.current[6] === 0 ? <Minus size={14} /> : orderDirectionArr.current[6] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
-                        <Text style={{cursor: "default"}}>Valid Until</Text>
-                        <Text style={{cursor: "default"}}>Actions</Text>
-                        <Text style={{cursor: "default"}}>More</Text>
+                        <Text style={{cursor: "default"}}>Валидно до</Text>
+                        <Text style={{cursor: "default"}}>Акции</Text>
+                        <Text style={{cursor: "default"}}>Повеќе</Text>
                     </TableHeader>
 
                     <ScrollablePawns ref={scrollablePawnsRef}>
@@ -168,15 +172,15 @@ export default function Pawns() {
                     <TableFooter>
                         <div>
                             <X size={18} color="#000"/>
-                            <span> - Close Pawn</span>
+                            <span> - Затвори Залог</span>
                         </div>
                         <div>
                             <RotateCcw size={18} color="var(--cta-color)" />
-                            <span> - Continue Pawn</span>
+                            <span> - Продолжи Залог</span>
                         </div>
                         <div>
                             <Euro size={18} color="var(--green)" />
-                            <span> - Move To Sale</span>
+                            <span> - Премести залог во продажба</span>
                         </div>
                     </TableFooter>
                 </PawnsWrapper>
@@ -190,7 +194,7 @@ export default function Pawns() {
 const PawnsPage = styled.div`
     height: 100vh;
     display: grid;
-    grid-template-columns: max(10%, 220px) auto;
+    grid-template-columns: max(15%, 240px) auto;
 `
 
 const Container = styled.div`

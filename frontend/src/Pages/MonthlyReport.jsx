@@ -10,7 +10,7 @@ export default function MonthlyReport() {
             <Container >
 
                 <HeaderWrapper >
-                    <h1>Monthly Report</h1>
+                    <h1>Месечен Извештај</h1>
 
                 </HeaderWrapper>
 
@@ -25,7 +25,7 @@ export default function MonthlyReport() {
 const ReportPage = styled.div`
     height: 100vh;
     display: grid;
-    grid-template-columns: max(10%, 220px) auto;
+    grid-template-columns: max(15%, 240px) auto;
 `
 
 const Container = styled.div`

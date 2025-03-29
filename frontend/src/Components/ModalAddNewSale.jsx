@@ -98,7 +98,7 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
                                 <Header>
                                     <div>
                                         <BookmarkPlus size={32} />
-                                        <h1>Add New Sale</h1>
+                                        <h1>Внеси Нова Продажба</h1>
                                     </div>
                                     <ButtonClose onClick={closeModal}>
                                         <X size={32} />
@@ -107,7 +107,7 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
                                 <Form onSubmit={handleSubmit}>
                                     <div>
                                         <ClientInputs>
-                                            <span><User size={20} /> Enter Client Details</span>
+                                            <span><User size={20} /> Внеси Податоци за Клиентот</span>
                                             <Autocomplete
                                                 ref={scrollableClientsRef}
                                                 options={clients}
@@ -119,7 +119,7 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
                                                     fetchClients(limit, offset.current, value);
                                                 }}
                                                 ListboxProps={{ onScroll: handleScroll }}
-                                                renderInput={(params) => <TextField {...params} label="Search existing clients" />}
+                                                renderInput={(params) => <TextField {...params} label="Пребарувај клиенти" />}
                                                 isOptionEqualToValue={(option, value) => option.id === value.id} // Optional: ensures the correct option is selected
                                                 renderOption={(props, option) => (
                                                     <li {...props} key={option.id} style={{
@@ -148,28 +148,28 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
                                                 }}
                                             />
                                             <StyledInput
-                                                placeholder="Client name"
+                                                placeholder="Име"
                                                 name="name"
                                                 value={formData.name}
                                                 onChange={handleInputChange}
                                                 required
                                             />
                                             <StyledInput
-                                                placeholder="Client embg"
+                                                placeholder="Ембг"
                                                 name="embg"
                                                 value={formData.embg}
                                                 onChange={handleInputChange}
                                                 required
                                             />
                                             <StyledInput
-                                                placeholder="Client telephone"
+                                                placeholder="Телефон"
                                                 name="telephone"
                                                 value={formData.telephone}
                                                 onChange={handleInputChange}
                                                 required
                                             />
                                             <StyledInput
-                                                placeholder="Client city"
+                                                placeholder="Град"
                                                 name="city"
                                                 value={formData.city}
                                                 onChange={handleInputChange}
@@ -177,15 +177,15 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
                                             />
                                         </ClientInputs>
                                         <SaleInputs>
-                                            <span><Tag size={20}/> Enter Sale Details</span> <p></p>
+                                            <span><Tag size={20}/> Внеси Податоци за Предметот</span> <p></p>
                                             <div>
-                                                <StyledInput placeholder="Price Bought" name="price_bought" onChange={handleInputChange} required />
-                                                <StyledInput placeholder="Item description" name="description" onChange={handleInputChange} required />
+                                                <StyledInput placeholder="Вредност на предметот" name="price_bought" onChange={handleInputChange} required />
+                                                <StyledInput placeholder="Дескрипција" name="description" onChange={handleInputChange} required />
                                             </div>
                                         </SaleInputs>
                                     </div>
-                                    <Button type="button" onClick={handleSubmit}>
-                                        <CheckCheck size={28} /> Confirm
+                                    <Button type="submit">
+                                        <CheckCheck size={28} /> Потврди
                                     </Button>
                                 </Form>
                             </>

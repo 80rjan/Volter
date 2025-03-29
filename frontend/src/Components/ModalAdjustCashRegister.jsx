@@ -56,20 +56,20 @@ export default function ModalAdjustCashRegister({ closeModal, isInsert, refresh 
                     showAdjust && (
                         <>
                             <CircleHelp size={120} />
-                            <h1>How much do you want to {isInsert ? 'insert' : 'remove'}?</h1>
+                            <h1>Внеси сума за {isInsert ? 'влез во' : 'излез од'} каса?</h1>
                             <form onSubmit={e => e.preventDefault()}>
                                 <span>
-                                    <StyledInput onChange={e => setAmount(e.target.value)} placeholder="Enter amount" required />
-                                    <StyledInput onChange={e => setDescription(e.target.value)} placeholder="Enter description" required />
+                                    <StyledInput onChange={e => setAmount(e.target.value)} placeholder="Внеси сума" required />
+                                    <StyledInput onChange={e => setDescription(e.target.value)} placeholder="Внеси причина" required />
                                 </span>
                                 <Button onClick={() => {
                                     if (amount.length > 0) {
                                         isNaN(amount) ?
-                                            setError('You must enter a number!') && setError(true) :
+                                            setError('Внеси валиден број!') && setError(true) :
                                             setShowAdjust(false) && setShowError(false);
                                     } else {
                                         setShowError(true);
-                                        setError('You must enter a price!');
+                                        setError('Внеси валидна сума!');
                                     }
                                 }}>
                                     <CheckCheck size={28} /> Confirm

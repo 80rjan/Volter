@@ -17,6 +17,14 @@ export default function Pawn({ pawn, refresh, isOdd }) {
     const [modalClosePawn, setModalClosePawn] = useState(false);
     const [modalContinuePawn, setModalContinuePawn] = useState(false);
 
+    const getCat = {
+        "Electronics": "Електроника",
+        "Watch": "Часовници",
+        "Vehicle": "Возила",
+        "Gold": "Злато",
+        "Other": "Останато"
+    }
+
     useEffect(() => {
         if (!modalSuccessMsg)
             refresh();
@@ -95,7 +103,7 @@ export default function Pawn({ pawn, refresh, isOdd }) {
         setLoading(true);
         axios.get(`http://localhost:3000/getPawn?clientId=${clientId}&category=${category}&pawnId=${pawnId}`)
             .then(res => {
-                setPawnInfo(res.data.pawnInfo)
+                setPawnInfo({...res.data.pawnInfo, "Days Left": pawn["Days Left"]})
             })
             .catch(error => {
                 console.error('Error fetching pawn:', error);
@@ -108,7 +116,7 @@ export default function Pawn({ pawn, refresh, isOdd }) {
         <Wrapper style={isOdd ? {background: "#f0f0f0"} : {background: "#ffffff"}}>
             <Text>{pawn["Client Id"]}</Text>
             <Text>{pawn.Name}</Text>
-            <Text>{pawn.Category}</Text>
+            <Text>{getCat[pawn.Category]}</Text>
             <Text>{pawn.About}</Text>
             <Text>{Number(pawn["Item Cost"]).toLocaleString("de-DE")}</Text>
             <Text className="bold color" >{Number(pawn.Provision).toLocaleString("de-DE")}</Text>
@@ -135,14 +143,14 @@ export default function Pawn({ pawn, refresh, isOdd }) {
                     action={closePawn}
                     id={pawn.Id}
                     category={pawn.Category}
-                    successMsg="Successfully closed pawn"
+                    successMsg="Успешно затворен залог!"
                     closeModal={() => setModalClosePawn(false)}
                     priceBought={Number(pawn["Item Cost"])}
                     provision={Number(pawn.Provision)}
                     dailyProvision={Math.abs(Number(pawn.Provision) / Number(pawn["Total Days"]))}
                     suggestedPrice={Number(pawn["Item Cost"]) + Number(pawn.Provision)}
                     daysLeft={Number(pawn["Days Left"])}
-                    title={"Enter price to close pawn"}
+                    title={"Со кој износ е затворен залогот?"}
                     refresh={refresh}
                 />
             }
@@ -152,14 +160,14 @@ export default function Pawn({ pawn, refresh, isOdd }) {
                     action={continuePawn}
                     id={pawn.Id}
                     category={pawn.Category}
-                    successMsg="Successfully continued pawn"
+                    successMsg="Успешно продолжен залог!"
                     closeModal={() => setModalContinuePawn(false)}
                     priceBought={Number(pawn["Item Cost"])}
                     provision={Number(pawn.Provision)}
                     dailyProvision={Math.abs(Number(pawn.Provision) / Number(pawn["Total Days"]))}
                     suggestedPrice={Number(pawn.Provision)}
                     daysLeft={Number(pawn["Days Left"])}
-                    title={"Enter provision for continuing pawn"}
+                    title={"Со кој износ е продолжен залогот?"}
                     refresh={refresh}
                 />
             }

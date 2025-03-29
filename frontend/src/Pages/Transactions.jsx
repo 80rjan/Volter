@@ -21,11 +21,34 @@ export default function Transactions() {
     const prevTransactions = useRef([]);
     const scrollableTransactionsRef = useRef(null);
     const [loading, setLoading] = useState(false);
-    const isFetching = useRef(false);
+    const isFetchingRef = useRef(false);
+    const [isFetching, setIsFetching] = useState(false);
+
+    const getCat = {
+        "Electronics": "Електроника",
+        "Watch": "Часовници",
+        "Vehicle": "Возила",
+        "Gold": "Злато",
+        "Other": "Останато",
+        "Sale": "Продажба",
+        "Insert": "Внес Каса",
+        "Remove": "Излез Каса",
+    }
+
+    const getDesc = {
+        "Added new pawn": "Додаден нов залог",
+        "Continued pawn": "Продолжен залог",
+        "Closed pawn": "Затворен залог",
+        "Added new sale": "Додадена нова продажба",
+        "Closed sale": "Затворена продажба",
+        "Transferred pawn to sale": "Префрлен залог во продажба",
+    }
 
     const fetchTransactions = (limit, offset, order, direction, searchByName, searchByEmbg, searchByDate, isLoading) => {
+        if (isFetching) return;
+        setIsFetching(true);
         setLoading(isLoading);
-        isFetching.current = true;
+        isFetchingRef.current = true;
         axios.get(`http://localhost:3000/transactions?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByDate=${searchByDate}`)
             .then(res => {
                 if (JSON.stringify(prevTransactions.current) !== JSON.stringify(res.data)) {
@@ -39,7 +62,8 @@ export default function Transactions() {
             })
             .finally(() => {
                 setLoading(false);
-                isFetching.current = false;
+                isFetchingRef.current = false;
+                setIsFetching(false);
             });
     };
 
@@ -50,7 +74,7 @@ export default function Transactions() {
             const scrollTop = scrollDiv.scrollTop;
             const clientHeight = scrollDiv.clientHeight;
 
-            if (scrollHeight - scrollTop - clientHeight <= scrollHeight * 0.3 && !isLastPage && !isFetching.current) {
+            if (scrollHeight - scrollTop - clientHeight <= scrollHeight * 0.3 && !isLastPage && !isFetchingRef.current) {
                 offset.current += limit;
                 fetchTransactions(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByDate, false);
             }
@@ -85,39 +109,39 @@ export default function Transactions() {
             <Nav />
             <Container>
                 <HeaderWrapper>
-                    <h1>Transactions</h1>
+                    <h1>Трансакции</h1>
                 </HeaderWrapper>
                 <FilterWrapper>
-                    <StyledInput placeholder="Search by name" onKeyUp={(e) => setSearchByName(e.target.value)} />
-                    <StyledInput placeholder="Search by embg" onKeyUp={(e) => setSearchByEmbg(e.target.value)} />
-                    <StyledInput placeholder="Search by date" onKeyUp={(e) => setSearchByDate(e.target.value)} />
+                    <StyledInput placeholder="Пребарувај по име" onKeyUp={(e) => setSearchByName(e.target.value)} />
+                    <StyledInput placeholder="Пребарувај по ембг" onKeyUp={(e) => setSearchByEmbg(e.target.value)} />
+                    <StyledInput placeholder="Пребарувај по датум" onKeyUp={(e) => setSearchByDate(e.target.value)} />
                 </FilterWrapper>
                 <TransactionsWrapper>
                     <TableHeader>
                         <Text onClick={() => handleOrder("Client Id", 0)}>
-                            Id {orderDirectionArr.current[0] === 0 ? <Minus size={14} /> : orderDirectionArr.current[0] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Ид {orderDirectionArr.current[0] === 0 ? <Minus size={14} /> : orderDirectionArr.current[0] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Name", 1)}>
-                            Name {orderDirectionArr.current[1] === 0 ? <Minus size={14} /> : orderDirectionArr.current[1] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Име {orderDirectionArr.current[1] === 0 ? <Minus size={14} /> : orderDirectionArr.current[1] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
-                        <Text style={{ cursor: "default" }}>Embg</Text>
+                        <Text style={{ cursor: "default" }}>Ембг</Text>
                         <Text onClick={() => handleOrder("Category", 2)}>
-                            Category {orderDirectionArr.current[2] === 0 ? <Minus size={14} /> : orderDirectionArr.current[2] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Категорија {orderDirectionArr.current[2] === 0 ? <Minus size={14} /> : orderDirectionArr.current[2] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Description", 3)}>
-                            Description {orderDirectionArr.current[3] === 0 ? <Minus size={14} /> : orderDirectionArr.current[3] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Дескрипција {orderDirectionArr.current[3] === 0 ? <Minus size={14} /> : orderDirectionArr.current[3] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Given", 4)}>
-                            Given {orderDirectionArr.current[4] === 0 ? <Minus size={14} /> : orderDirectionArr.current[4] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Дадено {orderDirectionArr.current[4] === 0 ? <Minus size={14} /> : orderDirectionArr.current[4] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Got", 5)}>
-                            Got {orderDirectionArr.current[5] === 0 ? <Minus size={14} /> : orderDirectionArr.current[5] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Земено {orderDirectionArr.current[5] === 0 ? <Minus size={14} /> : orderDirectionArr.current[5] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Profit", 6)}>
-                            Profit {orderDirectionArr.current[6] === 0 ? <Minus size={14} /> : orderDirectionArr.current[6] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Профит {orderDirectionArr.current[6] === 0 ? <Minus size={14} /> : orderDirectionArr.current[6] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Date", 7)}>
-                            Date {orderDirectionArr.current[7] === 0 ? <Minus size={14} /> : orderDirectionArr.current[7] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Датум {orderDirectionArr.current[7] === 0 ? <Minus size={14} /> : orderDirectionArr.current[7] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                     </TableHeader>
                     <ScrollableTransactions ref={scrollableTransactionsRef}>
@@ -129,8 +153,8 @@ export default function Transactions() {
                                     <TextTransaction>{transaction["Client Id"]}</TextTransaction>
                                     <TextTransaction>{transaction.Name}</TextTransaction>
                                     <TextTransaction>{transaction.Embg}</TextTransaction>
-                                    <TextTransaction>{transaction.Category}</TextTransaction>
-                                    <TextTransaction>{transaction.Description}</TextTransaction>
+                                    <TextTransaction>{getCat[transaction.Category]}</TextTransaction>
+                                    <TextTransaction>{getDesc[transaction.Description] || transaction.Description}</TextTransaction>
                                     <TextTransaction className="bold color">{Number(transaction.Given).toLocaleString("de-DE")}</TextTransaction>
                                     <TextTransaction className="bold color">{Number(transaction.Got).toLocaleString("de-DE")}</TextTransaction>
                                     <TextTransaction className="bold color">{Number(transaction.Profit).toLocaleString("de-DE")}</TextTransaction>
@@ -149,7 +173,7 @@ export default function Transactions() {
 const TransactionsPage = styled.div`
     height: 100vh;
     display: grid;
-    grid-template-columns: max(10%, 220px) auto;
+    grid-template-columns: max(15%, 240px) auto;
 `;
 
 const Container = styled.div`
@@ -196,7 +220,7 @@ const TransactionsWrapper = styled.div`
 const TableHeader = styled.div`
     display: grid;
     place-items: center;
-    grid-template-columns: 2rem 1fr 1.5fr 1.5fr repeat(4, 1.5fr) 1fr;
+    grid-template-columns: 2rem 1fr 1.5fr 1.5fr 2.5fr repeat(3, 1.5fr) 1fr;
     gap: 1rem;
     padding: 1rem .5rem;
     border-bottom: rgba(0, 0, 0, 0.2) 2px solid;
@@ -236,7 +260,7 @@ const ScrollableTransactions = styled.div`
 const Transaction = styled.div`
     display: grid;
     place-items: center;
-    grid-template-columns: 2rem 1fr 1.5fr 1.5fr repeat(4, 1.5fr) 1fr;
+    grid-template-columns: 2rem 1fr 1.5fr 1.5fr 2.5fr repeat(3, 1.5fr) 1fr;
     gap: .4rem;
     padding: .8rem;
     border-bottom: rgba(0,0,0,0.2) 2px solid;

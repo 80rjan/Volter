@@ -7,12 +7,12 @@ export default function Nav() {
     return (
         <NavWrapper >
             <Logo src={navImage} alt="Volter Zalozna Kukja"/>
-            <StyledNavLink to="/"><Handshake size={28} /> Pawns</StyledNavLink>
-            <StyledNavLink to="/sales" ><Tag size={28} /> Sales</StyledNavLink>
-            <StyledNavLink to="/transactions" ><ArrowLeftRight size={28} /> Transactions</StyledNavLink>
-            <StyledNavLink to="/dailyReport" ><CalendarFold size={28} /> Daily Reports</StyledNavLink>
-            <StyledNavLink to="/monthlyReport" ><Calendar1 size={28} /> Monthly Reports</StyledNavLink>
-            <StyledNavLink to="/yearlyReport" ><CalendarDays size={28} /> Yearly Reports</StyledNavLink>
+            <StyledNavLink to="/"><Handshake size={28} /> Залози</StyledNavLink>
+            <StyledNavLink to="/sales" ><Tag size={28} /> Продажба</StyledNavLink>
+            <StyledNavLink to="/transactions" ><ArrowLeftRight size={28} /> Трансакции</StyledNavLink>
+            <StyledNavLink to="/dailyReport" ><CalendarFold size={28} /> Дневен Извештај</StyledNavLink>
+            <StyledNavLink to="/monthlyReport" ><Calendar1 size={28} /> Месечен Извештај</StyledNavLink>
+            <StyledNavLink to="/yearlyReport" ><CalendarDays size={28} /> Годишен Извештај</StyledNavLink>
         </NavWrapper>
     )
 }
@@ -39,6 +39,7 @@ const StyledNavLink = styled(NavLink)`
     align-items: center;
     gap: .6rem;
     width: 100%;
+    min-width: max-content;
     text-decoration: none;
     font-size: 1.1rem;
     font-weight: 600;

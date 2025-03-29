@@ -115,7 +115,7 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
                         <Header>
                             <div>
                                 <CopyPlus size={32} />
-                                <h1>Add New Pawn</h1>
+                                <h1>Внеси Нов Залог</h1>
                             </div>
                             <ButtonClose onClick={closeModal}>
                                 <X size={32} />
@@ -124,7 +124,7 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
                         <Form onSubmit={handleSubmit}>
                             <div>
                                 <ClientInputs>
-                                    <span><User size={20} /> Enter Client Details</span>
+                                    <span style={{width: "max-content"}}><User size={20} /> Внеси Податоци за Клиентот</span>
                                     <Autocomplete
                                         ref={scrollableClientsRef}
                                         options={clients}
@@ -136,7 +136,7 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
                                             fetchClients(limit, offset.current, value);
                                         }}
                                         ListboxProps={{ onScroll: handleScroll }}
-                                        renderInput={(params) => <TextField {...params} label="Search existing clients" />}
+                                        renderInput={(params) => <TextField {...params} label="Пребарувај клиенти" />}
                                         isOptionEqualToValue={(option, value) => option.id === value.id}
                                         renderOption={(props, option) => (
                                             <li {...props} key={option.id} style={{
@@ -165,28 +165,28 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
                                         }}
                                     />
                                     <StyledInput
-                                        placeholder="Client name"
+                                        placeholder="Име"
                                         name="name"
                                         value={formData.name}
                                         onChange={handleInputChange}
                                         required
                                     />
                                     <StyledInput
-                                        placeholder="Client embg"
+                                        placeholder="Ембг"
                                         name="embg"
                                         value={formData.embg}
                                         onChange={handleInputChange}
                                         required
                                     />
                                     <StyledInput
-                                        placeholder="Client telephone"
+                                        placeholder="Телефон"
                                         name="telephone"
                                         value={formData.telephone}
                                         onChange={handleInputChange}
                                         required
                                     />
                                     <StyledInput
-                                        placeholder="Client city"
+                                        placeholder="Град"
                                         name="city"
                                         value={formData.city}
                                         onChange={handleInputChange}
@@ -194,19 +194,19 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
                                     />
                                 </ClientInputs>
                                 <PawnInputs>
-                                    <span><Database size={20}/> Enter Pawn Details</span>
+                                    <span style={{width: "max-content"}}><Database size={20}/> Внеси Податоци за Предметот</span>
                                     <select name="category" value={formData.category} onChange={handleInputChange}>
-                                        <option value="electronics_pawn">Electronics</option>
-                                        <option value="gold_pawn">Gold</option>
-                                        <option value="vehicle_pawn">Vehicle</option>
-                                        <option value="watch_pawn">Watch</option>
-                                        <option value="other_pawn">Other</option>
+                                        <option value="electronics_pawn">Електроника</option>
+                                        <option value="gold_pawn">Злато</option>
+                                        <option value="vehicle_pawn">Возила</option>
+                                        <option value="watch_pawn">Часовници</option>
+                                        <option value="other_pawn">Останато</option>
                                     </select>
                                     {renderCategoryInputs()}
                                 </PawnInputs>
                             </div>
                             <Button type="submit">
-                                <CheckCheck size={28} /> Confirm
+                                <CheckCheck size={28} /> Потврди
                             </Button>
                         </Form>
                     </>
@@ -220,12 +220,12 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
 function ElectronicsInputs({ handleInputChange }) {
     return (
         <>
-            <StyledInput placeholder="Item brand" name="brand" onChange={handleInputChange} required />
-            <StyledInput placeholder="Item year" name="year" onChange={handleInputChange} required />
-            <StyledInput placeholder="Price pawned" name="price_pawned" onChange={handleInputChange} required />
-            <StyledInput placeholder="Monthly provision" name="provision" onChange={handleInputChange} required />
-            <StyledInput placeholder="Total days" name="total_days" onChange={handleInputChange} required />
-            <StyledInput placeholder="Item description" name="description" onChange={handleInputChange} required />
+            <StyledInput placeholder="Бренд" name="brand" onChange={handleInputChange} required />
+            <StyledInput placeholder="Година" name="year" onChange={handleInputChange} required />
+            <StyledInput placeholder="Вредност на залогот" name="price_pawned" onChange={handleInputChange} required />
+            <StyledInput placeholder="Провизија" name="provision" onChange={handleInputChange} required />
+            <StyledInput placeholder="Валидност во денови" name="total_days" onChange={handleInputChange} required />
+            <StyledInput placeholder="Дескрипција" name="description" onChange={handleInputChange} required />
         </>
     );
 }
@@ -233,13 +233,13 @@ function ElectronicsInputs({ handleInputChange }) {
 function GoldInputs({ handleInputChange }) {
     return (
         <>
-            <StyledInput placeholder="Gold weight" name="weight" onChange={handleInputChange} required />
-            <StyledInput placeholder="Gold carats" name="carats" onChange={handleInputChange} required />
-            <StyledInput placeholder="Gold type" name="type" onChange={handleInputChange} required />
-            <StyledInput placeholder="Price pawned" name="price_pawned" onChange={handleInputChange} required />
-            <StyledInput placeholder="Monthly provision" name="provision" onChange={handleInputChange} required />
-            <StyledInput placeholder="Total days" name="total_days" onChange={handleInputChange} required />
-            <StyledInput placeholder="Item description" name="description" onChange={handleInputChange} required />
+            <StyledInput placeholder="Тежина" name="weight" onChange={handleInputChange} required />
+            <StyledInput placeholder="Каратажа" name="carats" onChange={handleInputChange} required />
+            <StyledInput placeholder="Тип на злато" name="type" onChange={handleInputChange} required />
+            <StyledInput placeholder="Вредност на залогот" name="price_pawned" onChange={handleInputChange} required />
+            <StyledInput placeholder="Провизија" name="provision" onChange={handleInputChange} required />
+            <StyledInput placeholder="Валидност во денови" name="total_days" onChange={handleInputChange} required />
+            <StyledInput placeholder="Дескрипција" name="description" onChange={handleInputChange} required />
         </>
     );
 }
@@ -247,13 +247,13 @@ function GoldInputs({ handleInputChange }) {
 function VehicleInputs({ handleInputChange }) {
     return (
         <>
-            <StyledInput placeholder="Vehicle brand" name="brand" onChange={handleInputChange} required />
-            <StyledInput placeholder="Vehicle model" name="model" onChange={handleInputChange} required />
-            <StyledInput placeholder="Vehicle year" name="year" onChange={handleInputChange} required />
-            <StyledInput placeholder="Price pawned" name="price_pawned" onChange={handleInputChange} required />
-            <StyledInput placeholder="Monthly provision" name="provision" onChange={handleInputChange} required />
-            <StyledInput placeholder="Total days" name="total_days" onChange={handleInputChange} required />
-            <StyledInput placeholder="Item description" name="description" onChange={handleInputChange} required />
+            <StyledInput placeholder="Бренд" name="brand" onChange={handleInputChange} required />
+            <StyledInput placeholder="Модел" name="model" onChange={handleInputChange} required />
+            <StyledInput placeholder="Година" name="year" onChange={handleInputChange} required />
+            <StyledInput placeholder="Вредност на залогот" name="price_pawned" onChange={handleInputChange} required />
+            <StyledInput placeholder="Провизија" name="provision" onChange={handleInputChange} required />
+            <StyledInput placeholder="Валидност во денови" name="total_days" onChange={handleInputChange} required />
+            <StyledInput placeholder="Дескрипција" name="description" onChange={handleInputChange} required />
         </>
     );
 }
@@ -261,12 +261,12 @@ function VehicleInputs({ handleInputChange }) {
 function WatchInputs({ handleInputChange }) {
     return (
         <>
-            <StyledInput placeholder="Watch brand" name="brand" onChange={handleInputChange} required />
-            <StyledInput placeholder="Watch year" name="year" onChange={handleInputChange} required/>
-            <StyledInput placeholder="Price pawned" name="price_pawned" onChange={handleInputChange} required/>
-            <StyledInput placeholder="Monthly provision" name="provision" onChange={handleInputChange} required />
-            <StyledInput placeholder="Total days" name="total_days" onChange={handleInputChange} required />
-            <StyledInput placeholder="Item description" name="description" onChange={handleInputChange} required />
+            <StyledInput placeholder="Бренд" name="brand" onChange={handleInputChange} required />
+            <StyledInput placeholder="Година" name="year" onChange={handleInputChange} required/>
+            <StyledInput placeholder="Вредност на залогот" name="price_pawned" onChange={handleInputChange} required/>
+            <StyledInput placeholder="Провизија" name="provision" onChange={handleInputChange} required />
+            <StyledInput placeholder="Валидност во денови" name="total_days" onChange={handleInputChange} required />
+            <StyledInput placeholder="Дескрипција" name="description" onChange={handleInputChange} required />
         </>
     );
 }
@@ -274,10 +274,10 @@ function WatchInputs({ handleInputChange }) {
 function OtherInputs({ handleInputChange }) {
     return (
         <>
-            <StyledInput placeholder="Price pawned" name="price_pawned" onChange={handleInputChange} required />
-            <StyledInput placeholder="Monthly provision" name="provision" onChange={handleInputChange} required />
-            <StyledInput placeholder="Total days" name="total_days" onChange={handleInputChange} required />
-            <StyledInput placeholder="Item description" name="description" onChange={handleInputChange} required />
+            <StyledInput placeholder="Вредност на залогот" name="price_pawned" onChange={handleInputChange} required />
+            <StyledInput placeholder="Провизија" name="provision" onChange={handleInputChange} required />
+            <StyledInput placeholder="Валидност во денови" name="total_days" onChange={handleInputChange} required />
+            <StyledInput placeholder="Дескрипција" name="description" onChange={handleInputChange} required />
         </>
     );
 }

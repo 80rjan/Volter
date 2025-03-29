@@ -19,7 +19,7 @@ export default function ModalActions({ id, category, successMsg, action, priceBo
             category === "sale" ?
                 action(id, price) :
                 action(id, category, price);
-            setInfoMsg(`Added ${Number(price).toLocaleString("de-DE")} into cash register!`)
+            setInfoMsg(`Успешно внесени ${Number(price).toLocaleString("de-DE")} во каса!`)
             setShowSuccMsg(true);
         } catch (error) {
             console.error('Error entering price to make action:', error);
@@ -43,22 +43,22 @@ export default function ModalActions({ id, category, successMsg, action, priceBo
                             <h1>{title}</h1>
                             <form onSubmit={e => e.preventDefault()}>
                                 <div>
-                                    <p>Price Bought: <span style={{fontWeight: 600}}>{priceBought.toLocaleString("de-DE")}</span></p>
-                                    {category === "sale" ? undefined :<p>Provision: <span style={{fontWeight: 600}}>{provision.toLocaleString("de-DE")}</span></p>}
-                                    {category === "sale" ? undefined :<p>Penalty: <span style={{fontWeight: 600}}>{penaltyPrice.toLocaleString("de-DE")}</span></p>}
-                                    <StyledInput onChange={e => setPrice(e.target.value)} placeholder="Enter price" value={price} required/>
+                                    <p>Исплатени Пари: <span style={{fontWeight: 600}}>{priceBought.toLocaleString("de-DE")}</span></p>
+                                    {category === "sale" ? undefined :<p>Провизија: <span style={{fontWeight: 600}}>{provision.toLocaleString("de-DE")}</span></p>}
+                                    {category === "sale" ? undefined :<p>Казна: <span style={{fontWeight: 600}}>{penaltyPrice.toLocaleString("de-DE")}</span></p>}
+                                    <StyledInput onChange={e => setPrice(e.target.value)} placeholder="Внеси сума" value={price} required/>
                                 </div>
                                 <Button onClick={() => {
                                     if (price.length > 0 || price > 0) {
                                         isNaN(price) ?
-                                            setError('You must enter a number!') && setError(true) :
+                                            setError('Внеси валиден број!') && setError(true) :
                                             setShowEnterPrice(false) && setShowError(false);
                                     } else {
                                         setShowError(true);
-                                        setError('You must enter a price!')
+                                        setError('Внеси сума!')
                                     }
                                 }}>
-                                    <CheckCheck size={28}/> Confirm
+                                    <CheckCheck size={28}/> Потврди
                                 </Button>
                             </form>
                             {showError && <ErrorText>{error}</ErrorText>}
@@ -141,6 +141,7 @@ const Wrapper = styled.div`
     
     form > div:first-child {
         display: flex;
+        align-items: center;
         gap: 2rem;
     }
 `
@@ -148,7 +149,7 @@ const Wrapper = styled.div`
 const StyledInput = styled.input`
     border: none;
     border-radius: .2rem;
-    font-size: 1rem;
+    font-size: 1.2rem;
     padding: .5rem;
     box-shadow: 0 0 4px rgba(0,0,0,0.2);
     height: fit-content;
