@@ -20,8 +20,8 @@ export default function ModalAdjustCashRegister({ closeModal, isInsert, refresh 
         setLoading(true);
         axios.put(`http://localhost:3000/cashRegister/insert`, { amount, description })
             .then(response => {
-                setSuccessMsg("Successfully inserted money into cash register");
-                setInfoMsg(`Added ${Number(amount).toLocaleString("de-DE")} into cash register!`);
+                setSuccessMsg("Успешен внес на пари");
+                setInfoMsg(`Додадени се ${Number(amount).toLocaleString("de-DE")} во каса!`);
                 setShowSuccMsg(true);
                 refresh();
             })
@@ -33,8 +33,8 @@ export default function ModalAdjustCashRegister({ closeModal, isInsert, refresh 
         setLoading(true);
         axios.put(`http://localhost:3000/cashRegister/remove`, { amount, description })
             .then(response => {
-                setSuccessMsg("Successfully removed money from cash register");
-                setInfoMsg(`Removed ${Number(amount).toLocaleString("de-DE")} from cash register!`);
+                setSuccessMsg("Успешен излез на пари");
+                setInfoMsg(`Земени се ${Number(amount).toLocaleString("de-DE")} од каса!`);
                 setShowSuccMsg(true);
                 refresh();
             })
