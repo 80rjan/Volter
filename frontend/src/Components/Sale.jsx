@@ -11,7 +11,6 @@ export default function Sale({ sale, refresh, isOdd }) {
     const [modalReadMore, setModalReadMore] = useState(false);
     const [saleInfo, setSaleInfo] = useState(null);
     const [loading, setLoading] = useState(false);
-    console.log(sale)
 
     // useEffect(() => {
     //     if (!modalSellItem)

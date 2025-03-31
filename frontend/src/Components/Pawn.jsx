@@ -25,11 +25,6 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
         "Other": "Останато"
     }
 
-    useEffect(() => {
-        if (!modalSuccessMsg)
-            refresh();
-    }, [modalSuccessMsg])
-
     const continuePawn = (id, category, provision) => {
         setLoading(true);
         //Find the name of the table based on the category
@@ -45,7 +40,11 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
 
         //Put http which sends the id of the pawn and the table name in which the pawn date is updated
         axios.put(`http://localhost:3000/continuePawn`, { id, tableName, provision })
-            .then()
+            .then(() => {
+                setSuccessMsg("Успешно продолжен залог")
+                setInfoMsg(`Додадени се ${provision.toLocaleString("de-DE")} во каса!`)
+                setModalSuccessMsg(true);
+            })
             .catch(error => console.error('Error continuing pawn:', error))
             .finally(() => setLoading(false));
     }
@@ -65,7 +64,11 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
 
         //Put http which sends the id of the pawn and the table name in which the pawn is closed
         axios.put(`http://localhost:3000/closePawn`, { id, tableName, priceClosed })
-            .then()
+            .then(() => {
+                setSuccessMsg("Успешно затворен залог")
+                setInfoMsg(`Додадени се ${priceClosed.toLocaleString("de-DE")} во каса!`)
+                setModalSuccessMsg(true);
+            })
             .catch(error => console.error('Error closing pawn:', error))
             .finally(() => setLoading(false));
     }
@@ -86,7 +89,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
         //Put http which sends the id of the pawn and the table name in which the pawn is closed and a new product goes for sale
         axios.put(`http://localhost:3000/changePawnToSale`, { id, tableName })
             .then(() => {
-                setSuccessMsg("Successfully moved pawn to sale")
+                setSuccessMsg("Успешно пренесен залог во продажба")
                 // setInfoMsg(`Added ${response.data.profit.toLocaleString("de-DE")} into cash register!`)
                 setModalSuccessMsg(true);
             })
@@ -174,7 +177,10 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
 
             {modalSuccessMsg &&
                 <ModalShowMessagePawn
-                    closeModal={() => setModalSuccessMsg(false)}
+                    closeModal={() => {
+                        setModalSuccessMsg(false)
+                        refresh()
+                    }}
                     successMsg={successMsg}
                     infoMsg={infoMsg}
                 />

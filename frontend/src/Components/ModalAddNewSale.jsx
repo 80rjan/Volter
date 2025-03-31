@@ -73,7 +73,7 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
         e.preventDefault();
         setLoading(true);
         console.log(formData)
-        axios.post('/sales/insertSale', formData)
+        axios.post('http://localhost:3000/sales/insertSale', formData)
             .then(() => {
                 refresh();
                 closeModal();
