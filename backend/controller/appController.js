@@ -52,6 +52,7 @@ const insertPawn = asyncHandler(async (req, res) => {
                 provision: provision,
                 total_days: req.body.total_days,
                 description: req.body.description,
+                date: req.body.date
             }; break;
         case 'gold_pawn' :
             provision = Number(req.body.provision)
@@ -68,7 +69,8 @@ const insertPawn = asyncHandler(async (req, res) => {
                 provision: provision,
                 total_days: req.body.total_days,
                 description: req.body.description,
-            }; console.log(pawnObj); break;
+                date: req.body.date
+            }; break;
         case 'vehicle_pawn' :
             provision = Number(req.body.provision);
             pricePawned = Number(req.body.price_pawned)
@@ -82,6 +84,7 @@ const insertPawn = asyncHandler(async (req, res) => {
                 provision: provision,
                 total_days: req.body.total_days,
                 description: req.body.description,
+                date: req.body.date
             }; break;
         case 'watch_pawn' :
             provision = Number(req.body.provision);
@@ -95,6 +98,7 @@ const insertPawn = asyncHandler(async (req, res) => {
                 provision: provision,
                 total_days: req.body.total_days,
                 description: req.body.description,
+                date: req.body.date
             }; break;
         case 'other_pawn' :
             provision = Number(req.body.provision);
@@ -106,6 +110,7 @@ const insertPawn = asyncHandler(async (req, res) => {
                 provision: provision,
                 total_days: req.body.total_days,
                 description: req.body.description,
+                date: req.body.date
             }; break;
     }
 

@@ -23,6 +23,7 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
         weight: '',
         carat: '',
         type: '',
+        date: new Date().toISOString().split("T")[0],
         category: 'electronics_pawn' // Add category to formData
     });
     const offset = useRef(0);
@@ -34,11 +35,11 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
 
     const renderCategoryInputs = () => {
         switch (formData.category) {
-            case "electronics_pawn": return <ElectronicsInputs handleInputChange={handleInputChange}/>;
-            case "gold_pawn": return <GoldInputs handleInputChange={handleInputChange}/>;
-            case "vehicle_pawn": return <VehicleInputs handleInputChange={handleInputChange}/>;
-            case "watch_pawn": return <WatchInputs handleInputChange={handleInputChange}/>;
-            case "other_pawn": return <OtherInputs handleInputChange={handleInputChange}/>;
+            case "electronics_pawn": return <ElectronicsInputs handleInputChange={handleInputChange} date={formData.date}/>;
+            case "gold_pawn": return <GoldInputs handleInputChange={handleInputChange} date={formData.date}/>;
+            case "vehicle_pawn": return <VehicleInputs handleInputChange={handleInputChange} date={formData.date}/>;
+            case "watch_pawn": return <WatchInputs handleInputChange={handleInputChange} date={formData.date}/>;
+            case "other_pawn": return <OtherInputs handleInputChange={handleInputChange} date={formData.date}/>;
         }
     };
 
@@ -87,9 +88,6 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
         }
     };
 
-    const API_BASE_URL = import.meta.env.VITE_NODE_ENV === 'development'
-        ? ''
-        : 'http://localhost:3000';
     const handleSubmit = (e) => {
         e.preventDefault();
         setLoading(true);
@@ -126,7 +124,8 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
                         <Form onSubmit={handleSubmit}>
                             <div>
                                 <ClientInputs>
-                                    <span style={{width: "max-content"}}><User size={20} /> Внеси Податоци за Клиентот</span>
+                                    <span style={{width: "max-content", marginBottom: ".8rem"}}><User
+                                        size={20}/> Внеси Податоци за Клиентот</span>
                                     <Autocomplete
                                         ref={scrollableClientsRef}
                                         options={clients}
@@ -137,8 +136,8 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
                                             setAutocompleteValue(value);
                                             fetchClients(limit, offset.current, value);
                                         }}
-                                        ListboxProps={{ onScroll: handleScroll }}
-                                        renderInput={(params) => <TextField {...params} label="Пребарувај клиенти" />}
+                                        ListboxProps={{onScroll: handleScroll}}
+                                        renderInput={(params) => <TextField {...params} label="Постоечки клиенти"/>}
                                         isOptionEqualToValue={(option, value) => option.id === value.id}
                                         renderOption={(props, option) => (
                                             <li {...props} key={option.id} style={{
@@ -166,34 +165,42 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
                                             boxShadow: "0 0 4px rgba(0,0,0,0.2)",
                                         }}
                                     />
-                                    <StyledInput
-                                        placeholder="Име"
-                                        name="name"
-                                        value={formData.name}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                    <StyledInput
-                                        placeholder="Ембг"
-                                        name="embg"
-                                        value={formData.embg}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                    <StyledInput
-                                        placeholder="Телефон"
-                                        name="telephone"
-                                        value={formData.telephone}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                    <StyledInput
-                                        placeholder="Град"
-                                        name="city"
-                                        value={formData.city}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
+                                    <div>
+                                        <p>Име</p>
+                                        <StyledInput
+                                            name="name"
+                                            value={formData.name}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <p>Ембг</p>
+                                        <StyledInput
+                                            name="embg"
+                                            value={formData.embg}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <p>Телефон</p>
+                                        <StyledInput
+                                            name="telephone"
+                                            value={formData.telephone}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <p>Град</p>
+                                        <StyledInput
+                                            name="city"
+                                            value={formData.city}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
                                 </ClientInputs>
                                 <PawnInputs>
                                     <span style={{width: "max-content"}}><Database size={20}/> Внеси Податоци за Предметот</span>
@@ -219,67 +226,181 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
     );
 }
 
-function ElectronicsInputs({ handleInputChange }) {
+function ElectronicsInputs({ handleInputChange, date }) {
     return (
         <>
-            <StyledInput placeholder="Бренд" name="brand" onChange={handleInputChange} required />
-            <StyledInput placeholder="Година" name="year" onChange={handleInputChange} required />
-            <StyledInput placeholder="Вредност на залогот" name="price_pawned" onChange={handleInputChange} required />
-            <StyledInput placeholder="Провизија" name="provision" onChange={handleInputChange} required />
-            <StyledInput placeholder="Валидност во денови" name="total_days" onChange={handleInputChange} required />
-            <StyledInput placeholder="Опис" name="description" onChange={handleInputChange} required />
+            <div>
+                <p>Бренд</p>
+                <StyledInput name="brand" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Година</p>
+                <StyledInput name="year" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Вредност на залогот</p>
+                <StyledInput name="price_pawned" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Провизија</p>
+                <StyledInput name="provision" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Валидност во денови</p>
+                <StyledInput name="total_days" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Опис</p>
+                <StyledInput name="description" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Заложено на</p>
+                <StyledInput type="date" value={date} max={new Date().toISOString().split("T")[0]} name="date" onChange={handleInputChange} required/>
+            </div>
         </>
     );
 }
 
-function GoldInputs({ handleInputChange }) {
+function GoldInputs({ handleInputChange, date }) {
     return (
         <>
-            <StyledInput placeholder="Тежина" name="weight" onChange={handleInputChange} required />
-            <StyledInput placeholder="Каратажа" name="carats" onChange={handleInputChange} required />
-            <StyledInput placeholder="Тип на злато" name="type" onChange={handleInputChange} required />
-            <StyledInput placeholder="Вредност на залогот" name="price_pawned" onChange={handleInputChange} required />
-            <StyledInput placeholder="Провизија" name="provision" onChange={handleInputChange} required />
-            <StyledInput placeholder="Валидност во денови" name="total_days" onChange={handleInputChange} required />
-            <StyledInput placeholder="Опис" name="description" onChange={handleInputChange} required />
+            <div>
+                <p>Тежина</p>
+                <StyledInput name="weight" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Каратажа</p>
+                <StyledInput name="carats" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Тип на злато</p>
+                <StyledInput name="type" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Вредност на залогот</p>
+                <StyledInput name="price_pawned" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Провизија</p>
+                <StyledInput name="provision" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Валидност во денови</p>
+                <StyledInput name="total_days" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Опис</p>
+                <StyledInput name="description" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Заложено на</p>
+                <StyledInput type="date" value={date} max={new Date().toISOString().split("T")[0]} name="date"
+                             onChange={handleInputChange} required/>
+            </div>
         </>
     );
 }
 
-function VehicleInputs({ handleInputChange }) {
+function VehicleInputs({ handleInputChange, date }) {
     return (
         <>
-            <StyledInput placeholder="Бренд" name="brand" onChange={handleInputChange} required />
-            <StyledInput placeholder="Модел" name="model" onChange={handleInputChange} required />
-            <StyledInput placeholder="Година" name="year" onChange={handleInputChange} required />
-            <StyledInput placeholder="Вредност на залогот" name="price_pawned" onChange={handleInputChange} required />
-            <StyledInput placeholder="Провизија" name="provision" onChange={handleInputChange} required />
-            <StyledInput placeholder="Валидност во денови" name="total_days" onChange={handleInputChange} required />
-            <StyledInput placeholder="Опис" name="description" onChange={handleInputChange} required />
+            <div>
+                <p>Бренд</p>
+                <StyledInput name="brand" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Модел</p>
+                <StyledInput name="model" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Година</p>
+                <StyledInput name="year" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Вредност на залогот</p>
+                <StyledInput name="price_pawned" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Провизија</p>
+                <StyledInput name="provision" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Валидност во денови</p>
+                <StyledInput name="total_days" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Опис</p>
+                <StyledInput name="description" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Заложено на</p>
+                <StyledInput type="date" value={date} max={new Date().toISOString().split("T")[0]} name="date"
+                             onChange={handleInputChange} required/>
+            </div>
         </>
     );
 }
 
-function WatchInputs({ handleInputChange }) {
+function WatchInputs({ handleInputChange, date }) {
     return (
         <>
-            <StyledInput placeholder="Бренд" name="brand" onChange={handleInputChange} required />
-            <StyledInput placeholder="Година" name="year" onChange={handleInputChange} required/>
-            <StyledInput placeholder="Вредност на залогот" name="price_pawned" onChange={handleInputChange} required/>
-            <StyledInput placeholder="Провизија" name="provision" onChange={handleInputChange} required />
-            <StyledInput placeholder="Валидност во денови" name="total_days" onChange={handleInputChange} required />
-            <StyledInput placeholder="Опис" name="description" onChange={handleInputChange} required />
+            <div>
+                <p>Бренд</p>
+                <StyledInput name="brand" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Година</p>
+                <StyledInput name="year" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Вредност на залогот</p>
+                <StyledInput name="price_pawned" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Провизија</p>
+                <StyledInput name="provision" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Валидност во денови</p>
+                <StyledInput name="total_days" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Опис</p>
+                <StyledInput name="description" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Заложено на</p>
+                <StyledInput type="date" value={date} max={new Date().toISOString().split("T")[0]} name="date"
+                             onChange={handleInputChange} required/>
+            </div>
         </>
     );
 }
 
-function OtherInputs({ handleInputChange }) {
+function OtherInputs({ handleInputChange, date }) {
     return (
         <>
-            <StyledInput placeholder="Вредност на залогот" name="price_pawned" onChange={handleInputChange} required />
-            <StyledInput placeholder="Провизија" name="provision" onChange={handleInputChange} required />
-            <StyledInput placeholder="Валидност во денови" name="total_days" onChange={handleInputChange} required />
-            <StyledInput placeholder="Опис" name="description" onChange={handleInputChange} required />
+            <div>
+                <p>Вредност на залогот</p>
+                <StyledInput name="price_pawned" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Провизија</p>
+                <StyledInput name="provision" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Валидност во денови</p>
+                <StyledInput name="total_days" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Опис</p>
+                <StyledInput name="description" onChange={handleInputChange} required/>
+            </div>
+            <div>
+                <p>Заложено на</p>
+                <StyledInput type="date" value={date} max={new Date().toISOString().split("T")[0]} name="date"
+                             onChange={handleInputChange} required/>
+            </div>
         </>
     );
 }
@@ -290,7 +411,7 @@ const Overlay = styled.div`
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(0,0,0, .7);
+    background: rgba(0, 0, 0, .7);
     z-index: 1000;
 `;
 
@@ -346,20 +467,33 @@ const Form = styled.form`
         display: flex;
         align-items: center;
         gap: .4rem;
+        //font-size: 1.2rem;
         font-weight: 500;
+        margin-bottom: .4rem;
     }
 `;
 
 const ClientInputs = styled.div`
     display: flex;
     flex-direction: column;
-    gap: .8rem;
+    gap: .4rem;
+
+    & > div {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        justify-content: space-between;
+
+        & > p {
+            color: #666;
+        }
+    }
 `;
 
 const PawnInputs = styled.div`
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: .8rem 2rem;
+    gap: .4rem 2rem;
 
     select {
         padding: 0 .5rem;
@@ -367,6 +501,17 @@ const PawnInputs = styled.div`
         border: 2px solid rgba(0, 0, 0, 0.6);
         cursor: pointer;
         font-size: 1rem;
+    }
+
+    & > div {
+        display: flex;
+        flex-direction: column;
+        gap: .2rem;
+
+        & > p {
+            margin-left: -0.4rem;
+            color: #666;
+        }
     }
 `;
 

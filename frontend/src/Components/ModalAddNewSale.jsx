@@ -107,7 +107,7 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
                                 <Form onSubmit={handleSubmit}>
                                     <div>
                                         <ClientInputs>
-                                            <span><User size={20} /> Внеси Податоци за Клиентот</span>
+                                            <span style={{width: "max-content", marginBottom: ".8rem"}} ><User size={20}/> Внеси Податоци за Клиентот</span>
                                             <Autocomplete
                                                 ref={scrollableClientsRef}
                                                 options={clients}
@@ -118,8 +118,9 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
                                                     setAutocompleteValue(value)
                                                     fetchClients(limit, offset.current, value);
                                                 }}
-                                                ListboxProps={{ onScroll: handleScroll }}
-                                                renderInput={(params) => <TextField {...params} label="Пребарувај клиенти" />}
+                                                ListboxProps={{onScroll: handleScroll}}
+                                                renderInput={(params) => <TextField {...params}
+                                                                                    label="Постоечки клиенти"/>}
                                                 isOptionEqualToValue={(option, value) => option.id === value.id} // Optional: ensures the correct option is selected
                                                 renderOption={(props, option) => (
                                                     <li {...props} key={option.id} style={{
@@ -147,45 +148,58 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
                                                     boxShadow: "0 0 4px rgba(0,0,0,0.2)",
                                                 }}
                                             />
-                                            <StyledInput
-                                                placeholder="Име"
-                                                name="name"
-                                                value={formData.name}
-                                                onChange={handleInputChange}
-                                                required
-                                            />
-                                            <StyledInput
-                                                placeholder="Ембг"
-                                                name="embg"
-                                                value={formData.embg}
-                                                onChange={handleInputChange}
-                                                required
-                                            />
-                                            <StyledInput
-                                                placeholder="Телефон"
-                                                name="telephone"
-                                                value={formData.telephone}
-                                                onChange={handleInputChange}
-                                                required
-                                            />
-                                            <StyledInput
-                                                placeholder="Град"
-                                                name="city"
-                                                value={formData.city}
-                                                onChange={handleInputChange}
-                                                required
-                                            />
+                                            <div>
+                                                <p>Име</p>
+                                                <StyledInput
+                                                    name="name"
+                                                    value={formData.name}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <p>Ембг</p>
+                                                <StyledInput
+                                                    name="embg"
+                                                    value={formData.embg}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <p>Телефон</p>
+                                                <StyledInput
+                                                    name="telephone"
+                                                    value={formData.telephone}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <p>Град</p>
+                                                <StyledInput
+                                                    name="city"
+                                                    value={formData.city}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                />
+                                            </div>
                                         </ClientInputs>
                                         <SaleInputs>
                                             <span><Tag size={20}/> Внеси Податоци за Предметот</span> <p></p>
                                             <div>
-                                                <StyledInput placeholder="Вредност на предметот" name="price_bought" onChange={handleInputChange} required />
-                                                <StyledInput placeholder="Опис" name="description" onChange={handleInputChange} required />
+                                                <p>Вредност на предметот</p>
+                                                <StyledInput name="price_bought" onChange={handleInputChange}
+                                                             required/>
+                                            </div>
+                                            <div>
+                                                <p>Бренд</p>
+                                                <StyledInput name="description" onChange={handleInputChange} required/>
                                             </div>
                                         </SaleInputs>
                                     </div>
                                     <Button type="submit">
-                                        <CheckCheck size={28} /> Потврди
+                                        <CheckCheck size={28}/> Потврди
                                     </Button>
                                 </Form>
                             </>
@@ -246,6 +260,7 @@ const Form = styled.form`
     flex-direction: column;
     align-items: center;
     gap: 2rem;
+    
     & > div {
         display: flex;
         gap: 2rem;
@@ -256,6 +271,7 @@ const Form = styled.form`
         align-items: center;
         gap: .4rem;
         font-weight: 500;
+        margin-bottom: .4rem;
     }
 `;
 
@@ -263,16 +279,33 @@ const ClientInputs = styled.div`
     display: flex;
     flex-direction: column;
     gap: .8rem;
+    
+    & > div {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        justify-content: space-between;
+
+        & > p {
+            color: #666;
+        }
+    }
 `;
 
 const SaleInputs = styled.div`
     display: flex;
     flex-direction: column;
     gap: .4rem;
-    div {
+
+    & > div {
         display: flex;
         flex-direction: column;
-        gap: .8rem;
+        gap: .2rem;
+
+        & > p {
+            margin-left: -0.4rem;
+            color: #666;
+        }
     }
 `;
 
