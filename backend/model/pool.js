@@ -1,40 +1,48 @@
-require('dotenv').config({ path: "../.env" });
+// require('dotenv').config({ path: "../.env" });
 // require('dotenv').config();
+// const path = require('path');
+// require('dotenv').config({ path: path.join(__dirname, 'resources/.env') });
 
 const { Pool } = require('pg');
 
-console.log(process.env.DB_USER);
-console.log(process.env.DB_PASSWORD);
-console.log(typeof process.env.DB_PASSWORD);
+// SET UP ENVIRONMENT VARIABLES IN THE SYSTEM
+// SET UP ENVIRONMENT VARIABLES IN THE SYSTEM
+// SET UP ENVIRONMENT VARIABLES IN THE SYSTEM
+// SET UP ENVIRONMENT VARIABLES IN THE SYSTEM
+// SET UP ENVIRONMENT VARIABLES IN THE SYSTEM
+// SET UP ENVIRONMENT VARIABLES IN THE SYSTEM
 
-const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
-    ssl: {
-        rejectUnauthorized: false
-    }
-});
+console.log(process.env.VOLTER_CENTAR_DB_USER);
+console.log(process.env.VOLTER_CENTAR_DB_HOST);
+console.log(process.env.VOLTER_CENTAR_DB_NAME);
+console.log(process.env.VOLTER_CENTAR_DB_PASS);
+console.log(process.env.VOLTER_CENTAR_DB_PORT);
 
-pool.connect()
-    .then(() => console.log('Connected to the database successfully'))
-    .catch(err => {
-        console.error('Database connection error:', err.message);
-        process.exit(1);  // Optionally stop the server if the connection fails
-    });
-
-module.exports = pool;
-
-// module.exports = new Pool({
-//     connectionString: 'postgresql://postgres:exBIWlMralbTVhwSiIrHRusVKDndKqRZ@nozomi.proxy.rlwy.net:38325/railway',
+// Database connection
+// const pool = new Pool({
+//     user: process.env.VOLTER_CENTAR_DB_USER,
+//     host: process.env.VOLTER_CENTAR_DB_HOST,
+//     database: process.env.VOLTER_CENTAR_DB_NAME,
+//     password: process.env.VOLTER_CENTAR_DB_PASS,
+//     port: process.env.VOLTER_CENTAR_DB_PORT,
 //     ssl: {
 //         rejectUnauthorized: false
 //     }
 // });
+//
+// // Connect to the database
+// pool.connect()
+//     .then(() => console.log('Connected to the database successfully'))
+//     .catch(err => {
+//         console.error('Database connection error:', err.message);
+//         process.exit(1);  // Optionally stop the server if the connection fails
+//     });
+//
+// module.exports = pool;
 
-// module.exports = new Pool({
+
+
+// const pool = new Pool({
 //     host: 'nozomi.proxy.rlwy.net',  // Railway host URL
 //     port: 38325,                    // Railway PostgreSQL port (or default 5432)
 //     user: 'postgres',                // Your PostgreSQL user
@@ -44,6 +52,13 @@ module.exports = pool;
 //         rejectUnauthorized: false    // Required for cloud database connections
 //     }
 // });
+
+module.exports = new Pool({
+    connectionString: 'postgresql://postgres:exBIWlMralbTVhwSiIrHRusVKDndKqRZ@nozomi.proxy.rlwy.net:38325/railway',
+    ssl: {
+        rejectUnauthorized: false
+    }
+});
 
 // module.exports = new Pool({
 //     host: 'localhost',

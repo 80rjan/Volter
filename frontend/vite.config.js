@@ -5,10 +5,15 @@ import path from 'path';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  server: {
-    proxy: {
-      '/insertPawn': 'http://localhost:3000',
-      '/sales/insertSale': 'http://localhost:3000',
-    }
-  }
+  base: './', // Use relative paths
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+  },
+  // server: {
+  //   proxy: {
+  //     '/insertPawn': 'http://localhost:3000',
+  //     '/sales/insertSale': 'http://localhost:3000',
+  //   }
+  // }
 })

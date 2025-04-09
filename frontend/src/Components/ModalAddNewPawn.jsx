@@ -87,14 +87,16 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
         }
     };
 
+    const API_BASE_URL = import.meta.env.VITE_NODE_ENV === 'development'
+        ? ''
+        : 'http://localhost:3000';
     const handleSubmit = (e) => {
         e.preventDefault();
         setLoading(true);
-
-        axios.post('/insertPawn', formData)
+        axios.post(`http://localhost:3000/insertPawn`, formData)
             .then(response => {
-                refresh();
                 closeModal();
+                refresh();
             })
             .catch(error => {
                 console.error('Error adding pawn:', error);
