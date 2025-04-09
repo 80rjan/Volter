@@ -1,6 +1,5 @@
 const asyncHandler = require("express-async-handler");
 const db = require('../model/queries');
-const {resume} = require("react-dom/server");
 
 const getAllPawns = asyncHandler(async (req, res) => {
     let searchByName = req.query.searchByName !== 'undefined' ? req.query.searchByName.toLowerCase() : '';
@@ -46,73 +45,76 @@ const insertPawn = asyncHandler(async (req, res) => {
             pricePawned = Number(req.body.price_pawned)
             priceToRedeem = pricePawned + (pricePawned * (provision / 100));
             pawnObj = {
-            brand: req.body.brand,
-            year: req.body.year,
-            price_pawned: pricePawned,
-            price_to_redeem: priceToRedeem,
-            provision: provision,
-            total_days: req.body.total_days,
-            description: req.body.description,
-        }; break;
+                brand: req.body.brand,
+                year: req.body.year,
+                price_pawned: pricePawned,
+                price_to_redeem: priceToRedeem,
+                provision: provision,
+                total_days: req.body.total_days,
+                description: req.body.description,
+            }; break;
         case 'gold_pawn' :
             provision = Number(req.body.provision)
             pricePawned = Number(req.body.price_pawned);
             priceToRedeem = pricePawned + (pricePawned * (provision / 100))
             pricePerGram = Number(req.body.price_pawned) / Number(req.body.weight);
             pawnObj = {
-            weight: req.body.weight,
-            carats: req.body.carats,
-            type: req.body.type,
-            price_per_gram: pricePerGram,
-            price_pawned: pricePawned,
-            price_to_redeem: priceToRedeem,
-            provision: provision,
-            total_days: req.body.total_days,
-            description: req.body.description,
-        }; console.log(pawnObj); break;
+                weight: req.body.weight,
+                carats: req.body.carats,
+                type: req.body.type,
+                price_per_gram: pricePerGram,
+                price_pawned: pricePawned,
+                price_to_redeem: priceToRedeem,
+                provision: provision,
+                total_days: req.body.total_days,
+                description: req.body.description,
+            }; console.log(pawnObj); break;
         case 'vehicle_pawn' :
             provision = Number(req.body.provision);
             pricePawned = Number(req.body.price_pawned)
             priceToRedeem = pricePawned + (pricePawned * (provision / 100));
             pawnObj = {
-            brand: req.body.brand,
-            model: req.body.model,
-            year: req.body.year,
-            price_pawned: pricePawned,
-            price_to_redeem: priceToRedeem,
-            provision: provision,
-            total_days: req.body.total_days,
-            description: req.body.description,
-        }; break;
+                brand: req.body.brand,
+                model: req.body.model,
+                year: req.body.year,
+                price_pawned: pricePawned,
+                price_to_redeem: priceToRedeem,
+                provision: provision,
+                total_days: req.body.total_days,
+                description: req.body.description,
+            }; break;
         case 'watch_pawn' :
             provision = Number(req.body.provision);
             pricePawned = Number(req.body.price_pawned)
             priceToRedeem = pricePawned + (pricePawned * (provision / 100));
             pawnObj = {
-            brand: req.body.brand,
-            year: req.body.year,
-            price_pawned: pricePawned,
-            price_to_redeem: priceToRedeem,
-            provision: provision,
-            total_days: req.body.total_days,
-            description: req.body.description,
-        }; break;
+                brand: req.body.brand,
+                year: req.body.year,
+                price_pawned: pricePawned,
+                price_to_redeem: priceToRedeem,
+                provision: provision,
+                total_days: req.body.total_days,
+                description: req.body.description,
+            }; break;
         case 'other_pawn' :
             provision = Number(req.body.provision);
             pricePawned = Number(req.body.price_pawned)
             priceToRedeem = pricePawned + (pricePawned * (provision / 100));
             pawnObj = {
-            price_pawned: pricePawned,
-            price_to_redeem: priceToRedeem,
-            provision: provision,
-            total_days: req.body.total_days,
-            description: req.body.description,
-        }; break;
+                price_pawned: pricePawned,
+                price_to_redeem: priceToRedeem,
+                provision: provision,
+                total_days: req.body.total_days,
+                description: req.body.description,
+            }; break;
     }
 
     try {
         await db.addNewPawn(category, pawnObj, clientObj);
-        res.status(200).redirect('http://localhost:5173');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+        res.status(200).json({ message: "Success" });
     } catch (error) {
         res.status(500).json({ message: "Error query insert new pawn " + error });
     }
@@ -198,7 +200,10 @@ const insertSale = asyncHandler(async (req, res) => {
 
     try {
         await db.addNewSale(saleObj, clientObj);
-        res.status(200).redirect('http://localhost:5173/sales');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+        res.status(200).json({ message: "Success" });
     } catch (error) {
         res.status(500).json({ message: "Error query insert new sale " + error });
     }

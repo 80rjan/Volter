@@ -1,3 +1,5 @@
 # Ignore .env files (for environment variables)
 .env
 node_modules
+frontend/dist
+/dist
