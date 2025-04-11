@@ -11,6 +11,7 @@ import MonthlyReport from "./Pages/MonthlyReport.jsx";
 import YearlyReport from "./Pages/YearlyReport.jsx";
 import DailyReport from "./Pages/DailyReport.jsx";
 import LoanAgreementDocument from "./Documents/LoanAgreementDocument.jsx";
+import Expenses from "./Pages/Expenses.jsx";
 
 // const router = createBrowserRouter([
 //     {
@@ -56,6 +57,7 @@ function App() {
             <Routes>
                 <Route path="/" element={<Pawns />} />
                 <Route path="/sales" element={<Sales />} />
+                <Route path="/expenses" element={<Expenses />} />
                 <Route path="/transactions" element={<Transactions />} />
                 <Route path="/dailyReport" element={<DailyReport />} />
                 <Route path="/monthlyReport" element={<MonthlyReport />} />

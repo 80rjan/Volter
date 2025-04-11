@@ -592,6 +592,7 @@ async function getAllClients(limit, offset, search) {
     return rows;
 }
 
+
 async function getCashRegister() {
     const { rows } = await pool.query(`SELECT * FROM cash_register`);
 
@@ -627,6 +628,35 @@ async function removeFromCashRegister(amount, description) {
         VALUES (0, 'Remove', $1, $2, 0, 0, CURRENT_TIMESTAMP);
     `, [description, amount])
 }
+
+
+async function getAllExpenses(limit, offset, orderBy, orderDirection, searchByMonth = "", searchByYear = "") {
+    const { rows } = await pool.query(`
+    SELECT 
+        e.year AS "Year",
+        e.month AS "Month",
+        e.rent AS "Rent",
+        e.salaries AS "Salaries",
+        e.other AS "Other",
+        e.description AS "Description"
+    FROM expense e
+    WHERE ($1 = '' OR e.year = $1::INT) AND ($2 = '' OR e.month = $2::INT)
+    ORDER BY "${orderBy}" ${orderDirection}
+    LIMIT ${limit} OFFSET ${offset};
+    `, [searchByYear, searchByMonth])
+
+    return rows;
+}
+
+async function insertExpense(year, month, rent, salaries, other, description) {
+    const { rows : hasExpense } = await pool.query(`SELECT * FROM expense WHERE year = $1::INT AND month = $2::INT`, [year, month])
+    if (hasExpense.length > 0)
+        return `Имаш веќе внесено расходи за месец: ${month}-${year}`
+
+    await pool.query(`INSERT INTO expense VALUES ($1, $2, $3, $4, $5, $6)`, [year, month, rent, salaries, other, description])
+    return 'Успешно внесен расход'
+}
+
 
 async function getAllTransactions(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByDate = "") {
     const { rows } = await pool.query(`
@@ -717,6 +747,8 @@ module.exports = {
     getCashRegister,
     insertIntoCashRegister,
     removeFromCashRegister,
+    getAllExpenses,
+    insertExpense,
     getAllTransactions,
     getDailyReport
 }

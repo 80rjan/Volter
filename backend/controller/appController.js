@@ -157,6 +157,7 @@ const closePawn = asyncHandler(async (req, res) => {
     }
 })
 
+
 const changePawnToSale = asyncHandler(async (req, res) => {
     const { id, tableName } = req.body;
 
@@ -224,6 +225,7 @@ const sellItem = asyncHandler(async (req, res) => {
     }
 })
 
+
 const getAllClients = asyncHandler(async (req, res) => {
     const limit = req.query.limit;
     const offset = req.query.offset;
@@ -236,6 +238,7 @@ const getAllClients = asyncHandler(async (req, res) => {
         res.status(500).json({ message: "Error query get all clients" });
     }
 })
+
 
 const getCashRegister = asyncHandler(async (req, res) => {
 
@@ -268,6 +271,29 @@ const removeFromCashRegister = asyncHandler(async (req, res) => {
         res.status(500).json({ message: "Error query remove money from cash register " + error });
     }
 })
+
+
+const getAllExpenses = asyncHandler(async (req, res) => {
+    let searchByMonth = req.query.searchByMonth;
+    let searchByYear = req.query.searchByYear;
+    const limit = req.query.limit;
+    const offset = req.query.offset;
+
+    const expenses = await db.getAllExpenses(limit, offset, req.query.orderBy, req.query.orderDirection, searchByMonth, searchByYear);
+    res.send(expenses);
+})
+
+const insertExpense = asyncHandler(async (req, res) => {
+    const { year, month, rent, salaries, other, description } = req.body;
+
+    try {
+        const message = await db.insertExpense(Number(year), Number(month), Number(rent), Number(salaries), Number(other), description);
+        res.status(200).json({ message: message });
+    } catch (error) {
+        res.status(500).json({ message: "Error query insert money into cash register " + error });
+    }
+})
+
 
 const getAllTransactions = asyncHandler(async (req, res) => {
     let searchByName = req.query.searchByName !== 'undefined' ? req.query.searchByName.toLowerCase() : '';
@@ -305,6 +331,8 @@ module.exports = {
     getCashRegister,
     insertIntoCashRegister,
     removeFromCashRegister,
+    getAllExpenses,
+    insertExpense,
     getAllTransactions,
     getDailyReport
 }
