@@ -254,9 +254,9 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
         `, [clientId, pawnObj.brand, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description, pawnObj.date]);
             break;
         case 'gold_pawn': await pool.query(`
-            INSERT INTO gold_pawn (client_id, weight, carats, price_per_gram, price_pawned, price_to_redeem, provision, date_from, date_to, total_days, description, type)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $11::DATE, $11::DATE + $8 * INTERVAL '1 day', $8, $9, $10);
-        `, [clientId, pawnObj.weight, pawnObj.carats, pawnObj.price_per_gram, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description, pawnObj.type, pawnObj.date]);
+            INSERT INTO gold_pawn (client_id, weight, carats, price_pawned, price_to_redeem, provision, date_from, date_to, total_days, description, type)
+            VALUES ($1, $2, $3, $4, $5, $6, $10::DATE, $10::DATE + $7 * INTERVAL '1 day', $7, $8, $9);
+        `, [clientId, pawnObj.weight, pawnObj.carats, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description, pawnObj.type, pawnObj.date]);
             break;
         case 'other_pawn': await pool.query(`
             INSERT INTO other_pawn (client_id, price_pawned, price_to_redeem, provision, date_from, date_to, total_days, description)
@@ -302,7 +302,7 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
     `, [pawnObj.price_pawned, gold_grams, pawnObj.provision]);
 }
 
-async function updatePawn(pawnTable, pawnId, pricePawned, provision, description) {
+async function updatePawn(pawnTable, pawnId, pricePawned, provision, description, goldGramsDiff) {
     let oldPawn = null
     try {
         const { rows } = await pool.query(`SELECT price_pawned, client_id, provision FROM ${pawnTable} WHERE id = $1;`, [pawnId]);
@@ -314,12 +314,15 @@ async function updatePawn(pawnTable, pawnId, pricePawned, provision, description
     const clientId = oldPawn[0].client_id;
     const oldPrice = parseInt(oldPawn[0].price_pawned);
     const oldProvision = parseInt(oldPawn[0].provision)
+    console.log("Grams diff: ", goldGramsDiff)
 
     let s = ``
     if (oldPrice !== pricePawned)
         s += `Цена: ${oldPrice} во ${pricePawned}. `
     if (oldProvision !== provision)
-        s += `Процент: ${oldProvision} во ${provision}.`
+        s += `Процент: ${oldProvision} во ${provision}. `
+    if (goldGramsDiff !== 0)
+        s += `Злато додадено: ${goldGramsDiff}гр. `
 
     //Insert a new transaction with money given
     try {
@@ -340,8 +343,9 @@ async function updatePawn(pawnTable, pawnId, pricePawned, provision, description
             register_money = register_money - $1,
             money_pawns = money_pawns + $1,
             average_provision = (average_provision * num_pawns + $2) / num_pawns,
+            gold_grams = gold_grams + $3,
             last_updated = NOW();
-    `, [pricePawned - oldPrice, provision-oldProvision])
+    `, [pricePawned - oldPrice, provision-oldProvision, goldGramsDiff])
     } catch (error) {
         console.error("Error executing query cash reg: " + error)
         throw new Error("Failed to modify cash reg")
@@ -356,12 +360,12 @@ async function updatePawn(pawnTable, pawnId, pricePawned, provision, description
     `;
 
     if (pawnTable === "gold_pawn") {
-        query += `, price_per_gram = CAST($2 AS NUMERIC) / weight`;
+        query += `, weight = weight + CAST($5 AS NUMERIC)`;
     }
 
     query += ` WHERE id = $1 RETURNING *;`;
 
-    const params = [pawnId, pricePawned, provision, description];
+    const params = [pawnId, pricePawned, provision, description, goldGramsDiff];
 
     try {
         const { rows } = await pool.query(query, params);
@@ -398,10 +402,10 @@ async function changePawnToSale(id, pawnCategory) {
             if (query.rows.length > 0)
                 description = `${query.rows[0].brand} ${query.rows[0].year} ${query.rows[0].description}`;
             break;
-        case "gold_pawn": query = await pool.query(`SELECT weight, carats, price_per_gram, description FROM gold_pawn WHERE id = $1;`, [id])
+        case "gold_pawn": query = await pool.query(`SELECT price_pawned, weight, carats, description FROM gold_pawn WHERE id = $1;`, [id])
             if (query.rows.length > 0){
                 gold_grams = query.rows[0].weight;
-                description = `${query.rows[0].weight}g ${query.rows[0].carats}k ${query.rows[0].price_per_gram} per gram ${query.rows[0].description}`;
+                description = `${query.rows[0].weight}g ${query.rows[0].carats}k ${query.rows[0].price_pawned / query.rows[0].weight} per gram ${query.rows[0].description}`;
             }
             break;
         case "other_pawn": query = await pool.query(`SELECT description FROM other_pawn WHERE id = $1;`, [id])

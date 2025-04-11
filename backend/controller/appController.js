@@ -63,7 +63,6 @@ const insertPawn = asyncHandler(async (req, res) => {
                 weight: req.body.weight,
                 carats: req.body.carats,
                 type: req.body.type,
-                price_per_gram: pricePerGram,
                 price_pawned: pricePawned,
                 price_to_redeem: priceToRedeem,
                 provision: provision,
@@ -126,10 +125,10 @@ const insertPawn = asyncHandler(async (req, res) => {
 })
 
 const updatePawn = asyncHandler(async (req, res) => {
-    const { tableName, id, pricePawned, provision, description } = req.body;
+    const { tableName, id, pricePawned, provision, description, goldGramsDiff } = req.body;
 
     try {
-        const pawn = await db.updatePawn(tableName, id, parseInt(pricePawned), parseFloat(provision), description);
+        const pawn = await db.updatePawn(tableName, id, parseInt(pricePawned), parseFloat(provision), description, parseInt(goldGramsDiff));
         res.status(200).json({ pawn });
     } catch (error) {
         res.status(500).json({ message: "Error query update pawn" + error });

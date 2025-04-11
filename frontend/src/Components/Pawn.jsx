@@ -146,6 +146,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
                     action={closePawn}
                     id={pawn.Id}
                     category={pawn.Category}
+                    clientName={pawn.Name}
                     successMsg="Успешно затворен залог!"
                     closeModal={() => setModalClosePawn(false)}
                     priceBought={Number(pawn["Item Cost"])}
@@ -163,6 +164,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
                     action={continuePawn}
                     id={pawn.Id}
                     category={pawn.Category}
+                    clientName={pawn.Name}
                     successMsg="Успешно продолжен залог!"
                     closeModal={() => setModalContinuePawn(false)}
                     priceBought={Number(pawn["Item Cost"])}

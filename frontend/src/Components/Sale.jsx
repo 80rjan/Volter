@@ -67,6 +67,7 @@ export default function Sale({ sale, refresh, isOdd }) {
                     action={sellItem}
                     id={sale.Id}
                     category={"sale"}
+                    clientName={sale.Name}
                     successMsg="Успешно продадено!"
                     closeModal={() => setModalSellItem(false)}
                     priceBought={Number(sale["Item Cost"])}

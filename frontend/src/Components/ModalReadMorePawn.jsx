@@ -14,13 +14,12 @@ import {
     ArrowLeft,
     ArrowDownToLine
 } from 'lucide-react';
-import LoanAgreementDocument from "../Documents/LoanAgreementDocument.jsx";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import PawnAgreementDocument from "../Documents/PawnAgreementDocument.jsx";
 import DogovorZaZaem from "../Documents/DogovorZaZaem.jsx";
 import DogovorZaRacenZalog from "../Documents/DogovorZaRacenZalog.jsx";
 import Loading from "./Loading.jsx";
+import {parse} from "dotenv";
 
 export default function ModalReadMorePawn({category, pawnInfo, closeModal, closePawn, continuePawn, movePawnToSale, oldPawn, refreshCashReg}) {
     const [modalPrintDocument, setModalPrintDocument] = React.useState(false);
@@ -35,7 +34,7 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
     const hiddenDocRefLoan = React.useRef(null);
     const hiddenDocRefPawn = React.useRef(null);
     const [isEditing, setIsEditing] = React.useState(false);
-    const editPawn = React.useRef({pricePawned: pawn.price_pawned, provision: pawn.provision, description: pawn.description });
+    const editPawn = React.useRef({pricePawned: pawn.price_pawned, provision: pawn.provision, description: pawn.description, goldGramsDiff: 0 });
     const [isLoading, setIsLoading] = React.useState(false);
 
     const getCat = {
@@ -94,12 +93,13 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
             Gold: "gold_pawn",
             Other: "other_pawn"
         }
-        axios.put(`http://localhost:3000/updatePawn`, { tableName: tableName[category], id: pawn.id, pricePawned: editPawn.current.pricePawned, provision: editPawn.current.provision, description: editPawn.current.description })
+        axios.put(`http://localhost:3000/updatePawn`, { tableName: tableName[category], id: pawn.id, pricePawned: editPawn.current.pricePawned, provision: editPawn.current.provision, description: editPawn.current.description, goldGramsDiff: editPawn.current.goldGramsDiff })
             .then(res => {
                 const data = res.data.pawn
                 oldPawn.About = data.description
                 oldPawn["Item Cost"] = data.price_pawned
                 oldPawn.Provision = data.price_pawned * data.provision / 100
+                editPawn.current = {...editPawn.current, goldGramsDiff: 0 }
                 setPawn(data);
             })
             .catch(err => {
@@ -373,7 +373,13 @@ const renderGold = (pawn, isEditing, editPawn) => {
             </span>
             <span>
                 <p>Тежина во грам:</p>
-                <p>{pawn.weight}</p>
+                {
+                    isEditing ?
+                        <input type="text" defaultValue={pawn.weight}
+                               onChange={e => editPawn.current.goldGramsDiff = parseInt(e.target.value) - pawn.weight}/>
+                        :
+                        <p>{pawn.weight}</p>
+                }
             </span>
             <span>
                 <p>Каратажа:</p>
@@ -391,7 +397,7 @@ const renderGold = (pawn, isEditing, editPawn) => {
             </span>
             <span>
                 <p>Цена по грам:</p>
-                <p>{Number(pawn.price_per_gram).toLocaleString("de-DE")}</p>
+                <p>{Math.round( Number(pawn.price_pawned) / Number(pawn.weight)).toLocaleString("de-DE")}</p>
             </span>
             <span>
                 <p>Месечна исплата:</p>
