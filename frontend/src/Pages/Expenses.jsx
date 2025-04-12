@@ -32,7 +32,6 @@ export default function Expenses() {
         isFetchingRef.current = true;
         axios.get(`http://localhost:3000/expenses?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByMonth=${searchByMonth}&searchByYear=${searchByYear}`)
             .then(res => {
-                console.log(res.data)
                 if (JSON.stringify(prevExpenses.current) !== JSON.stringify(res.data)) {
                     setAllExpenses(prev => [...prev, ...res.data]);
                     prevExpenses.current = [...prevExpenses.current, ...res.data];
@@ -111,11 +110,13 @@ export default function Expenses() {
 
                 <FilterWrapper >
                     <StyledInput placeholder="Пребарувај по месец (број)"
+                                 type="number"
                                  onKeyUp={(e) => {
                                      setSearchByMonth(e.target.value)
                                  }}
                     />
                     <StyledInput placeholder="Пребарувај по година (број)"
+                                 type="number"
                                  onKeyUp={(e) => {
                                      setSearchByYear(e.target.value)
                                  }}
@@ -306,22 +307,3 @@ const TextExpense = styled.p`
         font-style: italic;
     }
 `;
-
-const TableFooter = styled.div`
-    display: flex;
-    justify-content: space-between;
-    padding: 1rem;
-    color: #444;
-    font-weight: 400;
-    margin-top: auto;
-    box-shadow: 0 -2px 6px rgba(0,0,0,0.2);
-    //background: #ccc;
-    
-    div {
-        display: flex;
-        gap: .4rem
-    }
-    span {
-        font-size: .8rem;
-    }
-`

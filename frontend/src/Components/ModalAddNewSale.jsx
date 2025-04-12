@@ -189,10 +189,11 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
                                             <div>
                                                 <p>Вредност на предметот</p>
                                                 <StyledInput name="price_bought" onChange={handleInputChange}
+                                                             type="number"
                                                              required/>
                                             </div>
                                             <div>
-                                                <p>Бренд</p>
+                                                <p>Опис</p>
                                                 <StyledInput name="description" onChange={handleInputChange} required/>
                                             </div>
                                         </SaleInputs>

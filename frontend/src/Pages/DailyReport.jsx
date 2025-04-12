@@ -8,10 +8,12 @@ import Loading from "../Components/Loading.jsx";
 
 export default function DailyReport() {
     const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+    const [showDate, setShowDate] = useState(null);
     const [report, setReport] = useState(null);
     const [loading, setLoading] = useState(false);
 
     const getReport = (date) => {
+        setShowDate(date)
         setLoading(true)
         axios.get(`http://localhost:3000/dailyReport?date=${date}`)
             .then(res => {
@@ -29,7 +31,7 @@ export default function DailyReport() {
             <Container >
 
                 <HeaderWrapper >
-                    <h1>Дневен Извештај <span>{date}</span></h1>
+                    <h1>Дневен Извештај <span>{showDate}</span></h1>
                     <div>
                         <DateInput
                             type="date"
@@ -103,8 +105,8 @@ export default function DailyReport() {
                                             <div>
                                                 <Report>
                                                     <div>
-                                                        <h3>{Number(category.numTransactions).toLocaleString("de-DE")}</h3>
-                                                        <p>Трансакции</p>
+                                                        <h3>{Number(category.numNewPawns).toLocaleString("de-DE")}</h3>
+                                                        <p>Нови Предмети</p>
                                                     </div>
                                                 </Report>
                                                 <Report>

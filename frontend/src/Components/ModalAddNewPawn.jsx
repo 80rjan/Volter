@@ -235,19 +235,19 @@ function ElectronicsInputs({ handleInputChange, date }) {
             </div>
             <div>
                 <p>Година</p>
-                <StyledInput name="year" onChange={handleInputChange} required/>
+                <StyledInput name="year" onChange={handleInputChange} type="number" required/>
             </div>
             <div>
                 <p>Вредност на залогот</p>
-                <StyledInput name="price_pawned" onChange={handleInputChange} required/>
+                <StyledInput name="price_pawned" onChange={handleInputChange} type="number" required/>
             </div>
             <div>
                 <p>Провизија</p>
-                <StyledInput name="provision" onChange={handleInputChange} required/>
+                <StyledInput name="provision" onChange={handleInputChange} type="number" required/>
             </div>
             <div>
                 <p>Валидност во денови</p>
-                <StyledInput name="total_days" onChange={handleInputChange} required/>
+                <StyledInput name="total_days" onChange={handleInputChange} type="number" required/>
             </div>
             <div>
                 <p>Опис</p>
@@ -266,11 +266,11 @@ function GoldInputs({ handleInputChange, date }) {
         <>
             <div>
                 <p>Тежина</p>
-                <StyledInput name="weight" onChange={handleInputChange} required/>
+                <StyledInput name="weight" onChange={handleInputChange} type="number" required/>
             </div>
             <div>
                 <p>Каратажа</p>
-                <StyledInput name="carats" onChange={handleInputChange} required/>
+                <StyledInput name="carats" onChange={handleInputChange} type="number" required/>
             </div>
             <div>
                 <p>Тип на злато</p>
@@ -278,15 +278,15 @@ function GoldInputs({ handleInputChange, date }) {
             </div>
             <div>
                 <p>Вредност на залогот</p>
-                <StyledInput name="price_pawned" onChange={handleInputChange} required/>
+                <StyledInput name="price_pawned" onChange={handleInputChange} type="number" required/>
             </div>
             <div>
                 <p>Провизија</p>
-                <StyledInput name="provision" onChange={handleInputChange} required/>
+                <StyledInput name="provision" onChange={handleInputChange} type="number" required/>
             </div>
             <div>
                 <p>Валидност во денови</p>
-                <StyledInput name="total_days" onChange={handleInputChange} required/>
+                <StyledInput name="total_days" onChange={handleInputChange} type="number" required/>
             </div>
             <div>
                 <p>Опис</p>
@@ -314,19 +314,19 @@ function VehicleInputs({ handleInputChange, date }) {
             </div>
             <div>
                 <p>Година</p>
-                <StyledInput name="year" onChange={handleInputChange} required/>
+                <StyledInput name="year" onChange={handleInputChange} type="number" required/>
             </div>
             <div>
                 <p>Вредност на залогот</p>
-                <StyledInput name="price_pawned" onChange={handleInputChange} required/>
+                <StyledInput name="price_pawned" onChange={handleInputChange} type="number" required/>
             </div>
             <div>
                 <p>Провизија</p>
-                <StyledInput name="provision" onChange={handleInputChange} required/>
+                <StyledInput name="provision" onChange={handleInputChange} type="number" required/>
             </div>
             <div>
                 <p>Валидност во денови</p>
-                <StyledInput name="total_days" onChange={handleInputChange} required/>
+                <StyledInput name="total_days" onChange={handleInputChange} type="number" required/>
             </div>
             <div>
                 <p>Опис</p>
@@ -350,19 +350,19 @@ function WatchInputs({ handleInputChange, date }) {
             </div>
             <div>
                 <p>Година</p>
-                <StyledInput name="year" onChange={handleInputChange} required/>
+                <StyledInput name="year" onChange={handleInputChange} type="number" required/>
             </div>
             <div>
                 <p>Вредност на залогот</p>
-                <StyledInput name="price_pawned" onChange={handleInputChange} required/>
+                <StyledInput name="price_pawned" onChange={handleInputChange} type="number" required/>
             </div>
             <div>
                 <p>Провизија</p>
-                <StyledInput name="provision" onChange={handleInputChange} required/>
+                <StyledInput name="provision" onChange={handleInputChange} type="number" required/>
             </div>
             <div>
                 <p>Валидност во денови</p>
-                <StyledInput name="total_days" onChange={handleInputChange} required/>
+                <StyledInput name="total_days" onChange={handleInputChange} type="number" required/>
             </div>
             <div>
                 <p>Опис</p>
@@ -382,15 +382,15 @@ function OtherInputs({ handleInputChange, date }) {
         <>
             <div>
                 <p>Вредност на залогот</p>
-                <StyledInput name="price_pawned" onChange={handleInputChange} required/>
+                <StyledInput name="price_pawned" onChange={handleInputChange} type="number" required/>
             </div>
             <div>
                 <p>Провизија</p>
-                <StyledInput name="provision" onChange={handleInputChange} required/>
+                <StyledInput name="provision" onChange={handleInputChange} type="number" required/>
             </div>
             <div>
                 <p>Валидност во денови</p>
-                <StyledInput name="total_days" onChange={handleInputChange} required/>
+                <StyledInput name="total_days" onChange={handleInputChange} type="number" required/>
             </div>
             <div>
                 <p>Опис</p>

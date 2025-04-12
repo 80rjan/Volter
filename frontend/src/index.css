@@ -11,9 +11,13 @@
   -moz-osx-font-smoothing: grayscale;
 
   --cta-color: #3787FF;
+  --blue: #007BFF;
   --green: #006040;
   --dark-red: #8b0000;
-  --dark-blue: #004261
+  --dark-blue: #004261;
+  --gold: #E5B80B;
+  --beige: #C09E80;
+  --grey: #444;
 }
 
 html, body {

@@ -223,7 +223,7 @@ const Wrapper = styled.div`
     //}
     svg {
         cursor: pointer;
-        transition: all 200ms ease-in-out;
+        transition: all 300ms ease-in-out;
     }
     svg:hover {
         scale: 1.2;

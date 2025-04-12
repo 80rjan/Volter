@@ -12,7 +12,8 @@ import {
     UserPen,
     Check,
     ArrowLeft,
-    ArrowDownToLine
+    ArrowDownToLine,
+    Laptop, Watch, Car, HandCoins, Coins
 } from 'lucide-react';
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -43,6 +44,13 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
         "Vehicle": "Возила",
         "Gold": "Злато",
         "Other": "Останато"
+    }
+    const getCatIcon = {
+        "Electronics": <Laptop size={32}/>,
+        "Watch": <Watch size={32}/>,
+        "Vehicle": <Car size={32}/>,
+        "Gold": <Coins size={32}/>,
+        "Other": <CircleDollarSign size={32}/>
     }
 
     const handlePrintDoc = async (ref, isLoan) => {
@@ -150,7 +158,7 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                                 <Separator/>
                                 <PawnWrapper>
                                     <div>
-                                        <CircleDollarSign size={32}/>
+                                        {getCatIcon[category]}
                                         {getCat[category]}
                                     </div>
                                     {category === 'Electronics' && renderElectronicsOrWatch(pawn, isEditing, editPawn)}

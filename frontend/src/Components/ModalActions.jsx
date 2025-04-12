@@ -102,7 +102,9 @@ export default function ModalActions({ id, category, clientName, successMsg, act
                                         style={{fontWeight: 600}}>{provision.toLocaleString("de-DE")}</span></p>}
                                     {category === "sale" ? undefined : <p>Казна: <span
                                         style={{fontWeight: 600}}>{penaltyPrice.toLocaleString("de-DE")}</span></p>}
-                                    <StyledInput onChange={e => setPrice(e.target.value)} placeholder="Внеси сума"
+                                    <StyledInput onChange={e => setPrice(e.target.value)}
+                                                 type="number"
+                                                 placeholder="Внеси сума"
                                                  value={price} required/>
                                 </div>
                                 <Button onClick={() => {

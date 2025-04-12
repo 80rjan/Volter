@@ -315,6 +315,35 @@ const getDailyReport = asyncHandler(async (req, res) => {
     }
 })
 
+const getAllMonthlyReports = asyncHandler(async (req, res) => {
+    let searchByMonth = req.query.searchByMonth;
+    let searchByYear = req.query.searchByYear;
+    const limit = req.query.limit;
+    const offset = req.query.offset;
+
+    const reports = await db.getAllMonthlyReports(limit, offset, req.query.orderBy, req.query.orderDirection, searchByMonth, searchByYear);
+    res.send(reports);
+})
+
+const getMonthlyReport = asyncHandler(async (req, res) => {
+    const year = req.query.year;
+    const month = req.query.month;
+
+    const report = await db.getMonthlyReport(year, month);
+    res.status(200).send(report);
+})
+
+const generateNewMonthReport = asyncHandler(async (req, res) => {
+    const { year, month } = req.body;
+
+    try {
+        const message = await db.generateNewMonthReport(year, month);
+        res.status(200).json({ message: message });
+    } catch (error) {
+        res.status(500).json({ message: "Error query insert money into cash register " + error });
+    }
+})
+
 module.exports = {
     getAllPawns,
     getPawn,
@@ -334,5 +363,8 @@ module.exports = {
     getAllExpenses,
     insertExpense,
     getAllTransactions,
-    getDailyReport
+    getDailyReport,
+    getAllMonthlyReports,
+    getMonthlyReport,
+    generateNewMonthReport,
 }

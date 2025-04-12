@@ -68,26 +68,31 @@ export default function ModalAddNewExpense({ closeModal, refresh }) {
                                         <div>
                                             <p>Година</p>
                                             <StyledInput name="year" onChange={handleInputChange}
+                                                         type="number"
                                                          required/>
                                         </div>
                                         <div>
                                             <p>Месец</p>
                                             <StyledInput name="month" onChange={handleInputChange}
+                                                         type="number"
                                                          required/>
                                         </div>
                                         <div>
                                             <p>Ќирија</p>
                                             <StyledInput name="rent" onChange={handleInputChange}
+                                                         type="number"
                                                          required/>
                                         </div>
                                         <div>
                                             <p>Плати</p>
                                             <StyledInput name="salaries" onChange={handleInputChange}
+                                                         type="number"
                                                          required/>
                                         </div>
                                         <div>
                                             <p>Друго</p>
                                             <StyledInput name="other" onChange={handleInputChange}
+                                                         type="number"
                                                          required/>
                                         </div>
                                         <div>

@@ -34,4 +34,8 @@ app.get('/clients', appController.getAllClients)
 
 app.get('/dailyReport', appController.getDailyReport)
 
+app.get('/monthlyReport', appController.getAllMonthlyReports)
+app.get('/monthlyReport/getReport', appController.getMonthlyReport)
+app.post('/monthlyReport/generate', appController.generateNewMonthReport)
+
 app.listen(3000);

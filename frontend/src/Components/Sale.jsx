@@ -101,17 +101,17 @@ const Wrapper = styled.div`
     transition: all 200ms ease-in-out;
     z-index: 1;
 
-    &:hover {
-        padding: 1rem;
-        box-shadow: 0 0 8px rgba(0,0,0,0.6);
-        z-index: 10;
-        scale: 1.001;
-        //border: none;
-    }
+    //&:hover {
+    //    padding: 1rem;
+    //    box-shadow: 0 0 8px rgba(0,0,0,0.6);
+    //    z-index: 10;
+    //    scale: 1.001;
+    //    //border: none;
+    //}
 
     svg {
         cursor: pointer;
-        transition: all 200ms ease-in-out;
+        transition: all 300ms ease-in-out;
     }
     svg:hover {
         scale: 1.2;

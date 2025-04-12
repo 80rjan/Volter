@@ -314,7 +314,7 @@ async function updatePawn(pawnTable, pawnId, pricePawned, provision, description
     const clientId = oldPawn[0].client_id;
     const oldPrice = parseInt(oldPawn[0].price_pawned);
     const oldProvision = parseInt(oldPawn[0].provision)
-    console.log("Grams diff: ", goldGramsDiff)
+
 
     let s = ``
     if (oldPrice !== pricePawned)
@@ -323,6 +323,31 @@ async function updatePawn(pawnTable, pawnId, pricePawned, provision, description
         s += `Процент: ${oldProvision} во ${provision}. `
     if (goldGramsDiff !== 0)
         s += `Злато додадено: ${goldGramsDiff}гр. `
+
+    let query = `
+        UPDATE ${pawnTable}
+        SET price_pawned = CAST($2 AS NUMERIC), 
+            price_to_redeem = CAST($2 AS NUMERIC) + (CAST($2 AS NUMERIC) * CAST($3 AS REAL) / 100), 
+            provision = CAST($3 AS REAL), 
+            description = $4
+    `;
+    const params = [pawnId, pricePawned, provision, description];
+
+    if (pawnTable === "gold_pawn") {
+        query += `, weight = weight + CAST($5 AS NUMERIC)`;
+        params.push(goldGramsDiff)
+    }
+
+    query += ` WHERE id = $1 RETURNING *;`;
+
+    let result = null
+    try {
+        const { rows } = await pool.query(query, params);
+        result = rows[0];
+    } catch (error) {
+        console.error("Error executing query: ", error);
+        throw error;
+    }
 
     //Insert a new transaction with money given
     try {
@@ -351,29 +376,7 @@ async function updatePawn(pawnTable, pawnId, pricePawned, provision, description
         throw new Error("Failed to modify cash reg")
     }
 
-    let query = `
-        UPDATE ${pawnTable}
-        SET price_pawned = CAST($2 AS NUMERIC), 
-            price_to_redeem = CAST($2 AS NUMERIC) + (CAST($2 AS NUMERIC) * CAST($3 AS REAL) / 100), 
-            provision = CAST($3 AS REAL), 
-            description = $4
-    `;
-
-    if (pawnTable === "gold_pawn") {
-        query += `, weight = weight + CAST($5 AS NUMERIC)`;
-    }
-
-    query += ` WHERE id = $1 RETURNING *;`;
-
-    const params = [pawnId, pricePawned, provision, description, goldGramsDiff];
-
-    try {
-        const { rows } = await pool.query(query, params);
-        return rows[0];
-    } catch (error) {
-        console.error("Error executing query: ", error);
-        throw error;
-    }
+    return result;
 }
 
 
@@ -694,18 +697,18 @@ async function getDailyReport(date) {
         WHERE DATE(date) = $1 AND (category = 'Electronics' OR category = 'Watch' OR category = 'Gold' OR category = 'Vehicle' OR category = 'Other' OR category = 'Sale');
     `, [date]);
 
-    // Get the number of transactions excluding 'Sale' category
+    // Get the number of transactions from Pawn category
     const { rows: numPawnsRows } = await pool.query(`
         SELECT COUNT(*) AS "numTransactions"
         FROM transaction 
-        WHERE DATE(date) = $1 AND description = 'Added new pawn' AND (category = 'Electronics' OR category = 'Watch' OR category = 'Gold' OR category = 'Vehicle' OR category = 'Other');
+        WHERE DATE(date) = $1 AND description = 'Added new pawn';
     `, [date]);
 
-    // Second query: Get the number of transactions excluding 'Sale' category
+    // Second query: Get the number of transactions from Sale category
     const { rows: numSaleRows } = await pool.query(`
         SELECT COUNT(*) AS "numTransactions"
         FROM transaction 
-        WHERE DATE(date) = $1 AND category = 'Sale' AND (description = 'Added new sale' OR description = 'Transferred pawn to sale');
+        WHERE DATE(date) = $1 AND (description = 'Added new sale' OR description = 'Transferred pawn to sale');
     `, [date]);
 
     // Get count and sums grouped by category
@@ -714,10 +717,20 @@ async function getDailyReport(date) {
             category,
             COUNT(*) AS "numTransactions", 
             SUM(money_given) AS "moneyGiven",
-            SUM(profit) AS "profit"
-        FROM transaction 
-        WHERE DATE(date) = $1 AND (category = 'Electronics' OR category = 'Watch' OR category = 'Gold' OR category = 'Vehicle' OR category = 'Other' OR category = 'Sale')
-        GROUP BY category
+            SUM(profit) AS "profit",
+            (
+                SELECT 
+                    COUNT(*) 
+                FROM transaction t2
+                WHERE 
+                    DATE(t2.date) = $1 
+                    AND t2.description = 'Added new pawn'
+                    AND t2.category = t1.category
+            ) AS "numNewPawns"
+        FROM transaction t1
+        WHERE DATE(t1.date) = $1 
+        AND t1.category IN ('Electronics', 'Watch', 'Gold', 'Vehicle', 'Other', 'Sale')
+        GROUP BY category;
     `, [date]);
 
     // Combine all the results into one object
@@ -729,6 +742,217 @@ async function getDailyReport(date) {
     };
 }
 
+async function getAllMonthlyReports(limit, offset, orderBy, orderDirection, searchByMonth = "", searchByYear = "") {
+    const { rows } = await pool.query(`
+    SELECT 
+        m.year AS "Year",
+        m.month AS "Month",
+        m.money_given AS "Money Given",
+        m.money_got AS "Money Got",
+        m.total_turnover AS "Total Turnover",
+        m.gross_profit AS "Gross Profit",
+        m.net_profit AS "Net Profit",
+        m.total_pawns AS "Total Pawns",
+        m.money_pawns AS "Money Pawns",
+        m.profit_pawns AS "Profit Pawns",
+        m.num_gold_pawns AS "Num Gold Pawns",
+        m.money_gold_pawns AS "Money Gold Pawns",
+        m.profit_gold_pawns AS "Profit Gold Pawns",
+        m.num_electronics_pawns AS "Num Electronics Pawns",
+        m.money_electronics_pawns AS "Money Electronics Pawns",
+        m.profit_electronics_pawns AS "Profit Electronics Pawns",
+        m.num_vehicle_pawns AS "Num Vehicle Pawns",
+        m.money_vehicle_pawns AS "Money Vehicle Pawns",
+        m.profit_vehicle_pawns AS "Profit Vehicle Pawns",
+        m.num_watch_pawns AS "Num Watch Pawns",
+        m.money_watch_pawns AS "Money Watch Pawns",
+        m.profit_watch_pawns AS "Profit Watch Pawns",
+        m.num_other_pawns AS "Num Other Pawns",
+        m.money_other_pawns AS "Money Other Pawns",
+        m.profit_other_pawns AS "Profit Other Pawns",
+        m.total_sales AS "Total Sales",
+        m.money_sales AS "Money Sales",
+        m.profit_sales AS "Profit Sales"
+    FROM monthly_report m
+    WHERE ($1 = '' OR m.year = $1::INT) AND ($2 = '' OR m.month = $2::INT)
+    ORDER BY "${orderBy}" ${orderDirection}
+    LIMIT ${limit} OFFSET ${offset};
+    `, [searchByYear, searchByMonth])
+
+    return rows;
+}
+
+async function getMonthlyReport(year, month) {
+    const { rows } = await pool.query(`
+        SELECT * FROM monthly_report
+        WHERE year = $1::INT AND month = $2::INT
+    `, [year, month])
+
+    if (rows.length === 0)
+        return null
+    else
+        return rows[0]
+}
+
+async function generateNewMonthReport(year, month) {
+    const { rows: hasReport } = await pool.query(`SELECT * FROM monthly_report WHERE year = $1::INT AND month = $2::INT`, [year, month])
+    if (hasReport.length > 0)
+        return `Имаш веќе внесено извештај за месец: ${month}-${year}`
+
+    const { rows : hasExpense } = await pool.query(`SELECT * FROM expense WHERE year = $1::INT AND month = $2::INT`, [year, month])
+    if (hasExpense.length === 0)
+        return `Внеси расходи за месец ${month}-${year}`
+
+    const { rows: money } = await pool.query(`
+        SELECT 
+            SUM(money_given) AS "moneyGiven",
+            SUM(money_got) AS "moneyGot",
+            SUM(profit) AS "grossProfit"
+        FROM transaction
+        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2
+    `, [year, month])
+
+    const { rows: numNewPawns } = await pool.query(`
+        SELECT 
+            COUNT(*) AS "totalPawns"
+        FROM transaction 
+        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND description = 'Added new pawn';
+    `, [year, month]);
+    const { rows: pawns } = await pool.query(`
+        SELECT 
+            SUM(money_given) AS "moneyPawns",
+            SUM(profit) AS "profitPawns"
+        FROM transaction 
+        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND (category = 'Electronics' OR category = 'Watch' OR category = 'Gold' OR category = 'Vehicle' OR category = 'Other');
+    `, [year, month]);
+
+    const { rows: numNewSales } = await pool.query(`
+        SELECT  
+            COUNT(*) AS "totalSales"
+        FROM transaction 
+        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND (description = 'Added new sale' OR description = 'Transferred pawn to sale');
+    `, [year, month]);
+    const { rows: sales } = await pool.query(`
+        SELECT  
+            SUM(money_given) AS "moneySales",
+            SUM(profit) AS "profitSales"
+        FROM transaction 
+        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND category = 'Sale';
+    `, [year, month]);
+
+    const { rows: numElectronicsPawn } = await pool.query(`
+        SELECT 
+            COUNT(*) AS "numElectronicsPawns"
+        FROM transaction 
+        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND description = 'Added new pawn' AND category = 'Electronics';
+    `, [year, month]);
+    const { rows: electronicsPawn } = await pool.query(`
+        SELECT 
+            SUM(money_given) AS "moneyElectronicsPawns",
+            SUM(profit) AS "profitElectronicsPawns"
+        FROM transaction 
+        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND category = 'Electronics';
+    `, [year, month]);
+
+    const { rows: numGoldPawn } = await pool.query(`
+        SELECT 
+            COUNT(*) AS "numGoldPawns"
+        FROM transaction 
+        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND description = 'Added new pawn' AND category = 'Gold';
+    `, [year, month]);
+    const { rows: goldPawn } = await pool.query(`
+        SELECT 
+            SUM(money_given) AS "moneyGoldPawns",
+            SUM(profit) AS "profitGoldPawns"
+        FROM transaction 
+        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND category = 'Gold';
+    `, [year, month]);
+
+    const { rows: numVehiclePawn } = await pool.query(`
+        SELECT 
+            COUNT(*) AS "numVehiclePawns"
+        FROM transaction 
+        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND description = 'Added new pawn' AND category = 'Vehicle';
+    `, [year, month]);
+    const { rows: vehiclePawn } = await pool.query(`
+        SELECT 
+            SUM(money_given) AS "moneyVehiclePawns",
+            SUM(profit) AS "profitVehiclePawns"
+        FROM transaction 
+        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND category = 'Vehicle';
+    `, [year, month]);
+
+    const { rows: numWatchPawn } = await pool.query(`
+        SELECT 
+            COUNT(*) AS "numWatchPawns"
+        FROM transaction 
+        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND description = 'Added new pawn' AND category = 'Watch';
+    `, [year, month]);
+    const { rows: watchPawn } = await pool.query(`
+        SELECT 
+            SUM(money_given) AS "moneyWatchPawns",
+            SUM(profit) AS "profitWatchPawns"
+        FROM transaction 
+        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND category = 'Watch';
+    `, [year, month]);
+
+    const { rows: numOtherPawn } = await pool.query(`
+        SELECT 
+            COUNT(*) AS "numOtherPawns"
+        FROM transaction 
+        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND description = 'Added new pawn' AND category = 'Other';
+    `, [year, month]);
+    const { rows: otherPawn } = await pool.query(`
+        SELECT 
+            SUM(money_given) AS "moneyOtherPawns",
+            SUM(profit) AS "profitOtherPawns"
+        FROM transaction 
+        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND category = 'Other';
+    `, [year, month]);
+
+    const { rows: expenses } = await pool.query(`
+        SELECT 
+            rent+salaries+other AS "expenses"
+        FROM expense
+        WHERE year = $1 AND month = $2
+    `, [year, month])
+
+    await pool.query(`
+        INSERT INTO monthly_report (
+            year, month, money_given, money_got, total_turnover, 
+            gross_profit, net_profit, 
+            total_pawns, money_pawns, profit_pawns, 
+            total_sales, money_sales, profit_sales,
+            num_electronics_pawns, money_electronics_pawns, profit_electronics_pawns,
+            num_gold_pawns, money_gold_pawns, profit_gold_pawns, 
+            num_vehicle_pawns, money_vehicle_pawns, profit_vehicle_pawns, 
+            num_watch_pawns, money_watch_pawns, profit_watch_pawns, 
+            num_other_pawns, money_other_pawns, profit_other_pawns
+        ) VALUES (
+            $1, $2, $3, $4, $5, 
+            $6, $7, 
+            $8, $9, $10, 
+            $11, $12, $13,
+            $14, $15, $16,
+            $17, $18, $19, 
+            $20, $21, $22, 
+            $23, $24, $25, 
+            $26, $27, $28    
+        )
+    `, [
+        year, month, money[0].moneyGiven, money[0].moneyGot, (money[0].moneyGiven + money[0].moneyGot + money[0].grossProfit),
+        money[0].grossProfit, (money[0].grossProfit - expenses[0].expenses),
+        numNewPawns[0].totalPawns, pawns[0].moneyPawns, pawns[0].profitPawns,
+        numNewSales[0].totalSales, sales[0].moneySales, sales[0].profitSales,
+        numElectronicsPawn[0].numElectronicsPawns, electronicsPawn[0].moneyElectronicsPawns, electronicsPawn[0].profitElectronicsPawns,
+        numGoldPawn[0].numGoldPawns, goldPawn[0].moneyGoldPawns, goldPawn[0].profitGoldPawns,
+        numVehiclePawn[0].numVehiclePawns, vehiclePawn[0].moneyVehiclePawns, vehiclePawn[0].profitVehiclePawns,
+        numWatchPawn[0].numWatchPawns, watchPawn[0].moneyWatchPawns, watchPawn[0].profitWatchPawns,
+        numOtherPawn[0].numOtherPawns, otherPawn[0].moneyOtherPawns, otherPawn[0].profitOtherPawns
+    ])
+
+    return 'Успешно внесен месечен извештај'
+}
 
 
 module.exports = {
@@ -750,5 +974,8 @@ module.exports = {
     getAllExpenses,
     insertExpense,
     getAllTransactions,
-    getDailyReport
+    getDailyReport,
+    getAllMonthlyReports,
+    getMonthlyReport,
+    generateNewMonthReport
 }
