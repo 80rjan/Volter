@@ -245,7 +245,6 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
     } else
         throw new Error("Cant find information in client table to ADD PAWN");
 
-    console.log(pawnObj)
     //Insert pawn in pawn table
     switch (pawnCategory) {
         case 'electronics_pawn': await pool.query(`
@@ -286,8 +285,8 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
     //Insert a new transaction where money is given to client for pawn
     await pool.query(`
         INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES ($1, $2, $3, $4, 0, 0, CURRENT_TIMESTAMP);
-    `, [clientId, transactionCategory, transactionDescription, pawnObj.price_pawned])
+        VALUES ($1, $2, $3, $4, 0, 0, $5::DATE);
+    `, [clientId, transactionCategory, transactionDescription, pawnObj.price_pawned, pawnObj.date])
 
     //Update cash register with money taken, increase numPawns, increase moneyPawns, update quantity of gold in grams and update average provision for pawns
     await pool.query(`
@@ -797,11 +796,11 @@ async function getMonthlyReport(year, month) {
 async function generateNewMonthReport(year, month) {
     const { rows: hasReport } = await pool.query(`SELECT * FROM monthly_report WHERE year = $1::INT AND month = $2::INT`, [year, month])
     if (hasReport.length > 0)
-        return `Имаш веќе внесено извештај за месец: ${month}-${year}`
+        return {passed: false, message: `Имаш веќе внесено извештај за месец: ${month}-${year}`}
 
     const { rows : hasExpense } = await pool.query(`SELECT * FROM expense WHERE year = $1::INT AND month = $2::INT`, [year, month])
     if (hasExpense.length === 0)
-        return `Внеси расходи за месец ${month}-${year}`
+        return {passed: false, message: `Внеси расходи за месец ${month}-${year}`}
 
     const { rows: money } = await pool.query(`
         SELECT 
@@ -809,7 +808,7 @@ async function generateNewMonthReport(year, month) {
             SUM(money_got) AS "moneyGot",
             SUM(profit) AS "grossProfit"
         FROM transaction
-        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2
+        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND (category != 'Remove' AND category != 'Insert');
     `, [year, month])
 
     const { rows: numNewPawns } = await pool.query(`
@@ -820,7 +819,7 @@ async function generateNewMonthReport(year, month) {
     `, [year, month]);
     const { rows: pawns } = await pool.query(`
         SELECT 
-            SUM(money_given) AS "moneyPawns",
+            SUM(money_got)+SUM(profit) AS "moneyPawns",
             SUM(profit) AS "profitPawns"
         FROM transaction 
         WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND (category = 'Electronics' OR category = 'Watch' OR category = 'Gold' OR category = 'Vehicle' OR category = 'Other');
@@ -834,7 +833,7 @@ async function generateNewMonthReport(year, month) {
     `, [year, month]);
     const { rows: sales } = await pool.query(`
         SELECT  
-            SUM(money_given) AS "moneySales",
+            SUM(money_got)+SUM(profit) AS "moneySales",
             SUM(profit) AS "profitSales"
         FROM transaction 
         WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND category = 'Sale';
@@ -848,7 +847,7 @@ async function generateNewMonthReport(year, month) {
     `, [year, month]);
     const { rows: electronicsPawn } = await pool.query(`
         SELECT 
-            SUM(money_given) AS "moneyElectronicsPawns",
+            SUM(money_got)+SUM(profit) AS "moneyElectronicsPawns",
             SUM(profit) AS "profitElectronicsPawns"
         FROM transaction 
         WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND category = 'Electronics';
@@ -862,7 +861,7 @@ async function generateNewMonthReport(year, month) {
     `, [year, month]);
     const { rows: goldPawn } = await pool.query(`
         SELECT 
-            SUM(money_given) AS "moneyGoldPawns",
+            SUM(money_got)+SUM(profit) AS "moneyGoldPawns",
             SUM(profit) AS "profitGoldPawns"
         FROM transaction 
         WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND category = 'Gold';
@@ -876,7 +875,7 @@ async function generateNewMonthReport(year, month) {
     `, [year, month]);
     const { rows: vehiclePawn } = await pool.query(`
         SELECT 
-            SUM(money_given) AS "moneyVehiclePawns",
+            SUM(money_got)+SUM(profit) AS "moneyVehiclePawns",
             SUM(profit) AS "profitVehiclePawns"
         FROM transaction 
         WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND category = 'Vehicle';
@@ -890,7 +889,7 @@ async function generateNewMonthReport(year, month) {
     `, [year, month]);
     const { rows: watchPawn } = await pool.query(`
         SELECT 
-            SUM(money_given) AS "moneyWatchPawns",
+            SUM(money_got)+SUM(profit) AS "moneyWatchPawns",
             SUM(profit) AS "profitWatchPawns"
         FROM transaction 
         WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND category = 'Watch';
@@ -904,7 +903,7 @@ async function generateNewMonthReport(year, month) {
     `, [year, month]);
     const { rows: otherPawn } = await pool.query(`
         SELECT 
-            SUM(money_given) AS "moneyOtherPawns",
+            SUM(money_got)+SUM(profit) AS "moneyOtherPawns",
             SUM(profit) AS "profitOtherPawns"
         FROM transaction 
         WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND category = 'Other';
@@ -940,8 +939,8 @@ async function generateNewMonthReport(year, month) {
             $26, $27, $28    
         )
     `, [
-        year, month, money[0].moneyGiven, money[0].moneyGot, (money[0].moneyGiven + money[0].moneyGot + money[0].grossProfit),
-        money[0].grossProfit, (money[0].grossProfit - expenses[0].expenses),
+        year, month, money[0].moneyGiven, money[0].moneyGot, (+money[0].moneyGiven + +money[0].moneyGot + +money[0].grossProfit),
+        money[0].grossProfit, (+money[0].grossProfit - +expenses[0].expenses),
         numNewPawns[0].totalPawns, pawns[0].moneyPawns, pawns[0].profitPawns,
         numNewSales[0].totalSales, sales[0].moneySales, sales[0].profitSales,
         numElectronicsPawn[0].numElectronicsPawns, electronicsPawn[0].moneyElectronicsPawns, electronicsPawn[0].profitElectronicsPawns,
@@ -951,7 +950,7 @@ async function generateNewMonthReport(year, month) {
         numOtherPawn[0].numOtherPawns, otherPawn[0].moneyOtherPawns, otherPawn[0].profitOtherPawns
     ])
 
-    return 'Успешно внесен месечен извештај'
+    return {passed: true, message: 'Успешно внесен месечен извештај'}
 }
 
 

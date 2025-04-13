@@ -337,10 +337,10 @@ const generateNewMonthReport = asyncHandler(async (req, res) => {
     const { year, month } = req.body;
 
     try {
-        const message = await db.generateNewMonthReport(year, month);
-        res.status(200).json({ message: message });
+        const { passed, message } = await db.generateNewMonthReport(year, month);
+        res.status(200).json({ passed: passed, message: message });
     } catch (error) {
-        res.status(500).json({ message: "Error query insert money into cash register " + error });
+        res.status(500).json({ message: "Error query generate new month report " + error });
     }
 })
 

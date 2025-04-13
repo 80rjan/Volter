@@ -25,6 +25,11 @@ export default function MonthlyReport() {
     const [isFetching, setIsFetching] = useState(false);
     const [modalReadMore, setModalReadMore] = useState(false);
     const [reportReadMore, setReportReadMore] = useState({});
+    const [error, setError] = useState(false);
+    const [reportGenerateInfo, setReportGenerateInfo] = useState({
+        year: 0,
+        month: 0,
+    });
 
     const fetchReports = (limit, offset, order, direction, searchByMonth, searchByYear, isLoading) => {
         if (isFetching) return;
@@ -46,6 +51,29 @@ export default function MonthlyReport() {
                 setLoading(false)
                 isFetchingRef.current = false;
                 setIsFetching(false);
+            })
+    }
+
+    const generateReport = (year, month) => {
+        if (year <= 0 || month <= 0 || month >= 13) {
+            setError("Внесете валиден месец и година");
+            return;
+        }
+        setLoading(true);
+        axios.post(`http://localhost:3000/monthlyReport/generate`, { year: year, month: month })
+            .then(res => {
+                const data = res.data
+                if (!data.passed) {
+                    setError(data.message)
+                    throw new Error(data.message);
+                }
+            })
+            .catch(error => {
+                console.error(`Error generating monthly report for ${month}-${year}:`, error)
+            })
+            .finally(() => {
+                setLoading(false)
+                setRefresh(prev => !prev);
             })
     }
 
@@ -96,16 +124,19 @@ export default function MonthlyReport() {
                 <HeaderWrapper >
                     <h1>Месечен Извештај</h1>
                     <div>
+                        <Error>{error}</Error>
                         <ReportInput
+                            placeholder="Месец"
                             type="number"
-                            onChange={(e) => setDate(e.target.value)}
+                            onChange={(e) => setReportGenerateInfo({...reportGenerateInfo, month: Number(e.target.value)})}
                         />
                         <ReportInput
+                            placeholder="Година"
                             type="number"
-                            onChange={(e) => setDate(e.target.value)}
+                            onChange={(e) => setReportGenerateInfo({...reportGenerateInfo, year: Number(e.target.value)})}
                         />
                         <ButtonGetReport
-
+                            onClick={() => generateReport(reportGenerateInfo.year, reportGenerateInfo.month)}
                         >
                             <Plus size={22} color="white" strokeWidth={3}/>
                             Генерирај Извештај
@@ -219,6 +250,13 @@ const HeaderWrapper = styled.div`
         align-items: center;
     }
 `
+
+const Error = styled.span`
+    color: red;
+    font-style: italic;
+    font-size: 1rem;
+    font-weight: 400;
+`;
 
 const FilterWrapper = styled.div`
     display: flex;
