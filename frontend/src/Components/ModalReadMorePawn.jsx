@@ -108,10 +108,9 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                 oldPawn["Item Cost"] = data.price_pawned
                 oldPawn.Provision = data.price_pawned * data.provision / 100
                 editPawn.current = {...editPawn.current, goldGramsDiff: 0 }
-                setPawn(data);
+                setPawn({ ...data,  "Days Left": pawn["Days Left"]});
             })
             .catch(err => {
-                console.log(err)
                 console.error("Error updating pawn " + err)
             })
             .finally(() => {
@@ -297,7 +296,7 @@ const renderElectronicsOrWatch = (pawn, isEditing, editPawn) => {
         <PawnDetailsWrapper>
             <span>
                 <p>Шифра на залог:</p>
-                <p>{pawn.id}</p>
+                <p>{Number(pawn.id).toLocaleString("de-DE")}</p>
             </span>
             <span>
                 <p>Бренд:</p>
@@ -339,15 +338,15 @@ const renderElectronicsOrWatch = (pawn, isEditing, editPawn) => {
                 <p>Провизија:</p>
                 {
                     isEditing ?
-                        <input type="number" defaultValue={pawn.provision}
+                        <input type="number" step="0.001" defaultValue={pawn.provision}
                                onChange={e => editPawn.current.provision = e.target.value}/>
                         :
-                        <p>{pawn.provision}%</p>
+                        <p>{Number(pawn.provision).toLocaleString("de-DE")}%</p>
                 }
             </span>
             <span>
                 <p>Дневна провизија:</p>
-                <p>{Math.round(pawn.provision / pawn.total_days * 100) / 100}%</p>
+                <p>{Number(Math.round(pawn.provision / pawn.total_days * 100) / 100).toLocaleString("de-DE")}%</p>
             </span>
             <span>
                 <p>Денови валидно:</p>
@@ -373,7 +372,7 @@ const renderGold = (pawn, isEditing, editPawn) => {
         <PawnDetailsWrapper>
             <span>
                 <p>Шифра на залог:</p>
-                <p>{pawn.id}</p>
+                <p>{Number(pawn.id).toLocaleString("de-DE")}</p>
             </span>
             <span>
                 <p>Тип:</p>
@@ -383,10 +382,10 @@ const renderGold = (pawn, isEditing, editPawn) => {
                 <p>Тежина во грам:</p>
                 {
                     isEditing ?
-                        <input type="text" defaultValue={pawn.weight}
-                               onChange={e => editPawn.current.goldGramsDiff = parseInt(e.target.value) - pawn.weight}/>
+                        <input type="number" step="0.001" defaultValue={pawn.weight}
+                               onChange={e => editPawn.current.goldGramsDiff = (e.target.value - pawn.weight).toFixed(3)}/>
                         :
-                        <p>{pawn.weight}</p>
+                        <p>{Number(pawn.weight).toLocaleString("de-DE")}</p>
                 }
             </span>
             <span>
@@ -405,7 +404,7 @@ const renderGold = (pawn, isEditing, editPawn) => {
             </span>
             <span>
                 <p>Цена по грам:</p>
-                <p>{Math.round( Number(pawn.price_pawned) / Number(pawn.weight)).toLocaleString("de-DE")}</p>
+                <p>{Number(Math.round( pawn.price_pawned / pawn.weight)).toLocaleString("de-DE")}</p>
             </span>
             <span>
                 <p>Месечна исплата:</p>
@@ -429,15 +428,15 @@ const renderGold = (pawn, isEditing, editPawn) => {
                 <p>Провизија:</p>
                 {
                     isEditing ?
-                        <input type="number" defaultValue={pawn.provision}
+                        <input type="number" step="0.001" defaultValue={pawn.provision}
                                onChange={e => editPawn.current.provision = e.target.value}/>
                         :
-                        <p>{pawn.provision}%</p>
+                        <p>{Number(pawn.provision).toLocaleString("de-DE")}%</p>
                 }
             </span>
             <span>
                 <p>Дневна провизија:</p>
-                <p>{Math.round(pawn.provision / pawn.total_days * 100) / 100}%</p>
+                <p>{Number(Math.round(pawn.provision / pawn.total_days * 100) / 100).toLocaleString("de-DE")}%</p>
             </span>
             <span>
                 <p>Денови валидно:</p>
@@ -463,7 +462,7 @@ const renderVehicle = (pawn, isEditing, editPawn) => {
         <PawnDetailsWrapper>
             <span>
                 <p>Шифра на залог:</p>
-                <p>{pawn.id}</p>
+                <p>{Number(pawn.id).toLocaleString("de-DE")}</p>
             </span>
             <span>
                 <p>Бренд:</p>
@@ -509,15 +508,15 @@ const renderVehicle = (pawn, isEditing, editPawn) => {
                 <p>Провизија:</p>
                 {
                     isEditing ?
-                        <input type="number" defaultValue={pawn.provision}
+                        <input type="number" step="0.001" defaultValue={pawn.provision}
                                onChange={e => editPawn.current.provision = e.target.value}/>
                         :
-                        <p>{pawn.provision}%</p>
+                        <p>{Number(pawn.provision).toLocaleString("de-DE")}%</p>
                 }
             </span>
             <span>
                 <p>Дневна провизија:</p>
-                <p>{Math.round(pawn.provision / pawn.total_days * 100) / 100}%</p>
+                <p>{Number(Math.round(pawn.provision / pawn.total_days * 100) / 100).toLocaleString("de-DE")}%</p>
             </span>
             <span>
                 <p>Денови валидно:</p>
@@ -543,7 +542,7 @@ const renderOther = (pawn, isEditing, editPawn) => {
         <PawnDetailsWrapper>
             <span>
                 <p>Шифра на залог:</p>
-                <p>{pawn.id}</p>
+                <p>{Number(pawn.id).toLocaleString("de-DE")}</p>
             </span>
             <span>
                 <p>Опис:</p>
@@ -577,15 +576,15 @@ const renderOther = (pawn, isEditing, editPawn) => {
                 <p>Провизија:</p>
                 {
                     isEditing ?
-                        <input type="number" defaultValue={pawn.provision}
+                        <input type="number" step="0.001" defaultValue={pawn.provision}
                                onChange={e => editPawn.current.provision = e.target.value}/>
                         :
-                        <p>{pawn.provision}%</p>
+                        <p>{Number(pawn.provision).toLocaleString("de-DE")}%</p>
                 }
             </span>
             <span>
                 <p>Дневна провизија:</p>
-                <p>{Math.round(pawn.provision / pawn.total_days * 100) / 100}%</p>
+                <p>{Number(Math.round(pawn.provision / pawn.total_days * 100) / 100).toLocaleString("de-DE")}%</p>
             </span>
             <span>
                 <p>Денови валидно:</p>

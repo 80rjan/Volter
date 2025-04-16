@@ -89,6 +89,8 @@ export default function Transactions() {
     }, [isLastPage, orderBy, orderDirection, searchByName, searchByEmbg, searchByDate]);
 
     useEffect(() => {
+        if (searchByDate && searchByDate.length > 0 && searchByDate.length < 10)
+            return;
         setAllTransactions([]);
         prevTransactions.current = [];
         offset.current = 0;
@@ -114,7 +116,7 @@ export default function Transactions() {
                 <FilterWrapper>
                     <StyledInput placeholder="Пребарувај по име" onKeyUp={(e) => setSearchByName(e.target.value)} />
                     <StyledInput placeholder="Пребарувај по ембг" onKeyUp={(e) => setSearchByEmbg(e.target.value)} />
-                    <StyledInput placeholder="Пребарувај по датум" onKeyUp={(e) => setSearchByDate(e.target.value)} />
+                    <StyledInput placeholder="Пребарувај по датум (yyyy-mm-dd)" onKeyUp={(e) => setSearchByDate(e.target.value)} />
                 </FilterWrapper>
                 <TransactionsWrapper>
                     <TableHeader>

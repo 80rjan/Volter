@@ -25,7 +25,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
         "Other": "Останато"
     }
 
-    const continuePawn = (id, category, provision) => {
+    const continuePawn = (id, category, provision, description) => {
         setLoading(true);
         //Find the name of the table based on the category
         const tableName = {
@@ -39,7 +39,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
         if (!tableName) return console.error("Invalid category:", category);
 
         //Put http which sends the id of the pawn and the table name in which the pawn date is updated
-        axios.put(`http://localhost:3000/continuePawn`, { id, tableName, provision })
+        axios.put(`http://localhost:3000/continuePawn`, { id, tableName, provision, description })
             .then(() => {
                 setSuccessMsg("Успешно продолжен залог")
                 setInfoMsg(`Додадени се ${provision.toLocaleString("de-DE")} во каса!`)
@@ -49,7 +49,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
             .finally(() => setLoading(false));
     }
 
-    const closePawn = (id, category, priceClosed) => {
+    const closePawn = (id, category, priceClosed, description) => {
         setLoading(true);
         //Find the name of the table based on the category
         const tableName = {
@@ -63,7 +63,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
         if (!tableName) return console.error("Invalid category:", category);
 
         //Put http which sends the id of the pawn and the table name in which the pawn is closed
-        axios.put(`http://localhost:3000/closePawn`, { id, tableName, priceClosed })
+        axios.put(`http://localhost:3000/closePawn`, { id, tableName, priceClosed, description })
             .then(() => {
                 setSuccessMsg("Успешно затворен залог")
                 setInfoMsg(`Додадени се ${priceClosed.toLocaleString("de-DE")} во каса!`)

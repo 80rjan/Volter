@@ -18,7 +18,6 @@ console.log(process.env.VOLTER_CENTAR_DB_NAME);
 console.log(process.env.VOLTER_CENTAR_DB_PASS);
 console.log(process.env.VOLTER_CENTAR_DB_PORT);
 
-// Database connection
 // const pool = new Pool({
 //     user: process.env.VOLTER_CENTAR_DB_USER,
 //     host: process.env.VOLTER_CENTAR_DB_HOST,
@@ -29,8 +28,6 @@ console.log(process.env.VOLTER_CENTAR_DB_PORT);
 //         rejectUnauthorized: false
 //     }
 // });
-//
-// // Connect to the database
 // pool.connect()
 //     .then(() => console.log('Connected to the database successfully'))
 //     .catch(err => {

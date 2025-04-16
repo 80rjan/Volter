@@ -10,7 +10,7 @@ import ModalAddNewExpense from "../Components/ModalAddNewExpense.jsx";
 export default function Expenses() {
     const [allExpenses, setAllExpenses] = useState([]);
     const [orderBy, setOrderBy] = useState("Year");
-    const orderDirectionArr = useRef([-1,0,0,0,0]); // -1=desc 0=normal 1=asc
+    const orderDirectionArr = useRef([-1,0,0,0,0,0]); // -1=desc 0=normal 1=asc
     const [orderDirection, setOrderDirection] = useState("DESC");
     const [searchByMonth, setSearchByMonth] = useState("");
     const [searchByYear, setSearchByYear] = useState("");
@@ -137,8 +137,11 @@ export default function Expenses() {
                         <Text onClick={() => handleOrder("Salaries", 3)}>
                             Плати {orderDirectionArr.current[3] === 0 ? <Minus size={14} /> : orderDirectionArr.current[3] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
-                        <Text onClick={() => handleOrder("Other", 4)}>
-                            Друго {orderDirectionArr.current[4] === 0 ? <Minus size={14} /> : orderDirectionArr.current[4] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        <Text onClick={() => handleOrder("Bills", 4)}>
+                            Сметки {orderDirectionArr.current[4] === 0 ? <Minus size={14} /> : orderDirectionArr.current[4] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        </Text>
+                        <Text onClick={() => handleOrder("Other", 5)}>
+                            Друго {orderDirectionArr.current[5] === 0 ? <Minus size={14} /> : orderDirectionArr.current[5] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text style={{cursor: "default"}}>Опис</Text>
                     </TableHeader>
@@ -152,6 +155,7 @@ export default function Expenses() {
                                     <TextExpense>{expense.Month}</TextExpense>
                                     <TextExpense>{Number(expense.Rent).toLocaleString("de-DE")}</TextExpense>
                                     <TextExpense>{Number(expense.Salaries).toLocaleString("de-DE")}</TextExpense>
+                                    <TextExpense>{Number(expense.Bills).toLocaleString("de-DE")}</TextExpense>
                                     <TextExpense>{Number(expense.Other).toLocaleString("de-DE")}</TextExpense>
                                     <TextExpense>{expense.Description}</TextExpense>
                                 </Expense>
@@ -241,7 +245,7 @@ const ExpensesWrapper = styled.div`
 const TableHeader = styled.div`
     display: grid;
     place-items: center;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(7, 1fr);
     padding: 1rem .5rem;
     border-bottom: rgba(0, 0, 0, 0.2) 2px solid;
     color: #eee;
@@ -280,7 +284,7 @@ const ScrollableExpenses = styled.div`
 const Expense = styled.div`
     display: grid;
     place-items: center;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(7, 1fr);
     gap: .4rem;
     padding: .8rem;
     border-bottom: rgba(0,0,0,0.2) 2px solid;

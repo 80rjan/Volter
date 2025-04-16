@@ -128,7 +128,7 @@ const updatePawn = asyncHandler(async (req, res) => {
     const { tableName, id, pricePawned, provision, description, goldGramsDiff } = req.body;
 
     try {
-        const pawn = await db.updatePawn(tableName, id, parseInt(pricePawned), parseFloat(provision), description, parseInt(goldGramsDiff));
+        const pawn = await db.updatePawn(tableName, id, parseInt(pricePawned), parseFloat(provision), description, goldGramsDiff);
         res.status(200).json({ pawn });
     } catch (error) {
         res.status(500).json({ message: "Error query update pawn" + error });
@@ -136,10 +136,10 @@ const updatePawn = asyncHandler(async (req, res) => {
 })
 
 const continuePawn = asyncHandler(async (req, res) => {
-    const { id, tableName, provision } = req.body;
+    const { id, tableName, provision, description } = req.body;
 
     try {
-        await db.continuePawn(id, tableName, provision);
+        await db.continuePawn(id, tableName, provision, description);
         res.status(200);
     } catch (error) {
         res.status(500).json({ message: "Error query continuing pawn" });
@@ -147,10 +147,10 @@ const continuePawn = asyncHandler(async (req, res) => {
 })
 
 const closePawn = asyncHandler(async (req, res) => {
-    const { id, tableName, priceClosed } = req.body;
+    const { id, tableName, priceClosed, description } = req.body;
 
     try {
-        await db.closePawn(id, tableName, priceClosed);
+        await db.closePawn(id, tableName, priceClosed, description);
         res.status(200);
     } catch (error) {
         res.status(500).json({ message: "Error query closing pawn" });
@@ -215,10 +215,10 @@ const insertSale = asyncHandler(async (req, res) => {
 })
 
 const sellItem = asyncHandler(async (req, res) => {
-    const { id, priceSold } = req.body;
+    const { id, priceSold, description } = req.body;
 
     try {
-        const moneyIntoCashReg = await db.closeSale(id, priceSold);
+        const moneyIntoCashReg = await db.closeSale(id, priceSold, description);
         res.status(200).json({ moneyIntoCashReg });
     } catch (error) {
         res.status(500).json({ message: "Error query sell item" });
@@ -284,10 +284,11 @@ const getAllExpenses = asyncHandler(async (req, res) => {
 })
 
 const insertExpense = asyncHandler(async (req, res) => {
-    const { year, month, rent, salaries, other, description } = req.body;
+    console.log(req.body)
+    const { year, month, rent, salaries, bills, other, description } = req.body;
 
     try {
-        const message = await db.insertExpense(Number(year), Number(month), Number(rent), Number(salaries), Number(other), description);
+        const message = await db.insertExpense(Number(year), Number(month), Number(rent), Number(salaries), Number(bills), Number(other), description);
         res.status(200).json({ message: message });
     } catch (error) {
         res.status(500).json({ message: "Error query insert money into cash register " + error });

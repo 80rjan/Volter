@@ -12,6 +12,7 @@ export default function ModalAddNewExpense({ closeModal, refresh }) {
         month: 0,
         rent: 0,
         salaries: 0,
+        bills: 0,
         other: 0,
         description: ''
     });
@@ -32,7 +33,6 @@ export default function ModalAddNewExpense({ closeModal, refresh }) {
         console.log(formData)
         axios.post('http://localhost:3000/expenses/insert', formData)
             .then(res => {
-                console.log(res.data.message);
                 if (res.data.message !== 'Успешно внесен расход')
                     setError(res.data.message);
                 else {
@@ -86,6 +86,12 @@ export default function ModalAddNewExpense({ closeModal, refresh }) {
                                         <div>
                                             <p>Плати</p>
                                             <StyledInput name="salaries" onChange={handleInputChange}
+                                                         type="number"
+                                                         required/>
+                                        </div>
+                                        <div>
+                                            <p>Сметки</p>
+                                            <StyledInput name="bills" onChange={handleInputChange}
                                                          type="number"
                                                          required/>
                                         </div>
@@ -203,6 +209,10 @@ const ExpenseInputs = styled.div`
             margin-left: -0.4rem;
             color: #666;
         }
+    }
+    
+    & > div:last-child {
+        grid-column: 1 / -1;
     }
 `;
 

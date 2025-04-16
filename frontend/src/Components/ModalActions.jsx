@@ -14,6 +14,7 @@ export default function ModalActions({ id, category, clientName, successMsg, act
     const [infoMsg, setInfoMsg] = useState("");
     const penaltyPrice= daysLeft < 0 ? Math.abs(daysLeft) * dailyProvision : 0;
     const [price, setPrice] = useState(category === "sale" ? suggestedPrice : suggestedPrice + penaltyPrice);
+    const [description, setDescription] = useState("");
     const [error, setError] = useState("");
     const [showError, setShowError] = useState(true);
     const hiddenDocForClosingPawn = useRef(null);
@@ -21,8 +22,8 @@ export default function ModalActions({ id, category, clientName, successMsg, act
     const useActionFunc = () => {
         try {
             category === "sale" ?
-                action(id, price) :
-                action(id, category, price);
+                action(id, price, description) :
+                action(id, category, price, description);
             setInfoMsg(`Успешно внесени ${Number(price).toLocaleString("de-DE")} во каса!`)
             setShowSuccMsg(true);
         } catch (error) {
@@ -98,14 +99,15 @@ export default function ModalActions({ id, category, clientName, successMsg, act
                                 <div>
                                     <p>Исплатени Пари: <span
                                         style={{fontWeight: 600}}>{priceBought.toLocaleString("de-DE")}</span></p>
-                                    {category === "sale" ? undefined : <p>Провизија: <span
-                                        style={{fontWeight: 600}}>{provision.toLocaleString("de-DE")}</span></p>}
-                                    {category === "sale" ? undefined : <p>Казна: <span
-                                        style={{fontWeight: 600}}>{penaltyPrice.toLocaleString("de-DE")}</span></p>}
+                                    {category === "sale" ? undefined : <p>Провизија: <span style={{fontWeight: 600}}>{provision.toLocaleString("de-DE")}</span></p>}
+                                    {category === "sale" ? undefined : <p>Казна: <span style={{fontWeight: 600}}>{penaltyPrice.toLocaleString("de-DE")}</span></p>}
                                     <StyledInput onChange={e => setPrice(e.target.value)}
                                                  type="number"
                                                  placeholder="Внеси сума"
-                                                 value={price} required/>
+                                                 value={price} required />
+                                    <StyledInput onChange={e => setDescription(e.target.value)}
+                                                 placeholder="Внеси опис"
+                                                 value={description} />
                                 </div>
                                 <Button onClick={() => {
                                     if (price.length > 0 || price > 0) {

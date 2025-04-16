@@ -25,7 +25,7 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
         c.name AS "Name", 
         'Gold' AS "Category", 
         gp.id AS "Id",
-        gp.weight || 'g ' || gp.carats || 'k ' || gp.type || ' ' || gp.description AS "About", 
+        gp.weight::FLOAT::TEXT || 'g ' || gp.carats || 'k ' || gp.type || ' ' || gp.description AS "About", 
         to_char(gp.date_to, 'YYYY-MM-DD') AS "Valid Until", 
         EXTRACT(DAY FROM (gp.date_to - CURRENT_TIMESTAMP)) AS "Days Left", 
         gp.price_pawned * (gp.provision / 100) AS "Provision", 
@@ -113,7 +113,7 @@ async function getPawn(clientId, category, pawnId) {
     return { pawn, client };
 }
 
-async function closePawn(id, tableName, priceClosed) {
+async function closePawn(id, tableName, priceClosed, description) {
     const validTables = ["electronics_pawn", "gold_pawn", "vehicle_pawn", "other_pawn", "watch_pawn"];
     if (!validTables.includes(tableName)) {
         throw new Error("Invalid table name in REMOVE PAWN");
@@ -148,7 +148,7 @@ async function closePawn(id, tableName, priceClosed) {
                     tableName === "gold_pawn" ? "Gold" :
                     tableName === "vehicle_pawn" ? "Vehicle" :
                     tableName === "watch_pawn" ? "Watch" : "Other";
-    let transactionDescription = "Closed pawn";
+    let transactionDescription = `Затворен залог. ${description}`;
 
     //Insert a new transaction with cash inserted and profit made
     await pool.query(`
@@ -176,7 +176,7 @@ async function closePawn(id, tableName, priceClosed) {
     await pool.query(`COMMIT;`)
 }
 
-async function continuePawn(id, tableName, provision) {
+async function continuePawn(id, tableName, provision, description) {
     const validTables = ["electronics_pawn", "gold_pawn", "vehicle_pawn", "other_pawn", "watch_pawn"];
     if (!validTables.includes(tableName)) {
         throw new Error("Invalid table name in CONTINUE PAWN");
@@ -203,7 +203,7 @@ async function continuePawn(id, tableName, provision) {
         tableName === "gold_pawn" ? "Gold" :
             tableName === "vehicle_pawn" ? "Vehicle" :
                 tableName === "watch_pawn" ? "Watch" : "Other";
-    let transactionDescription = "Continued pawn";
+    let transactionDescription = `Продолжен залог. ${description}`;
 
     //Insert a new transaction with profit made
     await pool.query(`
@@ -312,16 +312,24 @@ async function updatePawn(pawnTable, pawnId, pricePawned, provision, description
     }
     const clientId = oldPawn[0].client_id;
     const oldPrice = parseInt(oldPawn[0].price_pawned);
-    const oldProvision = parseInt(oldPawn[0].provision)
+    const oldProvision = parseFloat(oldPawn[0].provision)
+    let category = ''
+    switch (pawnTable) {
+        case "electronics_pawn": category = "Electronics";break;
+        case "gold_pawn": category = "Gold";break;
+        case "vehicle_pawn": category = "Vehicle";break;
+        case "watch_pawn": category = "Watch";break;
+        case "other_pawn": category = "Other";break;
+    }
 
 
-    let s = ``
+    let s = `Промена! `
     if (oldPrice !== pricePawned)
         s += `Цена: ${oldPrice} во ${pricePawned}. `
     if (oldProvision !== provision)
         s += `Процент: ${oldProvision} во ${provision}. `
     if (goldGramsDiff !== 0)
-        s += `Злато додадено: ${goldGramsDiff}гр. `
+        s += `Злато додадено: ${Number(goldGramsDiff).toLocaleString("de-DE")}гр. `
 
     let query = `
         UPDATE ${pawnTable}
@@ -353,7 +361,7 @@ async function updatePawn(pawnTable, pawnId, pricePawned, provision, description
         await pool.query(`
         INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
         VALUES ($1, $2, $3, $4, 0, 0, CURRENT_TIMESTAMP);
-    `, [clientId, 'Промена залог', s, pricePawned - oldPrice])
+    `, [clientId, category, s, pricePawned - oldPrice])
     } catch (error) {
         console.error("Error executing query transaction: " + error)
         throw new Error("Failed to modify transactions")
@@ -497,7 +505,7 @@ async function getSale(clientId, saleId) {
     return { sale, client };
 }
 
-async function closeSale(id, priceSold) {
+async function closeSale(id, priceSold, description) {
     const query = await pool.query(`SELECT price_bought, client_id FROM sale WHERE id = $1;`, [id]);
     let priceBought = null;
     let clientId = null;
@@ -517,7 +525,7 @@ async function closeSale(id, priceSold) {
     `, [id])
 
     let transactionCategory = "Sale";
-    let transactionDescription = "Closed sale";
+    let transactionDescription = `Затворена продажба. ${description}`;
 
     //Insert a new transaction with cash inserted and profit made
     await pool.query(`
@@ -639,6 +647,7 @@ async function getAllExpenses(limit, offset, orderBy, orderDirection, searchByMo
         e.month AS "Month",
         e.rent AS "Rent",
         e.salaries AS "Salaries",
+        e.bills AS "Bills",
         e.other AS "Other",
         e.description AS "Description"
     FROM expense e
@@ -650,12 +659,12 @@ async function getAllExpenses(limit, offset, orderBy, orderDirection, searchByMo
     return rows;
 }
 
-async function insertExpense(year, month, rent, salaries, other, description) {
+async function insertExpense(year, month, rent, salaries, bills, other, description) {
     const { rows : hasExpense } = await pool.query(`SELECT * FROM expense WHERE year = $1::INT AND month = $2::INT`, [year, month])
     if (hasExpense.length > 0)
         return `Имаш веќе внесено расходи за месец: ${month}-${year}`
 
-    await pool.query(`INSERT INTO expense VALUES ($1, $2, $3, $4, $5, $6)`, [year, month, rent, salaries, other, description])
+    await pool.query(`INSERT INTO expense VALUES ($1, $2, $3, $4, $6, $7, $5)`, [year, month, rent, salaries, bills, other, description])
     return 'Успешно внесен расход'
 }
 
@@ -676,7 +685,7 @@ async function getAllTransactions(limit, offset, orderBy, orderDirection, search
     FROM client c
     INNER JOIN transaction t
         ON c.id = t.client_id
-    WHERE LOWER(c.name) LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND ($3::DATE IS NULL OR t.date = $3::DATE)
+    WHERE LOWER(c.name) LIKE $1 || '%' AND c.embg LIKE $2 || '%' AND ($3::DATE IS NULL OR t.date::DATE = $3::DATE)
     ORDER BY "${orderBy}" ${orderDirection}
     LIMIT ${limit} OFFSET ${offset};
     `, [searchByName, searchByEmbg, searchByDate])
@@ -911,7 +920,7 @@ async function generateNewMonthReport(year, month) {
 
     const { rows: expenses } = await pool.query(`
         SELECT 
-            rent+salaries+other AS "expenses"
+            rent+salaries+bills+other AS "expenses"
         FROM expense
         WHERE year = $1 AND month = $2
     `, [year, month])

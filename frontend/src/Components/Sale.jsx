@@ -34,9 +34,9 @@ export default function Sale({ sale, refresh, isOdd }) {
             .finally(() => setLoading(false))
     }
 
-    const sellItem = (id, priceSold) => {
+    const sellItem = (id, priceSold, description) => {
         //Put http which sends the id of the sale to sell item and close sale
-        axios.put(`http://localhost:3000/sales/sellItem`, { id, priceSold })
+        axios.put(`http://localhost:3000/sales/sellItem`, { id, priceSold, description })
             .then()
             .catch(error => console.error('Error selling item:', error))
             .finally(() => setLoading(false));

@@ -243,7 +243,7 @@ function ElectronicsInputs({ handleInputChange, date }) {
             </div>
             <div>
                 <p>Провизија</p>
-                <StyledInput name="provision" onChange={handleInputChange} type="number" required/>
+                <StyledInput name="provision" onChange={handleInputChange} type="number" step="0.001" required/>
             </div>
             <div>
                 <p>Валидност во денови</p>
@@ -266,7 +266,7 @@ function GoldInputs({ handleInputChange, date }) {
         <>
             <div>
                 <p>Тежина</p>
-                <StyledInput name="weight" onChange={handleInputChange} type="number" required/>
+                <StyledInput name="weight" onChange={handleInputChange} type="number" step="0.001" required/>
             </div>
             <div>
                 <p>Каратажа</p>
@@ -282,7 +282,7 @@ function GoldInputs({ handleInputChange, date }) {
             </div>
             <div>
                 <p>Провизија</p>
-                <StyledInput name="provision" onChange={handleInputChange} type="number" required/>
+                <StyledInput name="provision" onChange={handleInputChange} type="number" step="0.001" required/>
             </div>
             <div>
                 <p>Валидност во денови</p>
@@ -322,7 +322,7 @@ function VehicleInputs({ handleInputChange, date }) {
             </div>
             <div>
                 <p>Провизија</p>
-                <StyledInput name="provision" onChange={handleInputChange} type="number" required/>
+                <StyledInput name="provision" onChange={handleInputChange} type="number" step="0.001" required/>
             </div>
             <div>
                 <p>Валидност во денови</p>
@@ -358,7 +358,7 @@ function WatchInputs({ handleInputChange, date }) {
             </div>
             <div>
                 <p>Провизија</p>
-                <StyledInput name="provision" onChange={handleInputChange} type="number" required/>
+                <StyledInput name="provision" onChange={handleInputChange} type="number" step="0.001" required/>
             </div>
             <div>
                 <p>Валидност во денови</p>
@@ -386,7 +386,7 @@ function OtherInputs({ handleInputChange, date }) {
             </div>
             <div>
                 <p>Провизија</p>
-                <StyledInput name="provision" onChange={handleInputChange} type="number" required/>
+                <StyledInput name="provision" onChange={handleInputChange} type="number" step="0.001" required/>
             </div>
             <div>
                 <p>Валидност во денови</p>

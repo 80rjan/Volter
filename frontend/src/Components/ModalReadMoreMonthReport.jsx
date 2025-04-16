@@ -72,6 +72,13 @@ export default function ModalReadMoreMonthReport({report, closeModal}) {
                             </div>
                         </Report>
                         <Report>
+                            <Receipt size={36} />
+                            <div>
+                                <h1>-{Math.abs(report["Gross Profit"] - report["Net Profit"]).toLocaleString("de-DE")}</h1>
+                                <p>Расходи</p>
+                            </div>
+                        </Report>
+                        <Report>
                             <Banknote size={36} />
                             <div>
                                 <h1>{Number(report["Net Profit"]).toLocaleString("de-DE")}</h1>
