@@ -12,7 +12,7 @@ const getAllPawns = asyncHandler(async (req, res) => {
         const pawns = await db.getAllPawns(limit, offset, req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, searchByTel);
         res.send(pawns);
     } catch (error) {
-        res.status(500).send({ message: 'Error query get all pawns' });
+        res.status(500).send({ message: `Error query get all pawns ${error}` });
     }
 });
 
@@ -136,10 +136,10 @@ const updatePawn = asyncHandler(async (req, res) => {
 })
 
 const continuePawn = asyncHandler(async (req, res) => {
-    const { id, tableName, provision, description } = req.body;
+    const { id, tableName, provision, description, carryOverDays } = req.body;
 
     try {
-        await db.continuePawn(id, tableName, provision, description);
+        await db.continuePawn(id, tableName, provision, description, carryOverDays);
         res.status(200);
     } catch (error) {
         res.status(500).json({ message: "Error query continuing pawn" });
@@ -153,7 +153,7 @@ const closePawn = asyncHandler(async (req, res) => {
         await db.closePawn(id, tableName, priceClosed, description);
         res.status(200);
     } catch (error) {
-        res.status(500).json({ message: "Error query closing pawn" });
+        res.status(500).json({ message: `Error query closing pawn ${error}` });
     }
 })
 
@@ -244,7 +244,7 @@ const getCashRegister = asyncHandler(async (req, res) => {
 
     try {
         const cashReg = await db.getCashRegister();
-        res.status(200).json({ cashReg: cashReg[0] });
+        res.status(200).json({ cashReg: cashReg });
     } catch (error) {
         res.status(500).json({ message: "Error query get cash register" });
     }

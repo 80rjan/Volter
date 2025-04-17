@@ -25,7 +25,9 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
         "Other": "Останато"
     }
 
-    const continuePawn = (id, category, provision, description) => {
+    const continuePawn = (id, category, provision, description, carryOverDays) => {
+        console.log(carryOverDays)
+
         setLoading(true);
         //Find the name of the table based on the category
         const tableName = {
@@ -39,7 +41,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
         if (!tableName) return console.error("Invalid category:", category);
 
         //Put http which sends the id of the pawn and the table name in which the pawn date is updated
-        axios.put(`http://localhost:3000/continuePawn`, { id, tableName, provision, description })
+        axios.put(`http://localhost:3000/continuePawn`, { id, tableName, provision, description, carryOverDays })
             .then(() => {
                 setSuccessMsg("Успешно продолжен залог")
                 setInfoMsg(`Додадени се ${provision.toLocaleString("de-DE")} во каса!`)

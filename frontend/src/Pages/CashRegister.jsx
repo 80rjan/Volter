@@ -43,7 +43,7 @@ export default function CashRegister({ refreshDependancy, refreshDependancyAdjus
                 {
                     loading ? <Loading width={30} height={30}/> :
                         <>
-                            <Value className="bold">{Number(cashReg.average_provision).toFixed(2).toLocaleString("de-DE")}</Value>
+                            <Value className="bold">{Number(cashReg.average_provision).toLocaleString("de-DE")}</Value>
                         </>
                 }
             </TextWrapper>

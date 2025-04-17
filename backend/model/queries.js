@@ -9,7 +9,7 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
         ep.id AS "Id",
         ep.brand || ' ' || ep.year || ' ' || ep.description AS "About", 
         to_char(ep.date_to, 'YYYY-MM-DD') AS "Valid Until", 
-        EXTRACT(DAY FROM (ep.date_to - CURRENT_TIMESTAMP)) AS "Days Left",  
+        ep.date_to - CURRENT_DATE AS "Days Left",  
         ep.price_pawned * (ep.provision / 100) AS "Provision", 
         ep.price_pawned AS "Item Cost",
         ep.total_days AS "Total Days"
@@ -27,7 +27,7 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
         gp.id AS "Id",
         gp.weight::FLOAT::TEXT || 'g ' || gp.carats || 'k ' || gp.type || ' ' || gp.description AS "About", 
         to_char(gp.date_to, 'YYYY-MM-DD') AS "Valid Until", 
-        EXTRACT(DAY FROM (gp.date_to - CURRENT_TIMESTAMP)) AS "Days Left", 
+        gp.date_to - CURRENT_DATE AS "Days Left", 
         gp.price_pawned * (gp.provision / 100) AS "Provision", 
         gp.price_pawned AS "Item Cost",
         gp.total_days AS "Total Days"
@@ -45,7 +45,7 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
         op.id AS "Id",
         op.description AS "About", 
         to_char(op.date_to, 'YYYY-MM-DD') AS "Valid Until", 
-        EXTRACT(DAY FROM (op.date_to - CURRENT_TIMESTAMP)) AS "Days Left", 
+        op.date_to - CURRENT_DATE AS "Days Left", 
         op.price_pawned * (op.provision / 100) AS "Provision", 
         op.price_pawned AS "Item Cost",
         op.total_days AS "Total Days"
@@ -63,7 +63,7 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
         vp.id AS "Id",
         vp.brand || ' ' || vp.model || ' ' || vp.year || ' ' || vp.description AS "About", 
         to_char(vp.date_to, 'YYYY-MM-DD') AS "Valid Until", 
-        EXTRACT(DAY FROM (vp.date_to - CURRENT_TIMESTAMP)) AS "Days Left",
+        vp.date_to - CURRENT_DATE AS "Days Left",
         vp.price_pawned * (vp.provision / 100) AS "Provision", 
         vp.price_pawned AS "Item Cost",
         vp.total_days AS "Total Days"
@@ -81,7 +81,7 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
         wp.id AS "Id",
         wp.brand || ' ' || wp.year || ', ' || wp.description AS "About", 
         to_char(wp.date_to, 'YYYY-MM-DD') AS "Valid Until", 
-        EXTRACT(DAY FROM (wp.date_to - CURRENT_TIMESTAMP)) AS "Days Left",
+        wp.date_to - CURRENT_DATE AS "Days Left",
         wp.price_pawned * (wp.provision / 100) AS "Provision", 
         wp.price_pawned AS "Item Cost",
         wp.total_days AS "Total Days"
@@ -150,11 +150,14 @@ async function closePawn(id, tableName, priceClosed, description) {
                     tableName === "watch_pawn" ? "Watch" : "Other";
     let transactionDescription = `Затворен залог. ${description}`;
 
+    const now = new Date();
+// Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+    const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
     //Insert a new transaction with cash inserted and profit made
     await pool.query(`
         INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES ($1, $2, $3, 0, $4, $5, CURRENT_TIMESTAMP);
-    `, [clientId, transactionCategory, transactionDescription, pawnMoney, priceClosed-pawnMoney])
+        VALUES ($1, $2, $3, 0, $4, $5, $6);
+    `, [clientId, transactionCategory, transactionDescription, pawnMoney, priceClosed-pawnMoney, UTC_TIME])
 
 
     //Update cash register with money inserted, decrease numPawns, decrease moneyPawns, update quantity of gold in grams and update average provision for pawns
@@ -170,13 +173,13 @@ async function closePawn(id, tableName, priceClosed, description) {
             money_pawns = money_pawns - $1,
             register_money = register_money + $2,
             gold_grams = gold_grams - $3,
-            last_updated = NOW();
-    `, [pawnMoney, priceClosed, gold_grams, provision])
+            last_updated = $5;
+    `, [pawnMoney, priceClosed, gold_grams, provision, UTC_TIME])
 
     await pool.query(`COMMIT;`)
 }
 
-async function continuePawn(id, tableName, provision, description) {
+async function continuePawn(id, tableName, provision, description, carryOverDays) {
     const validTables = ["electronics_pawn", "gold_pawn", "vehicle_pawn", "other_pawn", "watch_pawn"];
     if (!validTables.includes(tableName)) {
         throw new Error("Invalid table name in CONTINUE PAWN");
@@ -192,11 +195,17 @@ async function continuePawn(id, tableName, provision, description) {
     await pool.query(`BEGIN;`)
 
     //Update table with new date until pawn is valid
+    // total_days + daysleft
+    // SET date_to = date_to + total_days*INTERVAL '1 day'
     await pool.query(`
         UPDATE ${tableName}
-        SET date_to = date_to + total_days*INTERVAL '1 day'
+        SET date_to = 
+        CASE 
+            WHEN date_to > CURRENT_DATE THEN date_to + (total_days+$2)*INTERVAL '1 day'
+            ELSE CURRENT_DATE + (total_days+$2)*INTERVAL '1 day'
+        END
         WHERE id = $1;
-    `, [id])
+    `, [id, carryOverDays])
 
 
     let transactionCategory = tableName === "electronics_pawn" ? "Electronics" :
@@ -205,19 +214,22 @@ async function continuePawn(id, tableName, provision, description) {
                 tableName === "watch_pawn" ? "Watch" : "Other";
     let transactionDescription = `Продолжен залог. ${description}`;
 
+    const now = new Date();
+// Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+    const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
     //Insert a new transaction with profit made
     await pool.query(`
         INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES ($1, $2, $3, 0, 0, $4, CURRENT_TIMESTAMP);
-    `, [clientId, transactionCategory, transactionDescription, provision])
+        VALUES ($1, $2, $3, 0, 0, $4, $5);
+    `, [clientId, transactionCategory, transactionDescription, provision, UTC_TIME])
 
     //Update cash register with money inserted
     await pool.query(`
         UPDATE cash_register 
         SET
             register_money = register_money + $1,
-            last_updated = NOW();
-    `, [provision])
+            last_updated = $2;
+    `, [provision, UTC_TIME])
 
     await pool.query(`COMMIT;`)
 }
@@ -288,6 +300,9 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
         VALUES ($1, $2, $3, $4, 0, 0, $5::DATE);
     `, [clientId, transactionCategory, transactionDescription, pawnObj.price_pawned, pawnObj.date])
 
+    const now = new Date();
+// Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+    const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
     //Update cash register with money taken, increase numPawns, increase moneyPawns, update quantity of gold in grams and update average provision for pawns
     await pool.query(`
         UPDATE cash_register 
@@ -297,8 +312,8 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
             money_pawns = money_pawns + $1,
             register_money = register_money - $1,
             gold_grams = gold_grams + $2,
-            last_updated = NOW();
-    `, [pawnObj.price_pawned, gold_grams, pawnObj.provision]);
+            last_updated = $4;
+    `, [pawnObj.price_pawned, gold_grams, pawnObj.provision, UTC_TIME]);
 }
 
 async function updatePawn(pawnTable, pawnId, pricePawned, provision, description, goldGramsDiff) {
@@ -327,7 +342,7 @@ async function updatePawn(pawnTable, pawnId, pricePawned, provision, description
     if (oldPrice !== pricePawned)
         s += `Цена: ${oldPrice} во ${pricePawned}. `
     if (oldProvision !== provision)
-        s += `Процент: ${oldProvision} во ${provision}. `
+        s += `Процент: ${oldProvision}% во ${provision}%. `
     if (goldGramsDiff !== 0)
         s += `Злато додадено: ${Number(goldGramsDiff).toLocaleString("de-DE")}гр. `
 
@@ -356,12 +371,15 @@ async function updatePawn(pawnTable, pawnId, pricePawned, provision, description
         throw error;
     }
 
+    const now = new Date();
+// Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+    const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
     //Insert a new transaction with money given
     try {
         await pool.query(`
         INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES ($1, $2, $3, $4, 0, 0, CURRENT_TIMESTAMP);
-    `, [clientId, category, s, pricePawned - oldPrice])
+        VALUES ($1, $2, $3, $4, 0, 0, $5);
+    `, [clientId, category, s, pricePawned - oldPrice, UTC_TIME])
     } catch (error) {
         console.error("Error executing query transaction: " + error)
         throw new Error("Failed to modify transactions")
@@ -376,8 +394,8 @@ async function updatePawn(pawnTable, pawnId, pricePawned, provision, description
             money_pawns = money_pawns + $1,
             average_provision = (average_provision * num_pawns + $2) / num_pawns,
             gold_grams = gold_grams + $3,
-            last_updated = NOW();
-    `, [pricePawned - oldPrice, provision-oldProvision, goldGramsDiff])
+            last_updated = $4;
+    `, [pricePawned - oldPrice, provision-oldProvision, goldGramsDiff, UTC_TIME])
     } catch (error) {
         console.error("Error executing query cash reg: " + error)
         throw new Error("Failed to modify cash reg")
@@ -437,7 +455,7 @@ async function changePawnToSale(id, pawnCategory) {
     //Insert sale into sale table
     await pool.query(`
         INSERT INTO sale (client_id, price_bought, date_from, description)
-        VALUES ($1, $2, CURRENT_TIMESTAMP, $3)
+        VALUES ($1, $2, CURRENT_DATE, $3)
     `, [clientId, priceBought, description])
 
     //Delete pawn from pawn table
@@ -452,11 +470,14 @@ async function changePawnToSale(id, pawnCategory) {
                 pawnCategory === "watch_pawn" ? "Watch" : "Other";
     let transactionDescription = "Transferred pawn to sale";
 
+    const now = new Date();
+// Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+    const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
     //Insert a new transaction with profit made
     await pool.query(`
         INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES ($1, $2, $3, 0, 0, 0, CURRENT_TIMESTAMP);
-    `, [clientId, transactionCategory, transactionDescription])
+        VALUES ($1, $2, $3, 0, 0, 0, $4);
+    `, [clientId, transactionCategory, transactionDescription, UTC_TIME])
 
     //Update cash register with decrease numPawns, decrease moneyPawns, increase numSales, increase moneySales, update quantity of gold in grams and update average provision for pawns
     await pool.query(`
@@ -472,8 +493,8 @@ async function changePawnToSale(id, pawnCategory) {
             num_sale_items = num_sale_items + 1,
             money_sale_items = money_sale_items + $1,
             gold_grams = gold_grams - $2,
-            last_updated = NOW();
-    `, [priceBought, gold_grams, provision])
+            last_updated = $4;
+    `, [priceBought, gold_grams, provision, UTC_TIME])
 }
 
 async function getAllSales(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByTel = "") {
@@ -527,11 +548,14 @@ async function closeSale(id, priceSold, description) {
     let transactionCategory = "Sale";
     let transactionDescription = `Затворена продажба. ${description}`;
 
+    const now = new Date();
+// Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+    const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
     //Insert a new transaction with cash inserted and profit made
     await pool.query(`
         INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES ($1, $2, $3, 0, $4, $5, CURRENT_TIMESTAMP);
-    `, [clientId, transactionCategory, transactionDescription, priceBought, priceSold-priceBought])
+        VALUES ($1, $2, $3, 0, $4, $5, $6);
+    `, [clientId, transactionCategory, transactionDescription, priceBought, priceSold-priceBought, UTC_TIME])
 
     //Update cash register with money inserted, decrease numSales and decrease moneySales
     await pool.query(`
@@ -540,8 +564,8 @@ async function closeSale(id, priceSold, description) {
             num_sale_items = num_sale_items - 1,
             money_sale_items = money_sale_items - $1,
             register_money = register_money + $2,
-            last_updated = NOW();
-    `, [priceBought, priceSold])
+            last_updated = $3;
+    `, [priceBought, priceSold, UTC_TIME])
 
     await pool.query(`COMMIT;`)
 
@@ -566,17 +590,20 @@ async function addNewSale(saleObj, clientObj) {
     //Insert a new sale into sale table
     await pool.query(`
         INSERT INTO sale (client_id, price_bought, date_from, description)
-        VALUES ($1, $2, CURRENT_TIMESTAMP, $3)
+        VALUES ($1, $2, CURRENT_DATE, $3)
     `, [clientId, saleObj.priceBought, saleObj.description])
 
     let transactionCategory = "Sale";
     let transactionDescription = "Added new sale";
 
+    const now = new Date();
+// Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+    const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
     //Insert a new transaction with money given
     await pool.query(`
         INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES ($1, $2, $3, $4, 0, 0, CURRENT_TIMESTAMP);
-    `, [clientId, transactionCategory, transactionDescription, saleObj.priceBought])
+        VALUES ($1, $2, $3, $4, 0, 0, $5);
+    `, [clientId, transactionCategory, transactionDescription, saleObj.priceBought, UTC_TIME])
 
     //Update cash register with money given, increase numSales and increase moneySales
     await pool.query(`
@@ -585,8 +612,8 @@ async function addNewSale(saleObj, clientObj) {
             num_sale_items = num_sale_items + 1,
             money_sale_items = money_sale_items + $1,
             register_money = register_money - $1,
-            last_updated = NOW();
-    `, [Number(saleObj.priceBought)])
+            last_updated = $2;
+    `, [Number(saleObj.priceBought), UTC_TIME])
 }
 
 
@@ -606,37 +633,43 @@ async function getAllClients(limit, offset, search) {
 async function getCashRegister() {
     const { rows } = await pool.query(`SELECT * FROM cash_register`);
 
-    return rows;
+    return rows[0];
 }
 
 async function insertIntoCashRegister(amount, description) {
+    const now = new Date();
+// Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+    const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
 
     await pool.query(`
         UPDATE cash_register
         SET
             register_money = register_money + $1,
-            last_updated = NOW()
-    `, [amount])
+            last_updated = $2
+    `, [amount, UTC_TIME])
 
     await pool.query(`
         INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES (0, 'Insert', $1, 0, $2, 0, CURRENT_TIMESTAMP);
-    `, [description, amount])
+        VALUES (0, 'Insert', $1, 0, $2, 0, $3);
+    `, [description, amount, UTC_TIME])
 }
 
 async function removeFromCashRegister(amount, description) {
+    const now = new Date();
+// Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+    const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
 
     await pool.query(`
         UPDATE cash_register
         SET
             register_money = register_money - $1,
-            last_updated = NOW()
-    `, [amount])
+            last_updated = $2
+    `, [amount, UTC_TIME])
 
     await pool.query(`
         INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES (0, 'Remove', $1, $2, 0, 0, CURRENT_TIMESTAMP);
-    `, [description, amount])
+        VALUES (0, 'Remove', $1, $2, 0, 0, $3);
+    `, [description, amount, UTC_TIME])
 }
 
 

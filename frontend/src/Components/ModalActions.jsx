@@ -14,6 +14,7 @@ export default function ModalActions({ id, category, clientName, successMsg, act
     const [infoMsg, setInfoMsg] = useState("");
     const penaltyPrice= daysLeft < 0 ? Math.abs(daysLeft) * dailyProvision : 0;
     const [price, setPrice] = useState(category === "sale" ? suggestedPrice : suggestedPrice + penaltyPrice);
+    const [carryOverDays, setCarryOverDays] = useState(Math.round((price - (suggestedPrice + penaltyPrice)) / dailyProvision));
     const [description, setDescription] = useState("");
     const [error, setError] = useState("");
     const [showError, setShowError] = useState(true);
@@ -23,7 +24,9 @@ export default function ModalActions({ id, category, clientName, successMsg, act
         try {
             category === "sale" ?
                 action(id, price, description) :
-                action(id, category, price, description);
+                successMsg === "Успешно продолжен залог!" ?
+                    action(id, category, price, description, carryOverDays ) :
+                    action(id, category, price, description);
             setInfoMsg(`Успешно внесени ${Number(price).toLocaleString("de-DE")} во каса!`)
             setShowSuccMsg(true);
         } catch (error) {
@@ -97,17 +100,25 @@ export default function ModalActions({ id, category, clientName, successMsg, act
                             <h1>{title}</h1>
                             <form onSubmit={e => e.preventDefault()}>
                                 <div>
-                                    <p>Исплатени Пари: <span
+                                    <p>Исплатени пари: <span
                                         style={{fontWeight: 600}}>{priceBought.toLocaleString("de-DE")}</span></p>
-                                    {category === "sale" ? undefined : <p>Провизија: <span style={{fontWeight: 600}}>{provision.toLocaleString("de-DE")}</span></p>}
-                                    {category === "sale" ? undefined : <p>Казна: <span style={{fontWeight: 600}}>{penaltyPrice.toLocaleString("de-DE")}</span></p>}
-                                    <StyledInput onChange={e => setPrice(e.target.value)}
-                                                 type="number"
-                                                 placeholder="Внеси сума"
-                                                 value={price} required />
-                                    <StyledInput onChange={e => setDescription(e.target.value)}
-                                                 placeholder="Внеси опис"
-                                                 value={description} />
+                                    {category === "sale" ? undefined : <p>Провизија: <span
+                                        style={{fontWeight: 600}}>{provision.toLocaleString("de-DE")}</span></p>}
+                                    {category === "sale" ? undefined : <p>Казна: <span
+                                        style={{fontWeight: 600}}>{Math.round(penaltyPrice).toLocaleString("de-DE")}</span></p>}
+                                    {successMsg !== "Успешно продолжен залог!" ? undefined : <p>Префрлени денови: <span style={{fontWeight: 600}}>{carryOverDays.toLocaleString("de-DE")}</span></p>}
+                                    <div>
+                                        <StyledInput onChange={e => {
+                                            setPrice(e.target.value)
+                                            setCarryOverDays(Math.round((e.target.value - (suggestedPrice + penaltyPrice)) / dailyProvision))
+                                        }}
+                                                     type="number"
+                                                     placeholder="Внеси сума"
+                                                     value={price} required/>
+                                        <StyledInput onChange={e => setDescription(e.target.value)}
+                                                     placeholder="Внеси опис"
+                                                     value={description}/>
+                                    </div>
                                 </div>
                                 <Button onClick={() => {
                                     if (price.length > 0 || price > 0) {
@@ -208,8 +219,21 @@ const Wrapper = styled.div`
     
     form > div:first-child {
         display: flex;
+        
         align-items: center;
         gap: 2rem;
+        
+        & > p {
+            min-width: max-content;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        & > div {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
     }
 `
 
