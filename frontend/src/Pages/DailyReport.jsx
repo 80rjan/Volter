@@ -105,7 +105,7 @@ export default function DailyReport() {
                                             <div>
                                                 <Report>
                                                     <div>
-                                                        <h3>{Number(category.numNewPawns).toLocaleString("de-DE")}</h3>
+                                                        <h3>{Number(category.numNew).toLocaleString("de-DE")}</h3>
                                                         <p>Нови Предмети</p>
                                                     </div>
                                                 </Report>

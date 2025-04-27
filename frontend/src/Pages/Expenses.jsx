@@ -9,7 +9,7 @@ import ModalAddNewExpense from "../Components/ModalAddNewExpense.jsx";
 
 export default function Expenses() {
     const [allExpenses, setAllExpenses] = useState([]);
-    const [orderBy, setOrderBy] = useState("Year");
+    const [orderBy, setOrderBy] = useState("Year * 100 %2B Month");
     const orderDirectionArr = useRef([-1,0,0,0,0,0]); // -1=desc 0=normal 1=asc
     const [orderDirection, setOrderDirection] = useState("DESC");
     const [searchByMonth, setSearchByMonth] = useState("");
@@ -125,14 +125,14 @@ export default function Expenses() {
 
                 <ExpensesWrapper>
                     <TableHeader >
-                        <Text onClick={() => handleOrder("Year", 0)}>
+                        <Text onClick={() => handleOrder("Year * 100 %2B Month", 0)}>
                             Година {orderDirectionArr.current[0] === 0 ? <Minus size={14} /> : orderDirectionArr.current[0] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Month", 1)}>
                             Месец {orderDirectionArr.current[1] === 0 ? <Minus size={14} /> : orderDirectionArr.current[1] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Rent", 2)}>
-                            Ќирија {orderDirectionArr.current[2] === 0 ? <Minus size={14} /> : orderDirectionArr.current[2] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Кирија {orderDirectionArr.current[2] === 0 ? <Minus size={14} /> : orderDirectionArr.current[2] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Salaries", 3)}>
                             Плати {orderDirectionArr.current[3] === 0 ? <Minus size={14} /> : orderDirectionArr.current[3] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}

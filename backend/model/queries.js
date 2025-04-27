@@ -685,7 +685,7 @@ async function getAllExpenses(limit, offset, orderBy, orderDirection, searchByMo
         e.description AS "Description"
     FROM expense e
     WHERE ($1 = '' OR e.year = $1::INT) AND ($2 = '' OR e.month = $2::INT)
-    ORDER BY "${orderBy}" ${orderDirection}
+    ORDER BY ${orderBy} ${orderDirection}
     LIMIT ${limit} OFFSET ${offset};
     `, [searchByYear, searchByMonth])
 
@@ -693,11 +693,64 @@ async function getAllExpenses(limit, offset, orderBy, orderDirection, searchByMo
 }
 
 async function insertExpense(year, month, rent, salaries, bills, other, description) {
+    let hasRoomForDescription = true;
+    let transaction_description = `${month}/${year}. `;
+    if (rent !== 0) transaction_description += 'Кирија: ' + rent + '. '
+    if (salaries !== 0) transaction_description += 'Плати: ' + salaries + '. '
+    if (bills !== 0) transaction_description += 'Сметки: ' + bills + '. '
+    if (other !== 0) transaction_description += 'Останато: ' + other + '. '
+    if (description !== '')
+        if (transaction_description.length + description.length <= 90)
+            transaction_description += 'Опис: ' + description + '.';
+        else
+            hasRoomForDescription = false;
+
     const { rows : hasExpense } = await pool.query(`SELECT * FROM expense WHERE year = $1::INT AND month = $2::INT`, [year, month])
     if (hasExpense.length > 0)
-        return `Имаш веќе внесено расходи за месец: ${month}-${year}`
+        await pool.query(`
+        UPDATE expense
+        SET
+            rent = rent + $3,
+            salaries = salaries + $4,
+            bills = bills + $5,
+            other = other + $6,
+            description = CASE WHEN description != '' THEN description || '. ' || $7 ELSE $7 END
+        WHERE year = $1::INT AND month = $2::INT
+        `, [year, month, rent, salaries, bills, other, description])
+    else {
+        await pool.query(`
+        INSERT INTO expense 
+        VALUES ($1, $2, $3, $4, $6, $7, $5)
+        `, [year, month, rent, salaries, bills, other, description])
+    }
 
-    await pool.query(`INSERT INTO expense VALUES ($1, $2, $3, $4, $6, $7, $5)`, [year, month, rent, salaries, bills, other, description])
+
+    const now = new Date();
+    // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+    const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
+    //Insert a new transaction with cash inserted and profit made
+
+    await pool.query(`
+        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
+        VALUES (0, 'Expense', $1, $2, 0, 0, $3);
+    `, [transaction_description, rent + salaries + bills + other, UTC_TIME])
+
+    if (!hasRoomForDescription && description.length < 100)
+        await pool.query(`
+        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
+        VALUES (0, 'Expense', $1, 0, 0, 0, $2);
+    `, [description, UTC_TIME])
+
+    if (rent + salaries + bills + other !== 0) {
+        await pool.query(`
+        UPDATE cash_register 
+        SET
+            register_money = register_money - $1,
+            last_updated = $2;
+    `, [rent + salaries + bills + other, UTC_TIME])
+    }
+
+
     return 'Успешно внесен расход'
 }
 
@@ -735,7 +788,7 @@ async function getDailyReport(date) {
             SUM(profit) AS "profit", 
             SUM(money_given + money_got) AS "turnover"
         FROM transaction 
-        WHERE DATE(date) = $1 AND (category = 'Electronics' OR category = 'Watch' OR category = 'Gold' OR category = 'Vehicle' OR category = 'Other' OR category = 'Sale');
+        WHERE DATE(date) = $1 AND (category IN ('Electronics', 'Watch', 'Gold', 'Vehicle', 'Other', 'Sale'));
     `, [date]);
 
     // Get the number of transactions from Pawn category
@@ -767,7 +820,7 @@ async function getDailyReport(date) {
                     DATE(t2.date) = $1 
                     AND t2.description = 'Added new pawn'
                     AND t2.category = t1.category
-            ) AS "numNewPawns"
+            ) AS "numNew"
         FROM transaction t1
         WHERE DATE(t1.date) = $1 
         AND t1.category IN ('Electronics', 'Watch', 'Gold', 'Vehicle', 'Other', 'Sale')
@@ -835,7 +888,7 @@ async function getMonthlyReport(year, month) {
         return rows[0]
 }
 
-async function generateNewMonthReport(year, month) {
+async function generateNewMonthReport(year, month){
     const { rows: hasReport } = await pool.query(`SELECT * FROM monthly_report WHERE year = $1::INT AND month = $2::INT`, [year, month])
     if (hasReport.length > 0)
         return {passed: false, message: `Имаш веќе внесено извештај за месец: ${month}-${year}`}
@@ -850,7 +903,7 @@ async function generateNewMonthReport(year, month) {
             SUM(money_got) AS "moneyGot",
             SUM(profit) AS "grossProfit"
         FROM transaction
-        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND (category != 'Remove' AND category != 'Insert');
+        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND (category != 'Remove' AND category != 'Insert' AND category != 'Expense');
     `, [year, month])
 
     const { rows: numNewPawns } = await pool.query(`
@@ -864,7 +917,7 @@ async function generateNewMonthReport(year, month) {
             SUM(money_got)+SUM(profit) AS "moneyPawns",
             SUM(profit) AS "profitPawns"
         FROM transaction 
-        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND (category = 'Electronics' OR category = 'Watch' OR category = 'Gold' OR category = 'Vehicle' OR category = 'Other');
+        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2 AND (category IN ('Electronics', 'Watch', 'Gold', 'Vehicle', 'Other'));
     `, [year, month]);
 
     const { rows: numNewSales } = await pool.query(`

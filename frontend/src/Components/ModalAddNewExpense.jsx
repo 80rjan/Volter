@@ -30,7 +30,7 @@ export default function ModalAddNewExpense({ closeModal, refresh }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         setLoading(true);
-        console.log(formData)
+
         axios.post('http://localhost:3000/expenses/insert', formData)
             .then(res => {
                 if (res.data.message !== 'Успешно внесен расход')
@@ -78,33 +78,33 @@ export default function ModalAddNewExpense({ closeModal, refresh }) {
                                                          required/>
                                         </div>
                                         <div>
-                                            <p>Ќирија</p>
+                                            <p>Кирија</p>
                                             <StyledInput name="rent" onChange={handleInputChange}
                                                          type="number"
-                                                         required/>
+                                                         />
                                         </div>
                                         <div>
                                             <p>Плати</p>
                                             <StyledInput name="salaries" onChange={handleInputChange}
                                                          type="number"
-                                                         required/>
+                                                         />
                                         </div>
                                         <div>
                                             <p>Сметки</p>
                                             <StyledInput name="bills" onChange={handleInputChange}
                                                          type="number"
-                                                         required/>
+                                                         />
                                         </div>
                                         <div>
                                             <p>Друго</p>
                                             <StyledInput name="other" onChange={handleInputChange}
                                                          type="number"
-                                                         required/>
+                                                         />
                                         </div>
                                         <div>
                                             <p>Опис</p>
                                             <StyledInput name="description" onChange={handleInputChange}
-                                                         required/>
+                                                         />
                                         </div>
                                     </ExpenseInputs>
                                 </div>

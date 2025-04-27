@@ -33,6 +33,7 @@ export default function Transactions() {
         "Sale": "Продажба",
         "Insert": "Внес Каса",
         "Remove": "Излез Каса",
+        "Expense": "Расход",
     }
 
     const getDesc = {
