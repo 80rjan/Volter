@@ -43,7 +43,7 @@ const insertPawn = asyncHandler(async (req, res) => {
         case 'electronics_pawn' :
             provision = Number(req.body.provision);
             pricePawned = Number(req.body.price_pawned)
-            priceToRedeem = pricePawned + (pricePawned * (provision / 100));
+            priceToRedeem = pricePawned + provision;
             pawnObj = {
                 brand: req.body.brand,
                 year: req.body.year,
@@ -57,7 +57,7 @@ const insertPawn = asyncHandler(async (req, res) => {
         case 'gold_pawn' :
             provision = Number(req.body.provision)
             pricePawned = Number(req.body.price_pawned);
-            priceToRedeem = pricePawned + (pricePawned * (provision / 100))
+            priceToRedeem = pricePawned + provision;
             pricePerGram = Number(req.body.price_pawned) / Number(req.body.weight);
             pawnObj = {
                 weight: req.body.weight,
@@ -73,7 +73,7 @@ const insertPawn = asyncHandler(async (req, res) => {
         case 'vehicle_pawn' :
             provision = Number(req.body.provision);
             pricePawned = Number(req.body.price_pawned)
-            priceToRedeem = pricePawned + (pricePawned * (provision / 100));
+            priceToRedeem = pricePawned + provision;
             pawnObj = {
                 brand: req.body.brand,
                 model: req.body.model,
@@ -88,7 +88,7 @@ const insertPawn = asyncHandler(async (req, res) => {
         case 'watch_pawn' :
             provision = Number(req.body.provision);
             pricePawned = Number(req.body.price_pawned)
-            priceToRedeem = pricePawned + (pricePawned * (provision / 100));
+            priceToRedeem = pricePawned + provision;
             pawnObj = {
                 brand: req.body.brand,
                 year: req.body.year,
@@ -102,7 +102,7 @@ const insertPawn = asyncHandler(async (req, res) => {
         case 'other_pawn' :
             provision = Number(req.body.provision);
             pricePawned = Number(req.body.price_pawned)
-            priceToRedeem = pricePawned + (pricePawned * (provision / 100));
+            priceToRedeem = pricePawned + provision;
             pawnObj = {
                 price_pawned: pricePawned,
                 price_to_redeem: priceToRedeem,

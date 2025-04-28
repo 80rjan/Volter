@@ -20,7 +20,7 @@ import {
     Watch,
     Tag,
     CircleDollarSign,
-    DollarSign, Landmark, Repeat, Banknote, Sigma, Receipt, Vault
+    DollarSign, Landmark, Repeat, Banknote, Sigma, Receipt, Vault, BanknoteX, BanknoteArrowUp
 } from 'lucide-react';
 
 export default function ModalReadMoreMonthReport({report, closeModal}) {
@@ -37,49 +37,49 @@ export default function ModalReadMoreMonthReport({report, closeModal}) {
                 <ReportWrapper>
                     <MainReports>
                         <Report>
-                            <Handshake size={36} />
+                            <Handshake color="var(--grey)" size={36} />
                             <div>
                                 <h1>{Number(report["Money Given"]).toLocaleString("de-DE")}</h1>
                                 <p>Исплатено</p>
                             </div>
                         </Report>
                         <Report>
-                            <Landmark size={36} />
+                            <Landmark color="var(--grey)" size={36} />
                             <div>
                                 <h1>{Number(report["Money Got"]).toLocaleString("de-DE")}</h1>
                                 <p>Примено</p>
                             </div>
                         </Report>
                         <Report>
-                            <Repeat size={36} />
+                            <Repeat color="var(--grey)" size={36} />
                             <div>
                                 <h1>{Number(report["Total Turnover"]).toLocaleString("de-DE")}</h1>
                                 <p>Обрт</p>
                             </div>
                         </Report>
                         <Report>
-                            <Sigma size={36} />
+                            <Sigma color="var(--grey)" size={36} />
                             <div>
                                 <h1>{(Number(report["Money Got"]) + Number(report["Gross Profit"])).toLocaleString("de-DE")}</h1>
                                 <p>Промет</p>
                             </div>
                         </Report>
                         <Report>
-                            <Receipt size={36} />
+                            <BanknoteArrowUp color="var(--grey)" size={36} />
                             <div>
                                 <h1>{Number(report["Gross Profit"]).toLocaleString("de-DE")}</h1>
                                 <p>Бруто Профит</p>
                             </div>
                         </Report>
                         <Report>
-                            <Receipt size={36} />
+                            <BanknoteX color="var(--grey)" size={36} />
                             <div>
                                 <h1>-{Math.abs(report["Gross Profit"] - report["Net Profit"]).toLocaleString("de-DE")}</h1>
                                 <p>Расходи</p>
                             </div>
                         </Report>
                         <Report>
-                            <Banknote size={36} />
+                            <Banknote color="var(--grey)" size={36} />
                             <div>
                                 <h1>{Number(report["Net Profit"]).toLocaleString("de-DE")}</h1>
                                 <p>Нето Профит</p>

@@ -21,6 +21,7 @@ import DogovorZaZaem from "../Documents/DogovorZaZaem.jsx";
 import DogovorZaRacenZalog from "../Documents/DogovorZaRacenZalog.jsx";
 import Loading from "./Loading.jsx";
 import {parse} from "dotenv";
+import AneksDogovorZaZaem from "../Documents/AneksDogovorZaZaem.jsx";
 
 export default function ModalReadMorePawn({category, pawnInfo, closeModal, closePawn, continuePawn, movePawnToSale, oldPawn, refreshCashReg}) {
     const [modalPrintDocument, setModalPrintDocument] = React.useState(false);
@@ -34,9 +35,11 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
     const [isDownloading, setIsDownloading] = React.useState(false);
     const hiddenDocRefLoan = React.useRef(null);
     const hiddenDocRefPawn = React.useRef(null);
+    const hiddenDocRefAnnexLoan = React.useRef(null);
     const [isEditing, setIsEditing] = React.useState(false);
     const editPawn = React.useRef({pricePawned: pawn.price_pawned, provision: pawn.provision, description: pawn.description, goldGramsDiff: 0 });
     const [isLoading, setIsLoading] = React.useState(false);
+    const [whichDocToPrint, setWhichDocToPrint] = React.useState("insert");
 
     const getCat = {
         "Electronics": "Електроника",
@@ -53,7 +56,7 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
         "Other": <CircleDollarSign size={32}/>
     }
 
-    const handlePrintDoc = async (ref, isLoan) => {
+    const handlePrintDoc = async (ref, isLoan, isAnnex) => {
         setIsDownloading(true);
         const element = ref.current;
         if (!element) return;
@@ -84,7 +87,7 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                 heightLeft -= pageHeight;
             }
 
-            pdf.save(`${isLoan ? "Dogovor_za_zaem" : "Dogovor_za_racen_zalog"}.pdf`);
+            pdf.save(`${isAnnex ? "Aneks_za_dogovor_za_zaem" : isLoan ? "Dogovor_za_zaem" : "Dogovor_za_racen_zalog"}.pdf`);
         } catch (error) {
             console.error(error);
         } finally {
@@ -244,11 +247,38 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                                     pawnInfo={pawnDescription}
                                 />
                             </div>
+                            <div style={{height: "0px", overflowY: "clip"}}>
+                                <AneksDogovorZaZaem
+                                    ref={hiddenDocRefAnnexLoan}
+                                    fullName={client.name}
+                                    city={client.city}
+                                    address={clientAddress}
+                                    embg={client.embg}
+                                    idCard={idCard}
+                                    telephone={client.telephone}
+                                    moneyGiven={pawn.price_pawned}
+                                    moneyGivenStr={moneyStr}
+                                    pawnDays={pawn.total_days}
+                                    pawnDaysStr={daysPawnStr}
+                                    dateFrom={pawn.date_from.substring(0, 10)}
+                                    dateTo={pawn.date_to.substring(0, 10)}
+                                />
+                            </div>
                             <form>
-                                <span>
-                                    Внеси опис на залогот:
-                                    <input onChange={(e) => setPawnDescription(e.target.value)}/>
+                                <span style={{display: "flex", flexDirection: "row", gap: "1rem", alignItems: "center"}}>
+                                    Печати документи за
+                                    <select value={whichDocToPrint} onChange={e => setWhichDocToPrint(e.target.value)}>
+                                        <option value="insert">Внес на залог</option>
+                                        <option value="continue">Продолжување на залог</option>
+                                    </select>
                                 </span>
+                                {
+                                    whichDocToPrint === "insert" ?
+                                        <span>
+                                            Внеси опис на залогот:
+                                            <input onChange={(e) => setPawnDescription(e.target.value)}/>
+                                        </span> : null
+                                }
                                 <span>
                                     Внеси адреса и број на адреса:
                                     <input onChange={(e) => setClientAddress(e.target.value)}/>
@@ -269,13 +299,15 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                                 </span>
                                 <div>
                                     <button onClick={() => setModalPrintDocument(false)} style={{background: "#444"}}>
-                                        <ArrowLeft size={32} /> Врати се назад </button>
+                                        <ArrowLeft size={32}/> Врати се назад
+                                    </button>
                                     <button
                                         type="button"
                                         onClick={() => {
                                             try {
-                                                handlePrintDoc(hiddenDocRefLoan, true);
-                                                handlePrintDoc(hiddenDocRefPawn, false);
+                                                whichDocToPrint === "insert" ?
+                                                    handlePrintDoc(hiddenDocRefLoan, true, false) && handlePrintDoc(hiddenDocRefPawn, false, false) :
+                                                    handlePrintDoc(hiddenDocRefAnnexLoan, false, true)
                                             } catch (error) {
                                                 console.error("Error downloading pdf: " + error);
                                             }
@@ -317,10 +349,6 @@ const renderElectronicsOrWatch = (pawn, isEditing, editPawn) => {
                 }
             </span>
             <span>
-                <p>Месечна исплата:</p>
-                <p>{(Number(pawn.price_to_redeem) - Number(pawn.price_pawned)).toLocaleString("de-DE")}</p>
-            </span>
-            <span>
                 <p>Вредност на залогот:</p>
                 {
                     isEditing ?
@@ -331,22 +359,26 @@ const renderElectronicsOrWatch = (pawn, isEditing, editPawn) => {
                 }
             </span>
             <span>
-                <p>Цена за подигање:</p>
-                <p>{Number(pawn.price_to_redeem).toLocaleString("de-DE")}</p>
-            </span>
-            <span>
-                <p>Провизија:</p>
+                <p>Рата за продолжување:</p>
                 {
                     isEditing ?
                         <input type="number" step="0.001" defaultValue={pawn.provision}
                                onChange={e => editPawn.current.provision = e.target.value}/>
                         :
-                        <p>{Number(pawn.provision).toLocaleString("de-DE")}%</p>
+                        <p>{Number(pawn.provision).toLocaleString("de-DE")}</p>
                 }
             </span>
             <span>
+                <p>Цена за подигање:</p>
+                <p>{Number(pawn.price_to_redeem).toLocaleString("de-DE")}</p>
+            </span>
+            <span>
+                <p>Провизија:</p>
+                <p>{(Math.round((pawn.provision / pawn.price_pawned * 100) * 100) / 100).toLocaleString("de-DE")}</p>
+            </span>
+            <span>
                 <p>Дневна провизија:</p>
-                <p>{Number(Math.round(pawn.provision / pawn.total_days * 100) / 100).toLocaleString("de-DE")}%</p>
+                <p>{(Math.round((pawn.provision / pawn.price_pawned * 100) / pawn.total_days * 100) / 100).toLocaleString("de-DE")}%</p>
             </span>
             <span>
                 <p>Денови валидно:</p>
@@ -407,10 +439,6 @@ const renderGold = (pawn, isEditing, editPawn) => {
                 <p>{Number(Math.round( pawn.price_pawned / pawn.weight)).toLocaleString("de-DE")}</p>
             </span>
             <span>
-                <p>Месечна исплата:</p>
-                <p>{(Number(pawn.price_to_redeem) - Number(pawn.price_pawned)).toLocaleString("de-DE")}</p>
-            </span>
-            <span>
                 <p>Вредност на залогот:</p>
                 {
                     isEditing ?
@@ -421,22 +449,26 @@ const renderGold = (pawn, isEditing, editPawn) => {
                 }
             </span>
             <span>
-                <p>Цена за подигање:</p>
-                <p>{Number(pawn.price_to_redeem).toLocaleString("de-DE")}</p>
-            </span>
-            <span>
-                <p>Провизија:</p>
+                <p>Рата за продолжување:</p>
                 {
                     isEditing ?
                         <input type="number" step="0.001" defaultValue={pawn.provision}
                                onChange={e => editPawn.current.provision = e.target.value}/>
                         :
-                        <p>{Number(pawn.provision).toLocaleString("de-DE")}%</p>
+                        <p>{Number(pawn.provision).toLocaleString("de-DE")}</p>
                 }
             </span>
             <span>
+                <p>Цена за подигање:</p>
+                <p>{Number(pawn.price_to_redeem).toLocaleString("de-DE")}</p>
+            </span>
+            <span>
+                <p>Провизија:</p>
+                <p>{(Math.round((pawn.provision / pawn.price_pawned * 100) * 100) / 100).toLocaleString("de-DE")}%</p>
+            </span>
+            <span>
                 <p>Дневна провизија:</p>
-                <p>{Number(Math.round(pawn.provision / pawn.total_days * 100) / 100).toLocaleString("de-DE")}%</p>
+                <p>{(Math.round((pawn.provision / pawn.price_pawned * 100) / pawn.total_days * 100) / 100).toLocaleString("de-DE")}%</p>
             </span>
             <span>
                 <p>Денови валидно:</p>
@@ -487,10 +519,6 @@ const renderVehicle = (pawn, isEditing, editPawn) => {
                 }
             </span>
             <span>
-                <p>Месечна исплата:</p>
-                <p>{(Number(pawn.price_to_redeem) - Number(pawn.price_pawned)).toLocaleString("de-DE")}</p>
-            </span>
-            <span>
                 <p>Вредност на залогот:</p>
                 {
                     isEditing ?
@@ -501,22 +529,26 @@ const renderVehicle = (pawn, isEditing, editPawn) => {
                 }
             </span>
             <span>
-                <p>Цена за подигање:</p>
-                <p>{Number(pawn.price_to_redeem).toLocaleString("de-DE")}</p>
-            </span>
-            <span>
-                <p>Провизија:</p>
+                <p>Рата за продолжување:</p>
                 {
                     isEditing ?
                         <input type="number" step="0.001" defaultValue={pawn.provision}
                                onChange={e => editPawn.current.provision = e.target.value}/>
                         :
-                        <p>{Number(pawn.provision).toLocaleString("de-DE")}%</p>
+                        <p>{Number(pawn.provision).toLocaleString("de-DE")}</p>
                 }
             </span>
             <span>
+                <p>Цена за подигање:</p>
+                <p>{Number(pawn.price_to_redeem).toLocaleString("de-DE")}</p>
+            </span>
+            <span>
+                <p>Провизија:</p>
+                <p>{(Math.round((pawn.provision / pawn.price_pawned * 100) * 100) / 100).toLocaleString("de-DE")}%</p>
+            </span>
+            <span>
                 <p>Дневна провизија:</p>
-                <p>{Number(Math.round(pawn.provision / pawn.total_days * 100) / 100).toLocaleString("de-DE")}%</p>
+                <p>{(Math.round((pawn.provision / pawn.price_pawned * 100) / pawn.total_days * 100) / 100).toLocaleString("de-DE")}%</p>
             </span>
             <span>
                 <p>Денови валидно:</p>
@@ -555,10 +587,6 @@ const renderOther = (pawn, isEditing, editPawn) => {
                 }
             </span>
             <span>
-                <p>Месечна исплата:</p>
-                <p>{(Number(pawn.price_to_redeem) - Number(pawn.price_pawned)).toLocaleString("de-DE")}</p>
-            </span>
-            <span>
                 <p>Вредност на залогот:</p>
                 {
                     isEditing ?
@@ -569,22 +597,26 @@ const renderOther = (pawn, isEditing, editPawn) => {
                 }
             </span>
             <span>
-                <p>Цена за подигање:</p>
-                <p>{Number(pawn.price_to_redeem).toLocaleString("de-DE")}</p>
-            </span>
-            <span>
-                <p>Провизија:</p>
+                <p>Рата за продолжување:</p>
                 {
                     isEditing ?
                         <input type="number" step="0.001" defaultValue={pawn.provision}
                                onChange={e => editPawn.current.provision = e.target.value}/>
                         :
-                        <p>{Number(pawn.provision).toLocaleString("de-DE")}%</p>
+                        <p>{Number(pawn.provision).toLocaleString("de-DE")}</p>
                 }
             </span>
             <span>
+                <p>Цена за подигање:</p>
+                <p>{Number(pawn.price_to_redeem).toLocaleString("de-DE")}</p>
+            </span>
+            <span>
+                <p>Провизија:</p>
+                <p>{(Math.round((pawn.provision / pawn.price_pawned * 100) * 100) / 100).toLocaleString("de-DE")}%</p>
+            </span>
+            <span>
                 <p>Дневна провизија:</p>
-                <p>{Number(Math.round(pawn.provision / pawn.total_days * 100) / 100).toLocaleString("de-DE")}%</p>
+                <p>{(Math.round((pawn.provision / pawn.price_pawned * 100) / pawn.total_days * 100) / 100).toLocaleString("de-DE")}%</p>
             </span>
             <span>
                 <p>Денови валидно:</p>
@@ -652,6 +684,14 @@ const Wrapper = styled.div`
             flex-direction: column;
             gap: .2rem;
             font-size: 1.2rem;
+        }
+        
+        & select {
+            padding: .4rem;
+            font-size: 1rem;
+            border: 2px solid var(--green);
+            border-radius: 4px;
+            background: white;
         }
         
         & input {

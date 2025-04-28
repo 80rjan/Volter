@@ -26,8 +26,6 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
     }
 
     const continuePawn = (id, category, provision, description, carryOverDays) => {
-        console.log(carryOverDays)
-
         setLoading(true);
         //Find the name of the table based on the category
         const tableName = {
@@ -153,7 +151,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
                     closeModal={() => setModalClosePawn(false)}
                     priceBought={Number(pawn["Item Cost"])}
                     provision={Number(pawn.Provision)}
-                    dailyProvision={Math.abs(Number(pawn.Provision) / Number(pawn["Total Days"]))}
+                    dailyProvision={Math.abs(Math.round(pawn.Provision) / Number(pawn["Total Days"]))}
                     suggestedPrice={Number(pawn["Item Cost"]) + Number(pawn.Provision)}
                     daysLeft={Number(pawn["Days Left"])}
                     title={"Со кој износ е затворен залогот?"}
@@ -171,7 +169,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
                     closeModal={() => setModalContinuePawn(false)}
                     priceBought={Number(pawn["Item Cost"])}
                     provision={Number(pawn.Provision)}
-                    dailyProvision={Math.abs(Number(pawn.Provision) / Number(pawn["Total Days"]))}
+                    dailyProvision={Math.abs(Math.round(pawn.Provision) / Number(pawn["Total Days"]))}
                     suggestedPrice={Number(pawn.Provision)}
                     daysLeft={Number(pawn["Days Left"])}
                     title={"Со кој износ е продолжен залогот?"}

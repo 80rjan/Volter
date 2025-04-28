@@ -10,7 +10,7 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
         ep.brand || ' ' || ep.year || ' ' || ep.description AS "About", 
         to_char(ep.date_to, 'YYYY-MM-DD') AS "Valid Until", 
         ep.date_to - CURRENT_DATE AS "Days Left",  
-        ep.price_pawned * (ep.provision / 100) AS "Provision", 
+        ep.provision AS "Provision", 
         ep.price_pawned AS "Item Cost",
         ep.total_days AS "Total Days"
     FROM client c
@@ -28,7 +28,7 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
         gp.weight::FLOAT::TEXT || 'g ' || gp.carats || 'k ' || gp.type || ' ' || gp.description AS "About", 
         to_char(gp.date_to, 'YYYY-MM-DD') AS "Valid Until", 
         gp.date_to - CURRENT_DATE AS "Days Left", 
-        gp.price_pawned * (gp.provision / 100) AS "Provision", 
+        gp.provision AS "Provision", 
         gp.price_pawned AS "Item Cost",
         gp.total_days AS "Total Days"
     FROM client c
@@ -46,7 +46,7 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
         op.description AS "About", 
         to_char(op.date_to, 'YYYY-MM-DD') AS "Valid Until", 
         op.date_to - CURRENT_DATE AS "Days Left", 
-        op.price_pawned * (op.provision / 100) AS "Provision", 
+        op.provision AS "Provision", 
         op.price_pawned AS "Item Cost",
         op.total_days AS "Total Days"
     FROM client c
@@ -64,7 +64,7 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
         vp.brand || ' ' || vp.model || ' ' || vp.year || ' ' || vp.description AS "About", 
         to_char(vp.date_to, 'YYYY-MM-DD') AS "Valid Until", 
         vp.date_to - CURRENT_DATE AS "Days Left",
-        vp.price_pawned * (vp.provision / 100) AS "Provision", 
+        vp.provision AS "Provision", 
         vp.price_pawned AS "Item Cost",
         vp.total_days AS "Total Days"
     FROM client c
@@ -82,7 +82,7 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
         wp.brand || ' ' || wp.year || ', ' || wp.description AS "About", 
         to_char(wp.date_to, 'YYYY-MM-DD') AS "Valid Until", 
         wp.date_to - CURRENT_DATE AS "Days Left",
-        wp.price_pawned * (wp.provision / 100) AS "Provision", 
+        wp.provision AS "Provision", 
         wp.price_pawned AS "Item Cost",
         wp.total_days AS "Total Days"
     FROM client c
@@ -160,15 +160,11 @@ async function closePawn(id, tableName, priceClosed, description) {
     `, [clientId, transactionCategory, transactionDescription, pawnMoney, priceClosed-pawnMoney, UTC_TIME])
 
 
-    //Update cash register with money inserted, decrease numPawns, decrease moneyPawns, update quantity of gold in grams and update average provision for pawns
+    //Update cash register with money inserted, decrease numPawns, decrease moneyPawns, update quantity of gold in grams and update total provision for pawns
     await pool.query(`
         UPDATE cash_register 
         SET
-            average_provision = 
-                CASE 
-                    WHEN num_pawns > 1 THEN (average_provision * num_pawns - $4) / (num_pawns - 1)
-                    ELSE 0
-                END,
+            total_provision = total_provision - $4,
             num_pawns = num_pawns - 1,
             money_pawns = money_pawns - $1,
             register_money = register_money + $2,
@@ -303,11 +299,11 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
     const now = new Date();
 // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
     const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
-    //Update cash register with money taken, increase numPawns, increase moneyPawns, update quantity of gold in grams and update average provision for pawns
+    //Update cash register with money taken, increase numPawns, increase moneyPawns, update quantity of gold in grams and update total provision for pawns
     await pool.query(`
         UPDATE cash_register 
         SET
-            average_provision = (average_provision * num_pawns + $3) / (num_pawns + 1),
+            total_provision = total_provision + $3,
             num_pawns = num_pawns + 1,
             money_pawns = money_pawns + $1,
             register_money = register_money - $1,
@@ -327,7 +323,7 @@ async function updatePawn(pawnTable, pawnId, pricePawned, provision, description
     }
     const clientId = oldPawn[0].client_id;
     const oldPrice = parseInt(oldPawn[0].price_pawned);
-    const oldProvision = parseFloat(oldPawn[0].provision)
+    const oldProvision = parseInt(oldPawn[0].provision)
     let category = ''
     switch (pawnTable) {
         case "electronics_pawn": category = "Electronics";break;
@@ -342,15 +338,15 @@ async function updatePawn(pawnTable, pawnId, pricePawned, provision, description
     if (oldPrice !== pricePawned)
         s += `Цена: ${oldPrice} во ${pricePawned}. `
     if (oldProvision !== provision)
-        s += `Процент: ${oldProvision}% во ${provision}%. `
+        s += `Месечна провизија: ${oldProvision} во ${provision}. `
     if (goldGramsDiff !== 0)
         s += `Злато додадено: ${Number(goldGramsDiff).toLocaleString("de-DE")}гр. `
 
     let query = `
         UPDATE ${pawnTable}
         SET price_pawned = CAST($2 AS NUMERIC), 
-            price_to_redeem = CAST($2 AS NUMERIC) + (CAST($2 AS NUMERIC) * CAST($3 AS REAL) / 100), 
-            provision = CAST($3 AS REAL), 
+            price_to_redeem = CAST($2 AS NUMERIC) + CAST($3 AS NUMERIC), 
+            provision = CAST($3 AS NUMERIC), 
             description = $4
     `;
     const params = [pawnId, pricePawned, provision, description];
@@ -392,7 +388,7 @@ async function updatePawn(pawnTable, pawnId, pricePawned, provision, description
         SET
             register_money = register_money - $1,
             money_pawns = money_pawns + $1,
-            average_provision = (average_provision * num_pawns + $2) / num_pawns,
+            total_provision = total_provision + $2,
             gold_grams = gold_grams + $3,
             last_updated = $4;
     `, [pricePawned - oldPrice, provision-oldProvision, goldGramsDiff, UTC_TIME])
@@ -479,15 +475,11 @@ async function changePawnToSale(id, pawnCategory) {
         VALUES ($1, $2, $3, 0, 0, 0, $4);
     `, [clientId, transactionCategory, transactionDescription, UTC_TIME])
 
-    //Update cash register with decrease numPawns, decrease moneyPawns, increase numSales, increase moneySales, update quantity of gold in grams and update average provision for pawns
+    //Update cash register with decrease numPawns, decrease moneyPawns, increase numSales, increase moneySales, update quantity of gold in grams and update total provision for pawns
     await pool.query(`
         UPDATE cash_register 
         SET
-            average_provision = 
-                CASE 
-                    WHEN num_pawns > 1 THEN (average_provision * num_pawns - $3) / (num_pawns - 1)
-                    ELSE 0
-                END,
+            total_provision = total_provision - $3,
             num_pawns = num_pawns - 1,
             money_pawns = money_pawns - $1,
             num_sale_items = num_sale_items + 1,
@@ -837,6 +829,15 @@ async function getDailyReport(date) {
 }
 
 async function getAllMonthlyReports(limit, offset, orderBy, orderDirection, searchByMonth = "", searchByYear = "") {
+    const decodedOrderBy = decodeURIComponent(orderBy);
+    let orderByClause;
+
+    if (/^[a-zA-Z_][a-zA-Z0-9_ ]*$/.test(decodedOrderBy)) {
+        orderByClause = `"${decodedOrderBy}"`;  // safe to wrap in quotes
+    } else {
+        orderByClause = decodedOrderBy; // assume it's an expression, no quotes
+    }
+
     const { rows } = await pool.query(`
     SELECT 
         m.year AS "Year",
@@ -869,7 +870,7 @@ async function getAllMonthlyReports(limit, offset, orderBy, orderDirection, sear
         m.profit_sales AS "Profit Sales"
     FROM monthly_report m
     WHERE ($1 = '' OR m.year = $1::INT) AND ($2 = '' OR m.month = $2::INT)
-    ORDER BY "${orderBy}" ${orderDirection}
+    ORDER BY ${orderByClause} ${orderDirection}
     LIMIT ${limit} OFFSET ${offset};
     `, [searchByYear, searchByMonth])
 

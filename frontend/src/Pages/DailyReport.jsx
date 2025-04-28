@@ -36,7 +36,6 @@ export default function DailyReport() {
                         <DateInput
                             type="date"
                             value={date}
-                            max={new Date().toISOString().split("T")[0]}
                             onChange={(e) => setDate(e.target.value)}
                         />
                         <ButtonGetReport

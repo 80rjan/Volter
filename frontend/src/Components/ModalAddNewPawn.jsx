@@ -17,7 +17,8 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
         model: '',
         year: '',
         price_pawned: '',
-        provision: '',
+        provision: 0,
+        provisionPercent: 0,
         total_days: '',
         description: '',
         weight: '',
@@ -35,11 +36,11 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
 
     const renderCategoryInputs = () => {
         switch (formData.category) {
-            case "electronics_pawn": return <ElectronicsInputs handleInputChange={handleInputChange} date={formData.date}/>;
-            case "gold_pawn": return <GoldInputs handleInputChange={handleInputChange} date={formData.date}/>;
-            case "vehicle_pawn": return <VehicleInputs handleInputChange={handleInputChange} date={formData.date}/>;
-            case "watch_pawn": return <WatchInputs handleInputChange={handleInputChange} date={formData.date}/>;
-            case "other_pawn": return <OtherInputs handleInputChange={handleInputChange} date={formData.date}/>;
+            case "electronics_pawn": return <ElectronicsInputs handleInputChange={handleInputChange} date={formData.date} formData={formData}/>;
+            case "gold_pawn": return <GoldInputs handleInputChange={handleInputChange} date={formData.date} formData={formData}/>;
+            case "vehicle_pawn": return <VehicleInputs handleInputChange={handleInputChange} date={formData.date} formData={formData}/>;
+            case "watch_pawn": return <WatchInputs handleInputChange={handleInputChange} date={formData.date} formData={formData}/>;
+            case "other_pawn": return <OtherInputs handleInputChange={handleInputChange} date={formData.date} formData={formData}/>;
         }
     };
 
@@ -55,8 +56,7 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
         }
     };
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
+    const handleInputChange = (name, value) => {
         setFormData((prev) => ({
             ...prev,
             [name]: value,
@@ -204,7 +204,7 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
                                 </ClientInputs>
                                 <PawnInputs>
                                     <span style={{width: "max-content"}}><Database size={20}/> Внеси Податоци за Предметот</span>
-                                    <select name="category" value={formData.category} onChange={handleInputChange}>
+                                    <select name="category" value={formData.category} onChange={e => handleInputChange(e.target.name, e.target.value)}>
                                         <option value="electronics_pawn">Електроника</option>
                                         <option value="gold_pawn">Злато</option>
                                         <option value="vehicle_pawn">Возила</option>
@@ -226,180 +226,248 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
     );
 }
 
-function ElectronicsInputs({ handleInputChange, date }) {
+function ElectronicsInputs({ handleInputChange, formData, date }) {
     return (
         <>
             <div>
                 <p>Бренд</p>
-                <StyledInput name="brand" onChange={handleInputChange} required/>
+                <StyledInput name="brand" onChange={e => handleInputChange(e.target.name, e.target.value)} required/>
             </div>
             <div>
                 <p>Година</p>
-                <StyledInput name="year" onChange={handleInputChange} type="number" required/>
+                <StyledInput name="year" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" required/>
             </div>
             <div>
                 <p>Вредност на залогот</p>
-                <StyledInput name="price_pawned" onChange={handleInputChange} type="number" required/>
+                <StyledInput name="price_pawned" onChange={e => {
+                    handleInputChange(e.target.name, e.target.value)
+                    handleInputChange('provisionPercent', Math.round((formData.provision /  e.target.value * 100) * 100) / 100)
+                }} type="number" required/>
             </div>
             <div>
                 <p>Провизија</p>
-                <StyledInput name="provision" onChange={handleInputChange} type="number" step="0.001" required/>
+                <div>
+                    <span><StyledInput name="provision" value={formData.provision || ''} onChange={e => {
+                        handleInputChange(e.target.name, e.target.value)
+                        handleInputChange('provisionPercent', Math.round((e.target.value / formData.price_pawned * 100) * 100) / 100)
+                    }} type="number" required/>ден</span>
+                    <span><StyledInput name="provisionPercent" value={formData.provisionPercent || ''} onChange={e => {
+                        handleInputChange(e.target.name, e.target.value)
+                        handleInputChange('provision', Math.round(e.target.value / 100 * formData.price_pawned))
+                    }} type="number" step="0.001" required/>%</span>
+                </div>
             </div>
             <div>
                 <p>Валидност во денови</p>
-                <StyledInput name="total_days" onChange={handleInputChange} type="number" required/>
+                <StyledInput name="total_days" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" required/>
             </div>
             <div>
                 <p>Опис</p>
-                <StyledInput name="description" onChange={handleInputChange} required/>
+                <StyledInput name="description" onChange={e => handleInputChange(e.target.name, e.target.value)} required/>
             </div>
             <div>
                 <p>Заложено на</p>
-                <StyledInput type="date" value={date} max={new Date().toISOString().split("T")[0]} name="date" onChange={handleInputChange} required/>
+                <StyledInput type="date" value={date} name="date" onChange={e => handleInputChange(e.target.name, e.target.value)} required/>
             </div>
         </>
     );
 }
 
-function GoldInputs({ handleInputChange, date }) {
+function GoldInputs({ handleInputChange, formData, date }) {
     return (
         <>
             <div>
                 <p>Тежина</p>
-                <StyledInput name="weight" onChange={handleInputChange} type="number" step="0.001" required/>
+                <StyledInput name="weight" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" step="0.001" required/>
             </div>
             <div>
                 <p>Каратажа</p>
-                <StyledInput name="carats" onChange={handleInputChange} type="number" required/>
+                <StyledInput name="carats" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" required/>
             </div>
             <div>
                 <p>Тип на злато</p>
-                <StyledInput name="type" onChange={handleInputChange} required/>
+                <StyledInput name="type" onChange={e => handleInputChange(e.target.name, e.target.value)} required/>
             </div>
             <div>
                 <p>Вредност на залогот</p>
-                <StyledInput name="price_pawned" onChange={handleInputChange} type="number" required/>
+                <StyledInput name="price_pawned" onChange={e => {
+                    handleInputChange(e.target.name, e.target.value)
+                    handleInputChange('provisionPercent', Math.round((formData.provision /  e.target.value * 100) * 100) / 100)
+                }} type="number" required/>
             </div>
             <div>
                 <p>Провизија</p>
-                <StyledInput name="provision" onChange={handleInputChange} type="number" step="0.001" required/>
+                <div>
+                    <span><StyledInput name="provision" value={formData.provision} onChange={e => {
+                        handleInputChange(e.target.name, e.target.value)
+                        handleInputChange('provisionPercent', Math.round((e.target.value / formData.price_pawned * 100) * 100) / 100)
+                    }} type="number" required/>ден</span>
+                    <span><StyledInput name="provisionPercent" value={formData.provisionPercent} onChange={e => {
+                        handleInputChange(e.target.name, e.target.value)
+                        handleInputChange('provision', Math.round(e.target.value / 100 * formData.price_pawned))
+                    }} type="number" step="0.001" required/>%</span>
+                </div>
             </div>
             <div>
                 <p>Валидност во денови</p>
-                <StyledInput name="total_days" onChange={handleInputChange} type="number" required/>
+                <StyledInput name="total_days" onChange={e => handleInputChange(e.target.name, e.target.value)}
+                             type="number" required/>
             </div>
             <div>
                 <p>Опис</p>
-                <StyledInput name="description" onChange={handleInputChange} required/>
+                <StyledInput name="description" onChange={e => handleInputChange(e.target.name, e.target.value)}
+                             required/>
             </div>
             <div>
                 <p>Заложено на</p>
-                <StyledInput type="date" value={date} max={new Date().toISOString().split("T")[0]} name="date"
-                             onChange={handleInputChange} required/>
+                <StyledInput type="date" value={date} name="date"
+                             onChange={e => handleInputChange(e.target.name, e.target.value)} required/>
             </div>
         </>
     );
 }
 
-function VehicleInputs({ handleInputChange, date }) {
+function VehicleInputs({handleInputChange, formData, date}) {
     return (
         <>
             <div>
-                <p>Бренд</p>
-                <StyledInput name="brand" onChange={handleInputChange} required/>
+            <p>Бренд</p>
+                <StyledInput name="brand" onChange={e => handleInputChange(e.target.name, e.target.value)} required/>
             </div>
             <div>
                 <p>Модел</p>
-                <StyledInput name="model" onChange={handleInputChange} required/>
+                <StyledInput name="model" onChange={e => handleInputChange(e.target.name, e.target.value)} required/>
             </div>
             <div>
                 <p>Година</p>
-                <StyledInput name="year" onChange={handleInputChange} type="number" required/>
+                <StyledInput name="year" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" required/>
             </div>
             <div>
                 <p>Вредност на залогот</p>
-                <StyledInput name="price_pawned" onChange={handleInputChange} type="number" required/>
+                <StyledInput name="price_pawned" onChange={e => {
+                    handleInputChange(e.target.name, e.target.value)
+                    handleInputChange('provisionPercent', Math.round((formData.provision /  e.target.value * 100) * 100) / 100)
+                }} type="number" required/>
             </div>
             <div>
                 <p>Провизија</p>
-                <StyledInput name="provision" onChange={handleInputChange} type="number" step="0.001" required/>
+                <div>
+                    <span><StyledInput name="provision" value={formData.provision} onChange={e => {
+                        handleInputChange(e.target.name, e.target.value)
+                        handleInputChange('provisionPercent', Math.round((e.target.value / formData.price_pawned * 100) * 100) / 100)
+                    }} type="number" required/>ден</span>
+                    <span><StyledInput name="provisionPercent" value={formData.provisionPercent} onChange={e => {
+                        handleInputChange(e.target.name, e.target.value)
+                        handleInputChange('provision', Math.round(e.target.value / 100 * formData.price_pawned))
+                    }} type="number" step="0.001" required/>%</span>
+                </div>
             </div>
             <div>
                 <p>Валидност во денови</p>
-                <StyledInput name="total_days" onChange={handleInputChange} type="number" required/>
+                <StyledInput name="total_days" onChange={e => handleInputChange(e.target.name, e.target.value)}
+                             type="number" required/>
             </div>
             <div>
                 <p>Опис</p>
-                <StyledInput name="description" onChange={handleInputChange} required/>
+                <StyledInput name="description" onChange={e => handleInputChange(e.target.name, e.target.value)}
+                             required/>
             </div>
             <div>
                 <p>Заложено на</p>
-                <StyledInput type="date" value={date} max={new Date().toISOString().split("T")[0]} name="date"
-                             onChange={handleInputChange} required/>
+                <StyledInput type="date" value={date} name="date"
+                             onChange={e => handleInputChange(e.target.name, e.target.value)} required/>
             </div>
         </>
     );
 }
 
-function WatchInputs({ handleInputChange, date }) {
+function WatchInputs({handleInputChange, formData, date}) {
     return (
         <>
             <div>
-                <p>Бренд</p>
-                <StyledInput name="brand" onChange={handleInputChange} required/>
+            <p>Бренд</p>
+                <StyledInput name="brand" onChange={e => handleInputChange(e.target.name, e.target.value)} required/>
             </div>
             <div>
                 <p>Година</p>
-                <StyledInput name="year" onChange={handleInputChange} type="number" required/>
+                <StyledInput name="year" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" required/>
             </div>
             <div>
                 <p>Вредност на залогот</p>
-                <StyledInput name="price_pawned" onChange={handleInputChange} type="number" required/>
+                <StyledInput name="price_pawned" onChange={e => {
+                    handleInputChange(e.target.name, e.target.value)
+                    handleInputChange('provisionPercent', Math.round((formData.provision /  e.target.value * 100) * 100) / 100)
+                }} type="number" required/>
             </div>
             <div>
                 <p>Провизија</p>
-                <StyledInput name="provision" onChange={handleInputChange} type="number" step="0.001" required/>
+                <div>
+                    <span><StyledInput name="provision" value={formData.provision} onChange={e => {
+                        handleInputChange(e.target.name, e.target.value)
+                        handleInputChange('provisionPercent', Math.round((e.target.value / formData.price_pawned * 100) * 100) / 100)
+                    }} type="number" required/>ден</span>
+                    <span><StyledInput name="provisionPercent" value={formData.provisionPercent} onChange={e => {
+                        handleInputChange(e.target.name, e.target.value)
+                        handleInputChange('provision', Math.round(e.target.value / 100 * formData.price_pawned))
+                    }} type="number" step="0.001" required/>%</span>
+                </div>
             </div>
             <div>
                 <p>Валидност во денови</p>
-                <StyledInput name="total_days" onChange={handleInputChange} type="number" required/>
+                <StyledInput name="total_days" onChange={e => handleInputChange(e.target.name, e.target.value)}
+                             type="number" required/>
             </div>
             <div>
                 <p>Опис</p>
-                <StyledInput name="description" onChange={handleInputChange} required/>
+                <StyledInput name="description" onChange={e => handleInputChange(e.target.name, e.target.value)}
+                             required/>
             </div>
             <div>
                 <p>Заложено на</p>
-                <StyledInput type="date" value={date} max={new Date().toISOString().split("T")[0]} name="date"
-                             onChange={handleInputChange} required/>
+                <StyledInput type="date" value={date} name="date"
+                             onChange={e => handleInputChange(e.target.name, e.target.value)} required/>
             </div>
         </>
     );
 }
 
-function OtherInputs({ handleInputChange, date }) {
+function OtherInputs({handleInputChange, formData, date}) {
     return (
         <>
             <div>
-                <p>Вредност на залогот</p>
-                <StyledInput name="price_pawned" onChange={handleInputChange} type="number" required/>
+            <p>Вредност на залогот</p>
+                <StyledInput name="price_pawned" onChange={e => {
+                    handleInputChange(e.target.name, e.target.value)
+                    handleInputChange('provisionPercent', Math.round((formData.provision /  e.target.value * 100) * 100) / 100)
+                }} type="number" required/>
             </div>
             <div>
                 <p>Провизија</p>
-                <StyledInput name="provision" onChange={handleInputChange} type="number" step="0.001" required/>
+                <div>
+                    <span><StyledInput name="provision" value={formData.provision} onChange={e => {
+                        handleInputChange(e.target.name, e.target.value)
+                        handleInputChange('provisionPercent', Math.round((e.target.value / formData.price_pawned * 100) * 100) / 100)
+                    }} type="number" required/>ден</span>
+                    <span><StyledInput name="provisionPercent" value={formData.provisionPercent} onChange={e => {
+                        handleInputChange(e.target.name, e.target.value)
+                        handleInputChange('provision', Math.round(e.target.value / 100 * formData.price_pawned))
+                    }} type="number" step="0.001" required/>%</span>
+                </div>
             </div>
             <div>
                 <p>Валидност во денови</p>
-                <StyledInput name="total_days" onChange={handleInputChange} type="number" required/>
+                <StyledInput name="total_days" onChange={e => handleInputChange(e.target.name, e.target.value)}
+                             type="number" required/>
             </div>
             <div>
                 <p>Опис</p>
-                <StyledInput name="description" onChange={handleInputChange} required/>
+                <StyledInput name="description" onChange={e => handleInputChange(e.target.name, e.target.value)}
+                             required/>
             </div>
             <div>
                 <p>Заложено на</p>
-                <StyledInput type="date" value={date} max={new Date().toISOString().split("T")[0]} name="date"
-                             onChange={handleInputChange} required/>
+                <StyledInput type="date" value={date} name="date"
+                             onChange={e => handleInputChange(e.target.name, e.target.value)} required/>
             </div>
         </>
     );
@@ -512,6 +580,20 @@ const PawnInputs = styled.div`
             margin-left: -0.4rem;
             color: #666;
         }
+
+        & > div {
+            display: flex;
+            gap: .4rem; 
+            align-items: flex-end; 
+            width: 100%;
+            
+            & > span {
+                color: #666;
+                & > input {
+                    width: 50%;
+                }
+            }
+        } 
     }
 `;
 

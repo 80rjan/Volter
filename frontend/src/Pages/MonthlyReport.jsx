@@ -9,7 +9,7 @@ import ModalReadMoreMonthReport from "../Components/ModalReadMoreMonthReport.jsx
 
 export default function MonthlyReport() {
     const [allReports, setAllReports] = useState([]);
-    const [orderBy, setOrderBy] = useState("Year");
+    const [orderBy, setOrderBy] = useState("Year * 100 %2B Month");
     const orderDirectionArr = useRef([-1,0,0,0,0,0,0,0]); // -1=desc 0=normal 1=asc
     const [orderDirection, setOrderDirection] = useState("DESC");
     const [searchByMonth, setSearchByMonth] = useState("");
@@ -161,28 +161,28 @@ export default function MonthlyReport() {
 
                 <ReportsWrapper>
                     <TableHeader >
-                        <Text onClick={() => handleOrder("Year", 0)}>
+                        <Text onClick={() => handleOrder("Year * 100 %2B Month", 0)}>
                             Година {orderDirectionArr.current[0] === 0 ? <Minus size={14} /> : orderDirectionArr.current[0] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Month", 1)}>
                             Месец {orderDirectionArr.current[1] === 0 ? <Minus size={14} /> : orderDirectionArr.current[1] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
-                        <Text onClick={() => handleOrder("Money Given", 2)}>
+                        <Text onClick={() => handleOrder("Money+Given", 2)}>
                             Исплатени Средства {orderDirectionArr.current[2] === 0 ? <Minus size={14} /> : orderDirectionArr.current[2] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
-                        <Text onClick={() => handleOrder("Net Profit", 3)}>
+                        <Text onClick={() => handleOrder("Net+Profit", 3)}>
                             Нето Профит {orderDirectionArr.current[3] === 0 ? <Minus size={14} /> : orderDirectionArr.current[3] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
-                        <Text onClick={() => handleOrder("Total Pawns", 4)}>
+                        <Text onClick={() => handleOrder("Total+Pawns", 4)}>
                             Вкупно Залози {orderDirectionArr.current[4] === 0 ? <Minus size={14} /> : orderDirectionArr.current[4] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
-                        <Text onClick={() => handleOrder("Profit Pawns", 5)}>
+                        <Text onClick={() => handleOrder("Profit+Pawns", 5)}>
                             Профит Залози {orderDirectionArr.current[5] === 0 ? <Minus size={14} /> : orderDirectionArr.current[5] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
-                        <Text onClick={() => handleOrder("Total Sales", 6)}>
+                        <Text onClick={() => handleOrder("Total+Sales", 6)}>
                             Вкупно Продажби {orderDirectionArr.current[6] === 0 ? <Minus size={14} /> : orderDirectionArr.current[6] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
-                        <Text onClick={() => handleOrder("Profit Sales", 7)}>
+                        <Text onClick={() => handleOrder("Profit+Sales", 7)}>
                             Профит Продажби {orderDirectionArr.current[7] === 0 ? <Minus size={14} /> : orderDirectionArr.current[7] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text style={{cursor: "default"}}>Повеќе</Text>
