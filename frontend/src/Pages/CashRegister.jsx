@@ -43,7 +43,7 @@ export default function CashRegister({ refreshDependancy, refreshDependancyAdjus
                 {
                     loading ? <Loading width={30} height={30}/> :
                         <>
-                            <Value className="bold">{(Math.round(cashReg.total_provision / cashReg.money_pawns * 100 * 100) / 100).toLocaleString("de-DE")}</Value>
+                            <Value className="bold">{(Math.round(cashReg.total_provision / cashReg.money_pawns * 100 * 100) / 100 || 0).toLocaleString("de-DE")}</Value>
                         </>
                 }
             </TextWrapper>

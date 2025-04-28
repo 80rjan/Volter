@@ -170,7 +170,7 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
                                         <StyledInput
                                             name="name"
                                             value={formData.name}
-                                            onChange={handleInputChange}
+                                            onChange={e => handleInputChange(e.target.name, e.target.value)}
                                             required
                                         />
                                     </div>
@@ -179,7 +179,7 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
                                         <StyledInput
                                             name="embg"
                                             value={formData.embg}
-                                            onChange={handleInputChange}
+                                            onChange={e => handleInputChange(e.target.name, e.target.value)}
                                             required
                                         />
                                     </div>
@@ -188,7 +188,7 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
                                         <StyledInput
                                             name="telephone"
                                             value={formData.telephone}
-                                            onChange={handleInputChange}
+                                            onChange={e => handleInputChange(e.target.name, e.target.value)}
                                             required
                                         />
                                     </div>
@@ -197,7 +197,7 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
                                         <StyledInput
                                             name="city"
                                             value={formData.city}
-                                            onChange={handleInputChange}
+                                            onChange={e => handleInputChange(e.target.name, e.target.value)}
                                             required
                                         />
                                     </div>

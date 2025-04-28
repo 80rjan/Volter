@@ -109,7 +109,7 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                 const data = res.data.pawn
                 oldPawn.About = data.description
                 oldPawn["Item Cost"] = data.price_pawned
-                oldPawn.Provision = data.price_pawned * data.provision / 100
+                oldPawn.Provision = data.provision
                 editPawn.current = {...editPawn.current, goldGramsDiff: 0 }
                 setPawn({ ...data,  "Days Left": pawn["Days Left"]});
             })

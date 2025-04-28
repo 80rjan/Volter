@@ -18,24 +18,24 @@ console.log(process.env.VOLTER_CENTAR_DB_NAME);
 console.log(process.env.VOLTER_CENTAR_DB_PASS);
 console.log(process.env.VOLTER_CENTAR_DB_PORT);
 
-// const pool = new Pool({
-//     user: process.env.VOLTER_CENTAR_DB_USER,
-//     host: process.env.VOLTER_CENTAR_DB_HOST,
-//     database: process.env.VOLTER_CENTAR_DB_NAME,
-//     password: process.env.VOLTER_CENTAR_DB_PASS,
-//     port: process.env.VOLTER_CENTAR_DB_PORT,
-//     ssl: {
-//         rejectUnauthorized: false
-//     }
-// });
-// pool.connect()
-//     .then(() => console.log('Connected to the database successfully'))
-//     .catch(err => {
-//         console.error('Database connection error:', err.message);
-//         process.exit(1);  // Optionally stop the server if the connection fails
-//     });
-//
-// module.exports = pool;
+const pool = new Pool({
+    user: process.env.VOLTER_CENTAR_DB_USER,
+    host: process.env.VOLTER_CENTAR_DB_HOST,
+    database: process.env.VOLTER_CENTAR_DB_NAME,
+    password: process.env.VOLTER_CENTAR_DB_PASS,
+    port: process.env.VOLTER_CENTAR_DB_PORT,
+    ssl: {
+        rejectUnauthorized: false
+    }
+});
+pool.connect()
+    .then(() => console.log('Connected to the database successfully'))
+    .catch(err => {
+        console.error('Database connection error:', err.message);
+        process.exit(1);  // Optionally stop the server if the connection fails
+    });
+
+module.exports = pool;
 
 
 
@@ -50,12 +50,12 @@ console.log(process.env.VOLTER_CENTAR_DB_PORT);
 //     }
 // });
 
-module.exports = new Pool({
-    connectionString: 'postgresql://postgres:exBIWlMralbTVhwSiIrHRusVKDndKqRZ@nozomi.proxy.rlwy.net:38325/railway',
-    ssl: {
-        rejectUnauthorized: false
-    }
-});
+// module.exports = new Pool({
+//     connectionString: 'postgresql://postgres:exBIWlMralbTVhwSiIrHRusVKDndKqRZ@nozomi.proxy.rlwy.net:38325/railway',
+//     ssl: {
+//         rejectUnauthorized: false
+//     }
+// });
 
 // module.exports = new Pool({
 //     host: 'localhost',
