@@ -1,0 +1,669 @@
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+-- SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- TOC entry 217 (class 1259 OID 16454)
+-- Name: cash_register; Type: TABLE; Schema: public; Owner: borjan
+--
+
+CREATE TABLE public.cash_register (
+                                      num_pawns bigint DEFAULT 0 NOT NULL,
+                                      money_pawns bigint DEFAULT 0,
+                                      num_sale_items bigint DEFAULT 0,
+                                      money_sale_items bigint DEFAULT 0,
+                                      register_money bigint DEFAULT 0,
+                                      last_updated timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                      gold_grams numeric(7,3) DEFAULT 0.0,
+                                      total_provision bigint DEFAULT 0
+);
+
+
+ALTER TABLE public.cash_register OWNER TO borjan;
+
+--
+-- TOC entry 218 (class 1259 OID 16463)
+-- Name: client; Type: TABLE; Schema: public; Owner: borjan
+--
+
+CREATE TABLE public.client (
+                               id bigint NOT NULL,
+                               name character varying(100),
+                               embg character(13),
+                               telephone character(20),
+                               telephone_2 character(20),
+                               city character varying(20)
+);
+
+
+ALTER TABLE public.client OWNER TO borjan;
+
+--
+-- TOC entry 219 (class 1259 OID 16466)
+-- Name: client_id_seq; Type: SEQUENCE; Schema: public; Owner: borjan
+--
+
+ALTER TABLE public.client ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.client_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    MINVALUE 0
+    NO MAXVALUE
+    CACHE 1
+    );
+
+
+--
+-- TOC entry 220 (class 1259 OID 16467)
+-- Name: daily_report; Type: TABLE; Schema: public; Owner: borjan
+--
+
+CREATE TABLE public.daily_report (
+                                     year integer,
+                                     month integer,
+                                     money_given bigint,
+                                     money_got bigint,
+                                     total_turnover bigint,
+                                     total_profit bigint,
+                                     total_pawns integer,
+                                     num_gold_pawns integer,
+                                     num_electronics_pawns integer,
+                                     num_vehicle_pawns integer,
+                                     num_watch_pawns integer,
+                                     num_other_pawns integer,
+                                     money_gold_pawns bigint,
+                                     money_electronics_pawns bigint,
+                                     money_vehicle_pawns bigint,
+                                     money_watch_pawns bigint,
+                                     money_other_pawns bigint,
+                                     total_sales integer,
+                                     money_sales bigint,
+                                     money_pawns bigint
+);
+
+
+ALTER TABLE public.daily_report OWNER TO borjan;
+
+--
+-- TOC entry 221 (class 1259 OID 16470)
+-- Name: electronics_pawn; Type: TABLE; Schema: public; Owner: borjan
+--
+
+CREATE TABLE public.electronics_pawn (
+                                         id integer NOT NULL,
+                                         client_id integer NOT NULL,
+                                         brand character varying(50),
+                                         year integer,
+                                         price_pawned bigint,
+                                         price_to_redeem bigint,
+                                         provision bigint,
+                                         date_from date,
+                                         date_to date,
+                                         total_days integer,
+                                         description character varying(300)
+);
+
+
+ALTER TABLE public.electronics_pawn OWNER TO borjan;
+
+--
+-- TOC entry 222 (class 1259 OID 16473)
+-- Name: electronics_pawn_id_seq; Type: SEQUENCE; Schema: public; Owner: borjan
+--
+
+ALTER TABLE public.electronics_pawn ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.electronics_pawn_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+    );
+
+
+--
+-- TOC entry 237 (class 1259 OID 16800)
+-- Name: expense; Type: TABLE; Schema: public; Owner: borjan
+--
+
+CREATE TABLE public.expense (
+                                year integer,
+                                month integer,
+                                rent bigint,
+                                salaries bigint,
+                                other bigint,
+                                description character varying(300),
+                                bills bigint
+);
+
+
+ALTER TABLE public.expense OWNER TO borjan;
+
+--
+-- TOC entry 223 (class 1259 OID 16474)
+-- Name: gold_pawn; Type: TABLE; Schema: public; Owner: borjan
+--
+
+CREATE TABLE public.gold_pawn (
+                                  id integer NOT NULL,
+                                  client_id integer NOT NULL,
+                                  weight numeric(7,3),
+                                  carats integer,
+                                  price_pawned bigint,
+                                  price_to_redeem bigint,
+                                  provision bigint,
+                                  date_from date,
+                                  date_to date,
+                                  total_days integer,
+                                  description character varying(300),
+                                  type character varying(300)
+);
+
+
+ALTER TABLE public.gold_pawn OWNER TO borjan;
+
+--
+-- TOC entry 224 (class 1259 OID 16479)
+-- Name: gold_pawn_id_seq; Type: SEQUENCE; Schema: public; Owner: borjan
+--
+
+ALTER TABLE public.gold_pawn ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.gold_pawn_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+    );
+
+
+--
+-- TOC entry 225 (class 1259 OID 16480)
+-- Name: monthly_report; Type: TABLE; Schema: public; Owner: borjan
+--
+
+CREATE TABLE public.monthly_report (
+                                       year integer NOT NULL,
+                                       month integer NOT NULL,
+                                       money_given bigint,
+                                       money_got bigint,
+                                       total_turnover bigint,
+                                       total_pawns integer,
+                                       num_gold_pawns integer,
+                                       num_electronics_pawns integer,
+                                       num_vehicle_pawns integer,
+                                       num_watch_pawns integer,
+                                       num_other_pawns integer,
+                                       money_gold_pawns bigint,
+                                       money_electronics_pawns bigint,
+                                       money_vehicle_pawns bigint,
+                                       money_watch_pawns bigint,
+                                       money_other_pawns bigint,
+                                       total_sales integer,
+                                       money_sales bigint,
+                                       money_pawns bigint,
+                                       net_profit bigint,
+                                       gross_profit bigint,
+                                       profit_electronics_pawns bigint,
+                                       profit_gold_pawns bigint,
+                                       profit_vehicle_pawns bigint,
+                                       profit_watch_pawns bigint,
+                                       profit_other_pawns bigint,
+                                       profit_sales bigint,
+                                       profit_pawns bigint
+);
+
+
+ALTER TABLE public.monthly_report OWNER TO borjan;
+
+--
+-- TOC entry 226 (class 1259 OID 16483)
+-- Name: other_pawn; Type: TABLE; Schema: public; Owner: borjan
+--
+
+CREATE TABLE public.other_pawn (
+                                   id integer NOT NULL,
+                                   client_id integer NOT NULL,
+                                   price_pawned bigint,
+                                   price_to_redeem bigint,
+                                   provision bigint,
+                                   date_from date,
+                                   date_to date,
+                                   total_days integer,
+                                   description character varying(300)
+);
+
+
+ALTER TABLE public.other_pawn OWNER TO borjan;
+
+--
+-- TOC entry 227 (class 1259 OID 16486)
+-- Name: other_pawn_id_seq; Type: SEQUENCE; Schema: public; Owner: borjan
+--
+
+ALTER TABLE public.other_pawn ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.other_pawn_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+    );
+
+
+--
+-- TOC entry 228 (class 1259 OID 16487)
+-- Name: sale; Type: TABLE; Schema: public; Owner: borjan
+--
+
+CREATE TABLE public.sale (
+                             id integer NOT NULL,
+                             client_id integer NOT NULL,
+                             price_bought bigint,
+                             date_from date,
+                             description character varying(300)
+);
+
+
+ALTER TABLE public.sale OWNER TO borjan;
+
+--
+-- TOC entry 229 (class 1259 OID 16490)
+-- Name: sale_id_seq; Type: SEQUENCE; Schema: public; Owner: borjan
+--
+
+ALTER TABLE public.sale ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.sale_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+    );
+
+
+--
+-- TOC entry 230 (class 1259 OID 16491)
+-- Name: transaction; Type: TABLE; Schema: public; Owner: borjan
+--
+
+CREATE TABLE public.transaction (
+                                    id bigint NOT NULL,
+                                    client_id bigint NOT NULL,
+                                    money_given bigint,
+                                    money_got bigint,
+                                    profit bigint,
+                                    date timestamp with time zone,
+                                    category character varying(20),
+                                    description character varying(100)
+);
+
+
+ALTER TABLE public.transaction OWNER TO borjan;
+
+--
+-- TOC entry 231 (class 1259 OID 16494)
+-- Name: transaction_id_seq; Type: SEQUENCE; Schema: public; Owner: borjan
+--
+
+ALTER TABLE public.transaction ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.transaction_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+    );
+
+
+--
+-- TOC entry 232 (class 1259 OID 16495)
+-- Name: vehicle_pawn; Type: TABLE; Schema: public; Owner: borjan
+--
+
+CREATE TABLE public.vehicle_pawn (
+                                     id integer NOT NULL,
+                                     client_id integer NOT NULL,
+                                     brand character varying(50),
+                                     model character varying(50),
+                                     year integer,
+                                     price_pawned bigint,
+                                     price_to_redeem bigint,
+                                     provision bigint,
+                                     date_from date,
+                                     date_to date,
+                                     total_days integer,
+                                     description character varying(300)
+);
+
+
+ALTER TABLE public.vehicle_pawn OWNER TO borjan;
+
+--
+-- TOC entry 233 (class 1259 OID 16498)
+-- Name: vehicle_pawn_id_seq; Type: SEQUENCE; Schema: public; Owner: borjan
+--
+
+ALTER TABLE public.vehicle_pawn ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.vehicle_pawn_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+    );
+
+
+--
+-- TOC entry 234 (class 1259 OID 16499)
+-- Name: watch_pawn; Type: TABLE; Schema: public; Owner: borjan
+--
+
+CREATE TABLE public.watch_pawn (
+                                   id integer NOT NULL,
+                                   client_id integer NOT NULL,
+                                   brand character varying(50),
+                                   year integer,
+                                   price_pawned bigint,
+                                   price_to_redeem bigint,
+                                   provision bigint,
+                                   date_from date,
+                                   date_to date,
+                                   total_days integer,
+                                   description character varying(300)
+);
+
+
+ALTER TABLE public.watch_pawn OWNER TO borjan;
+
+--
+-- TOC entry 235 (class 1259 OID 16502)
+-- Name: watch_pawn_id_seq; Type: SEQUENCE; Schema: public; Owner: borjan
+--
+
+ALTER TABLE public.watch_pawn ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.watch_pawn_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+    );
+
+
+--
+-- TOC entry 236 (class 1259 OID 16503)
+-- Name: yearly_report; Type: TABLE; Schema: public; Owner: borjan
+--
+
+CREATE TABLE public.yearly_report (
+                                      year integer NOT NULL,
+                                      money_given bigint,
+                                      money_got bigint,
+                                      total_turnover bigint,
+                                      total_profit bigint,
+                                      total_pawns integer,
+                                      num_gold_pawns integer,
+                                      num_electronics_pawns integer,
+                                      num_vehicle_pawns integer,
+                                      num_watch_pawns integer,
+                                      num_other_pawns integer,
+                                      money_pawns bigint,
+                                      money_gold_pawns bigint,
+                                      money_electronics_pawns bigint,
+                                      money_vehicle_pawns bigint,
+                                      money_watch_pawns bigint,
+                                      money_other_pawns bigint,
+                                      total_sales integer,
+                                      money_sales bigint
+);
+
+
+ALTER TABLE public.yearly_report OWNER TO borjan;
+
+--
+-- TOC entry 4337 (class 2606 OID 16507)
+-- Name: cash_register cash_register_pkey; Type: CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.cash_register
+    ADD CONSTRAINT cash_register_pkey PRIMARY KEY (num_pawns);
+
+
+--
+-- TOC entry 4339 (class 2606 OID 16675)
+-- Name: client client_pkey; Type: CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.client
+    ADD CONSTRAINT client_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4343 (class 2606 OID 16511)
+-- Name: electronics_pawn electronics_pawn_pkey; Type: CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.electronics_pawn
+    ADD CONSTRAINT electronics_pawn_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4345 (class 2606 OID 16513)
+-- Name: gold_pawn gold_pawn_pkey; Type: CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.gold_pawn
+    ADD CONSTRAINT gold_pawn_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4347 (class 2606 OID 16515)
+-- Name: monthly_report monthly_report_pkey; Type: CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.monthly_report
+    ADD CONSTRAINT monthly_report_pkey PRIMARY KEY (year, month);
+
+
+--
+-- TOC entry 4349 (class 2606 OID 16517)
+-- Name: other_pawn other_pawn_pkey; Type: CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.other_pawn
+    ADD CONSTRAINT other_pawn_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4351 (class 2606 OID 16519)
+-- Name: sale sale_pkey; Type: CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.sale
+    ADD CONSTRAINT sale_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4353 (class 2606 OID 16521)
+-- Name: transaction transaction_pkey; Type: CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.transaction
+    ADD CONSTRAINT transaction_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4341 (class 2606 OID 16895)
+-- Name: client unique_client; Type: CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.client
+    ADD CONSTRAINT unique_client UNIQUE (name, embg, telephone);
+
+
+--
+-- TOC entry 4355 (class 2606 OID 16525)
+-- Name: vehicle_pawn vehicle_pawn_pkey; Type: CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.vehicle_pawn
+    ADD CONSTRAINT vehicle_pawn_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4357 (class 2606 OID 16527)
+-- Name: watch_pawn watch_pawn_pkey; Type: CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.watch_pawn
+    ADD CONSTRAINT watch_pawn_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4359 (class 2606 OID 16529)
+-- Name: yearly_report yearly_report_pkey; Type: CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.yearly_report
+    ADD CONSTRAINT yearly_report_pkey PRIMARY KEY (year);
+
+
+--
+-- TOC entry 4360 (class 2606 OID 16676)
+-- Name: electronics_pawn electronics_pawn_client_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.electronics_pawn
+    ADD CONSTRAINT electronics_pawn_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.client(id);
+
+
+--
+-- TOC entry 4361 (class 2606 OID 16681)
+-- Name: electronics_pawn fkelectronicspawnclient; Type: FK CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.electronics_pawn
+    ADD CONSTRAINT fkelectronicspawnclient FOREIGN KEY (client_id) REFERENCES public.client(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 4362 (class 2606 OID 16686)
+-- Name: gold_pawn fkgoldpawnclient; Type: FK CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.gold_pawn
+    ADD CONSTRAINT fkgoldpawnclient FOREIGN KEY (client_id) REFERENCES public.client(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 4364 (class 2606 OID 16696)
+-- Name: other_pawn fkotherpawnclient; Type: FK CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.other_pawn
+    ADD CONSTRAINT fkotherpawnclient FOREIGN KEY (client_id) REFERENCES public.client(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 4366 (class 2606 OID 16706)
+-- Name: sale fksaleclient; Type: FK CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.sale
+    ADD CONSTRAINT fksaleclient FOREIGN KEY (client_id) REFERENCES public.client(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 4368 (class 2606 OID 16716)
+-- Name: transaction fktransactionclient; Type: FK CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.transaction
+    ADD CONSTRAINT fktransactionclient FOREIGN KEY (client_id) REFERENCES public.client(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 4370 (class 2606 OID 16726)
+-- Name: vehicle_pawn fkvehiclepawnclient; Type: FK CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.vehicle_pawn
+    ADD CONSTRAINT fkvehiclepawnclient FOREIGN KEY (client_id) REFERENCES public.client(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 4372 (class 2606 OID 16736)
+-- Name: watch_pawn fkwatchpawnclient; Type: FK CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.watch_pawn
+    ADD CONSTRAINT fkwatchpawnclient FOREIGN KEY (client_id) REFERENCES public.client(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 4363 (class 2606 OID 16691)
+-- Name: gold_pawn gold_pawn_client_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.gold_pawn
+    ADD CONSTRAINT gold_pawn_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.client(id);
+
+
+--
+-- TOC entry 4365 (class 2606 OID 16701)
+-- Name: other_pawn other_pawn_client_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.other_pawn
+    ADD CONSTRAINT other_pawn_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.client(id);
+
+
+--
+-- TOC entry 4367 (class 2606 OID 16711)
+-- Name: sale sale_client_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.sale
+    ADD CONSTRAINT sale_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.client(id);
+
+
+--
+-- TOC entry 4369 (class 2606 OID 16721)
+-- Name: transaction transaction_client_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.transaction
+    ADD CONSTRAINT transaction_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.client(id);
+
+
+--
+-- TOC entry 4371 (class 2606 OID 16731)
+-- Name: vehicle_pawn vehicle_pawn_client_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.vehicle_pawn
+    ADD CONSTRAINT vehicle_pawn_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.client(id);
+
+
+--
+-- TOC entry 4373 (class 2606 OID 16741)
+-- Name: watch_pawn watch_pawn_client_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: borjan
+--
+
+ALTER TABLE ONLY public.watch_pawn
+    ADD CONSTRAINT watch_pawn_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.client(id);
+

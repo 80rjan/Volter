@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import navImage from "../assets/Volter zalozna kukja 3D slika.png"
+import navImage from "../assets/volter-zalozna-kukja-3D-slika.png"
 import { NavLink } from "react-router-dom";
 import { Percent, Tag, Landmark, CalendarFold, Calendar1, CalendarDays, Handshake, ArrowLeftRight, BanknoteArrowDown } from "lucide-react";
 

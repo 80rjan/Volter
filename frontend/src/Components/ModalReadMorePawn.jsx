@@ -23,7 +23,16 @@ import Loading from "./Loading.jsx";
 import {parse} from "dotenv";
 import AneksDogovorZaZaem from "../Documents/AneksDogovorZaZaem.jsx";
 
-export default function ModalReadMorePawn({category, pawnInfo, closeModal, closePawn, continuePawn, movePawnToSale, oldPawn, refreshCashReg}) {
+export default function ModalReadMorePawn({
+                                              category,
+                                              pawnInfo,
+                                              closeModal,
+                                              closePawn,
+                                              continuePawn,
+                                              movePawnToSale,
+                                              oldPawn,
+                                              refreshCashReg
+                                          }) {
     const [modalPrintDocument, setModalPrintDocument] = React.useState(false);
     const [clientAddress, setClientAddress] = React.useState("");
     const [idCard, setIdCard] = React.useState("");
@@ -37,7 +46,12 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
     const hiddenDocRefPawn = React.useRef(null);
     const hiddenDocRefAnnexLoan = React.useRef(null);
     const [isEditing, setIsEditing] = React.useState(false);
-    const editPawn = React.useRef({pricePawned: pawn.price_pawned, provision: pawn.provision, description: pawn.description, goldGramsDiff: 0 });
+    const editPawn = React.useRef({
+        pricePawned: pawn.price_pawned,
+        provision: pawn.provision,
+        description: pawn.description,
+        goldGramsDiff: 0
+    });
     const [isLoading, setIsLoading] = React.useState(false);
     const [whichDocToPrint, setWhichDocToPrint] = React.useState("insert");
 
@@ -68,7 +82,7 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
         });
 
         try {
-            const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+            const canvas = await html2canvas(element, {scale: 2, useCORS: true});
             const imgData = canvas.toDataURL("image/png");
 
             const imgWidth = 210; // A4 width in mm
@@ -104,14 +118,21 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
             Gold: "gold_pawn",
             Other: "other_pawn"
         }
-        axios.put(`http://localhost:3000/updatePawn`, { tableName: tableName[category], id: pawn.id, pricePawned: editPawn.current.pricePawned, provision: editPawn.current.provision, description: editPawn.current.description, goldGramsDiff: editPawn.current.goldGramsDiff })
+        axios.put(`http://localhost:3000/updatePawn`, {
+            tableName: tableName[category],
+            id: pawn.id,
+            pricePawned: editPawn.current.pricePawned,
+            provision: editPawn.current.provision,
+            description: editPawn.current.description,
+            goldGramsDiff: editPawn.current.goldGramsDiff
+        })
             .then(res => {
                 const data = res.data.pawn
                 oldPawn.About = data.description
                 oldPawn["Item Cost"] = data.price_pawned
                 oldPawn.Provision = data.provision
-                editPawn.current = {...editPawn.current, goldGramsDiff: 0 }
-                setPawn({ ...data,  "Days Left": pawn["Days Left"]});
+                editPawn.current = {...editPawn.current, goldGramsDiff: 0}
+                setPawn({...data, "Days Left": pawn["Days Left"]});
             })
             .catch(err => {
                 console.error("Error updating pawn " + err)
@@ -122,6 +143,7 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
             });
     }
 
+    console.log(client)
 
     return ReactDom.createPortal(
         <>
@@ -130,87 +152,104 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                 <X size={32} onClick={closeModal}/>
                 {
                     !modalPrintDocument ?
-                        isLoading ? <Loading /> :
-                        <>
-                            <InformationWrapper style={{gap: isEditing ? "4rem" : "0"}}>
-                                <ClientWrapper>
-                                    <div>
-                                        <UserRound size={32}/>
-                                        {client.name}
-                                    </div>
-                                    <div>
+                        isLoading ? <Loading/> :
+                            <>
+                                <InformationWrapper style={{gap: isEditing ? "4rem" : "0"}}>
+                                    <ClientWrapper>
+                                        <div>
+                                            <UserRound size={32}/>
+                                            {client.name}
+                                        </div>
+                                        <div>
                                         <span>
                                             <p>Шифра на клиент:</p>
                                             <p>{client.id}</p>
                                         </span>
-                                        <span>
+                                            <span>
                                             <p>Ембг:</p>
                                             <p>{client.embg}</p>
                                         </span>
-                                        <span>
-                                            <p>Телефон:</p>
+                                            <span>
+                                            <p>Телефон 1:</p>
                                             <p>{client.telephone}</p>
                                         </span>
-                                        <span>
+                                            {
+                                                client.telephone_2 && (
+                                                    <span>
+                                                        <p>Телефон 2:</p>
+                                                        <p>{client.telephone_2}</p>
+                                                    </span>
+                                                )
+                                            }
+                                            <span>
                                             <p>Град:</p>
                                             <p>{client.city}</p>
                                         </span>
-                                    </div>
-                                </ClientWrapper>
-                                <Separator/>
-                                <PawnWrapper>
-                                    <div>
-                                        {getCatIcon[category]}
-                                        {getCat[category]}
-                                    </div>
-                                    {category === 'Electronics' && renderElectronicsOrWatch(pawn, isEditing, editPawn)}
-                                    {category === 'Watch' && renderElectronicsOrWatch(pawn, isEditing, editPawn)}
-                                    {category === 'Vehicle' && renderVehicle(pawn, isEditing, editPawn)}
-                                    {category === 'Gold' && renderGold(pawn, isEditing, editPawn)}
-                                    {category === 'Other' && renderOther(pawn, isEditing, editPawn)}
-                                </PawnWrapper>
-                            </InformationWrapper>
-                            <ButtonWrapper>
-                                {
-                                    isEditing ?
-                                        <>
-                                            <button onClick={() => setIsEditing(false)}>
-                                                <ArrowLeft size={32}/> Врати се назад</button>
-                                            <button style={{background: "var(--green)"}} onClick={() => {
-                                                handleUpdatePawn();
-                                                setIsEditing(false)
-                                            }}><Check size={32}/> Потврди промени
-                                            </button>
-                                        </> :
-                                        <>
-                                            <button onClick={() => {
-                                                closePawn();
-                                                closeModal();
-                                            }}><X size={32}/> Затвори Залог
-                                            </button>
-                                            <button onClick={() => {
-                                                continuePawn();
-                                                closeModal();
-                                            }}><RotateCcw size={32}/> Продолжи Залог
-                                            </button>
-                                            <button onClick={() => {
-                                                movePawnToSale();
-                                                closeModal();
-                                            }}><Euro size={32}/> Премести Залог во Продажба
-                                            </button>
-                                            <UserPen size={40} color="#444"
-                                                     onClick={() => {
-                                                         setIsEditing(true)
-                                                     }}/>
-                                            <Printer
-                                                size={40}
-                                                color="#444"
-                                                onClick={() => setModalPrintDocument(true)}
-                                            />
-                                        </>
-                                }
-                            </ButtonWrapper>
-                        </> :
+                                        </div>
+                                    </ClientWrapper>
+                                    <Separator/>
+                                    <PawnWrapper>
+                                        <div>
+                                            {getCatIcon[category]}
+                                            {getCat[category]}
+                                        </div>
+                                        {category === 'Electronics' && renderElectronicsOrWatch(pawn, isEditing, editPawn)}
+                                        {category === 'Watch' && renderElectronicsOrWatch(pawn, isEditing, editPawn)}
+                                        {category === 'Vehicle' && renderVehicle(pawn, isEditing, editPawn)}
+                                        {category === 'Gold' && renderGold(pawn, isEditing, editPawn)}
+                                        {category === 'Other' && renderOther(pawn, isEditing, editPawn)}
+                                    </PawnWrapper>
+                                </InformationWrapper>
+                                <ButtonWrapper>
+                                    {
+                                        isEditing ?
+                                            <>
+                                                <button onClick={() => {
+                                                    editPawn.current = {
+                                                        pricePawned: pawn.price_pawned,
+                                                        provision: pawn.provision,
+                                                        description: pawn.description,
+                                                        goldGramsDiff: 0
+                                                    };
+                                                    setIsEditing(false);
+                                                }}>
+                                                    <ArrowLeft size={32}/> Врати се назад
+                                                </button>
+                                                <button style={{background: "var(--green)"}} onClick={() => {
+                                                    handleUpdatePawn();
+                                                    setIsEditing(false)
+                                                }}><Check size={32}/> Потврди промени
+                                                </button>
+                                            </> :
+                                            <>
+                                                <button onClick={() => {
+                                                    closePawn();
+                                                    closeModal();
+                                                }}><X size={32}/> Затвори Залог
+                                                </button>
+                                                <button onClick={() => {
+                                                    continuePawn();
+                                                    closeModal();
+                                                }}><RotateCcw size={32}/> Продолжи Залог
+                                                </button>
+                                                <button onClick={() => {
+                                                    movePawnToSale();
+                                                    closeModal();
+                                                }}><Euro size={32}/> Премести Залог во Продажба
+                                                </button>
+                                                <UserPen size={40} color="#444"
+                                                         onClick={() => {
+                                                             setIsEditing(true)
+                                                         }}/>
+                                                <Printer
+                                                    size={40}
+                                                    color="#444"
+                                                    onClick={() => setModalPrintDocument(true)}
+                                                />
+                                            </>
+                                    }
+                                </ButtonWrapper>
+                            </> :
                         <>
                             <div style={{height: "0px", overflowY: "clip"}}>
                                 <DogovorZaZaem
@@ -265,7 +304,8 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                                 />
                             </div>
                             <form>
-                                <span style={{display: "flex", flexDirection: "row", gap: "1rem", alignItems: "center"}}>
+                                <span
+                                    style={{display: "flex", flexDirection: "row", gap: "1rem", alignItems: "center"}}>
                                     Печати документи за
                                     <select value={whichDocToPrint} onChange={e => setWhichDocToPrint(e.target.value)}>
                                         <option value="insert">Внес на залог</option>
@@ -304,14 +344,20 @@ export default function ModalReadMorePawn({category, pawnInfo, closeModal, close
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            try {
-                                                whichDocToPrint === "insert" ?
-                                                    handlePrintDoc(hiddenDocRefLoan, true, false) && handlePrintDoc(hiddenDocRefPawn, false, false) :
-                                                    handlePrintDoc(hiddenDocRefAnnexLoan, false, true)
-                                            } catch (error) {
-                                                console.error("Error downloading pdf: " + error);
-                                            }
+                                            (async () => {
+                                                try {
+                                                    if (whichDocToPrint === "insert") {
+                                                        await handlePrintDoc(hiddenDocRefLoan, true, false);
+                                                        await handlePrintDoc(hiddenDocRefPawn, false, false);
+                                                    } else {
+                                                        await handlePrintDoc(hiddenDocRefAnnexLoan, false, true);
+                                                    }
+                                                } catch (error) {
+                                                    console.error("Error downloading pdf: " + error);
+                                                }
+                                            })();
                                         }}
+
                                     ><ArrowDownToLine size={32}/> {isDownloading ? "Се Симнува..." : "Симни"}</button>
                                 </div>
                             </form>
@@ -436,7 +482,7 @@ const renderGold = (pawn, isEditing, editPawn) => {
             </span>
             <span>
                 <p>Цена по грам:</p>
-                <p>{Number(Math.round( pawn.price_pawned / pawn.weight)).toLocaleString("de-DE")}</p>
+                <p>{Number(Math.round(pawn.price_pawned / pawn.weight)).toLocaleString("de-DE")}</p>
             </span>
             <span>
                 <p>Вредност на залогот:</p>
@@ -673,19 +719,19 @@ const Wrapper = styled.div`
     & > svg:hover {
         transform: rotate(90deg);
     }
-    
+
     & form {
         display: flex;
         flex-direction: column;
         gap: .4rem;
-        
+
         & > span {
             display: flex;
             flex-direction: column;
             gap: .2rem;
             font-size: 1.2rem;
         }
-        
+
         & select {
             padding: .4rem;
             font-size: 1rem;
@@ -693,7 +739,7 @@ const Wrapper = styled.div`
             border-radius: 4px;
             background: white;
         }
-        
+
         & input {
             font-size: 1rem;
             padding: .4rem;
@@ -701,7 +747,7 @@ const Wrapper = styled.div`
             border: none;
             border-radius: 2px;
         }
-        
+
         & > div {
             display: flex;
             gap: 2rem;
@@ -815,7 +861,7 @@ const PawnDetailsWrapper = styled.div`
     p {
         min-width: fit-content;
     }
-    
+
     & input {
         width: 100%;
         font-size: 1rem;
@@ -860,7 +906,7 @@ const ButtonWrapper = styled.div`
     & > button:nth-child(3) {
         background: var(--green);
     }
-    
+
     & > button:nth-child(4) {
         background: var(--dark-blue);
         //border: 2px solid var(--green);

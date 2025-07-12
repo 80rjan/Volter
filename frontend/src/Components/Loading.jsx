@@ -1,5 +1,5 @@
 import Lottie from "lottie-react";
-import loadingAnimation from "../assets/Lottie Dual Ring Animation.json";
+import loadingAnimation from "../assets/lottie-dual-ring-animation.json";
 
 export default function Loading({ width = 200, height = 200 }) {
     return (

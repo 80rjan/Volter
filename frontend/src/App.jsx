@@ -13,44 +13,6 @@ import DailyReport from "./Pages/DailyReport.jsx";
 import LoanAgreementDocument from "./Documents/LoanAgreementDocument.jsx";
 import Expenses from "./Pages/Expenses.jsx";
 
-// const router = createBrowserRouter([
-//     {
-//         path: '/',
-//         element: <Pawns />
-//     },
-//     {
-//         path: '/sales',
-//         element: <Sales />
-//     },
-//     {
-//         path: '/transactions',
-//         element: <Transactions />
-//     },
-//     {
-//         path: '/dailyReport',
-//         element: <DailyReport />
-//     },
-//     {
-//         path: '/monthlyReport',
-//         element: <MonthlyReport />
-//     },
-//     {
-//         path: '/yearlyReport',
-//         element: <YearlyReport />
-//     },
-//     {
-//         path: '/document',
-//         element: <LoanAgreementDocument />
-//     }
-// ])
-//
-// function App() {
-//
-//     return (
-//         <RouterProvider router={router} />
-//     )
-// }
-
 function App() {
     return (
         <HashRouter>

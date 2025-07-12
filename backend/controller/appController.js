@@ -31,6 +31,7 @@ const insertPawn = asyncHandler(async (req, res) => {
         name: req.body.name,
         embg: req.body.embg,
         telephone: req.body.telephone,
+        telephone_2: req.body.telephone_2,
         city: req.body.city
     }
     let pawnObj = null;

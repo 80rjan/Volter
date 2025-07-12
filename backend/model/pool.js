@@ -1,7 +1,5 @@
-// require('dotenv').config({ path: "../.env" });
-// require('dotenv').config();
-// const path = require('path');
-// require('dotenv').config({ path: path.join(__dirname, 'resources/.env') });
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 const { Pool } = require('pg');
 
@@ -12,24 +10,31 @@ const { Pool } = require('pg');
 // SET UP ENVIRONMENT VARIABLES IN THE SYSTEM
 // SET UP ENVIRONMENT VARIABLES IN THE SYSTEM
 
-console.log(process.env.VOLTER_CENTAR_DB_USER);
-console.log(process.env.VOLTER_CENTAR_DB_HOST);
-console.log(process.env.VOLTER_CENTAR_DB_NAME);
-console.log(process.env.VOLTER_CENTAR_DB_PASS);
-console.log(process.env.VOLTER_CENTAR_DB_PORT);
+console.log(process.env.VITE_DB_USER);
+console.log(process.env.VITE_DB_HOST);
+console.log(process.env.VITE_DB_NAME);
+console.log(process.env.VITE_DB_PASSWORD);
+console.log(process.env.VITE_DB_PORT);
+
+// console.log(process.env.VOLTER_CENTAR_DB_HOST);
+// console.log(process.env.VOLTER_CENTAR_DB_NAME);
+// console.log(process.env.VOLTER_CENTAR_DB_PASS);
+// console.log(process.env.VOLTER_CENTAR_DB_PORT);
 
 const pool = new Pool({
-    user: process.env.VOLTER_CENTAR_DB_USER,
-    host: process.env.VOLTER_CENTAR_DB_HOST,
-    database: process.env.VOLTER_CENTAR_DB_NAME,
-    password: process.env.VOLTER_CENTAR_DB_PASS,
-    port: process.env.VOLTER_CENTAR_DB_PORT,
+    user: process.env.VITE_DB_USER,
+    host: process.env.VITE_DB_HOST,
+    database: process.env.VITE_DB_NAME,
+    password: process.env.VITE_DB_PASSWORD,
+    port: process.env.VITE_DB_PORT,
     ssl: {
         rejectUnauthorized: false
     }
 });
 pool.connect()
-    .then(() => console.log('Connected to the database successfully'))
+    .then(() => {
+        console.log('Connected to the database successfully')
+    })
     .catch(err => {
         console.error('Database connection error:', err.message);
         process.exit(1);  // Optionally stop the server if the connection fails

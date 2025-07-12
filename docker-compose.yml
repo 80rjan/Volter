@@ -1,0 +1,23 @@
+services:
+  frontend:
+    image: volter-frontend-image
+    container_name: volter-frontend
+    build:
+      context: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+  backend:
+    image: volter-backend-image
+    container_name: volter-backend
+    build:
+      context: ./backend
+    ports:
+      - "3000:3000"
+    environment:
+      - VOLTER_CENTAR_DB_USER=doadmin
+      - VOLTER_CENTAR_DB_HOST=volter-centar-do-user-20466161-0.i.db.ondigitalocean.com
+      - VOLTER_CENTAR_DB_NAME=defaultdb
+      - VOLTER_CENTAR_DB_PASS=AVNS_7Jb5wyjnJscqL_iKEfV
+      - VOLTER_CENTAR_DB_PORT=25060

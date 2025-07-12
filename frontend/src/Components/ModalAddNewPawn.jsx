@@ -12,6 +12,7 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
         name: '',
         embg: '',
         telephone: '',
+        telephone_2: '',
         city: '',
         brand: '',
         model: '',
@@ -184,12 +185,20 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
                                         />
                                     </div>
                                     <div>
-                                        <p>Телефон</p>
+                                        <p>Телефон 1</p>
                                         <StyledInput
                                             name="telephone"
                                             value={formData.telephone}
                                             onChange={e => handleInputChange(e.target.name, e.target.value)}
                                             required
+                                        />
+                                    </div>
+                                    <div>
+                                        <p>Телефон 2</p>
+                                        <StyledInput
+                                            name="telephone_2"
+                                            value={formData.telephone_2}
+                                            onChange={e => handleInputChange(e.target.name, e.target.value)}
                                         />
                                     </div>
                                     <div>
@@ -204,7 +213,8 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
                                 </ClientInputs>
                                 <PawnInputs>
                                     <span style={{width: "max-content"}}><Database size={20}/> Внеси Податоци за Предметот</span>
-                                    <select name="category" value={formData.category} onChange={e => handleInputChange(e.target.name, e.target.value)}>
+                                    <select name="category" value={formData.category}
+                                            onChange={e => handleInputChange(e.target.name, e.target.value)}>
                                         <option value="electronics_pawn">Електроника</option>
                                         <option value="gold_pawn">Злато</option>
                                         <option value="vehicle_pawn">Возила</option>
@@ -277,11 +287,11 @@ function GoldInputs({ handleInputChange, formData, date }) {
     return (
         <>
             <div>
-                <p>Тежина</p>
+                <p>Тежина (во грамови)</p>
                 <StyledInput name="weight" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" step="0.001" required/>
             </div>
             <div>
-                <p>Каратажа</p>
+                <p>Каратажа (број)</p>
                 <StyledInput name="carats" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" required/>
             </div>
             <div>
@@ -554,6 +564,7 @@ const ClientInputs = styled.div`
 
         & > p {
             color: #666;
+            white-space: nowrap;
         }
     }
 `;
