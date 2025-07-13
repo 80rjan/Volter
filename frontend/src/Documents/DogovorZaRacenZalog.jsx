@@ -1,10 +1,12 @@
 import styled from "styled-components";
 import {forwardRef} from "react";
+import {numberInWordsMkd} from "../Utils/numberInWordsMkd.js";
 
 
 const DogovorZaRacenZalog = forwardRef((
-    { fullName, city, address, embg, idCard, telephone, moneyGiven, moneyGivenStr, pawnDays, pawnDaysStr, dateFrom, dateTo, pawnInfo },
+    { fullName, city, address, embg, idCard, telephone, moneyGiven, pawnDays, dateFrom, dateTo, pawnInfo },
     ref) => {
+
     return (
         <Section ref={ref}>
             <p>Врз основ на цлен 2, 3, 4, 14, 18, 23, 25, 29, 30, 32, 33 и 41 од Законот за договорен залог (Сл.весник на

@@ -839,7 +839,9 @@ async function insertExpense(year, month, rent, salaries, bills, other, descript
 }
 
 
-async function getAllTransactions(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByDate = "") {
+async function getAllTransactions(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByDate = "", searchByCategory = "") {
+
+
     const {rows} = await pool.query(`
         SELECT c.id          AS "Client Id",
                c.name        AS "Name",
@@ -857,9 +859,14 @@ async function getAllTransactions(limit, offset, orderBy, orderDirection, search
         WHERE LOWER(c.name) LIKE $1 || '%'
           AND c.embg LIKE $2 || '%'
           AND ($3::DATE IS NULL OR t.date::DATE = $3::DATE)
+          AND (
+            $4 = ''
+                OR ($4 = 'Change' AND t.description ILIKE '%Промена%')
+                OR ($4 <> 'Change' AND t.category = $4)
+            )
         ORDER BY "${orderBy}" ${orderDirection}
         LIMIT ${limit} OFFSET ${offset};
-    `, [searchByName, searchByEmbg, searchByDate])
+    `, [searchByName, searchByEmbg, searchByDate, searchByCategory])
 
     return rows;
 }

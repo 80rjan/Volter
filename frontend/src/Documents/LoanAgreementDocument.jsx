@@ -1,10 +1,15 @@
 import styled from "styled-components";
 import {forwardRef} from "react";
+import {numberInWordsMkd} from "../Utils/numberInWordsMkd.js";
 
 
 const LoanAgreementDocument = forwardRef((
-    { fullName, city, address, embg, idCard, telephone, moneyGiven, moneyGivenStr, pawnDays, pawnDaysStr, dateFrom, dateTo },
+    { fullName, city, address, embg, idCard, telephone, moneyGiven, pawnDays, dateFrom, dateTo },
     ref) => {
+
+    const moneyGivenToString = numberInWordsMkd(moneyGiven)
+    const pawnDaysToString = numberInWordsMkd(pawnDays)
+
     return (
         <Section ref={ref}>
             <h1>DOGOVOR ZA ZAEM</h1>
@@ -22,7 +27,7 @@ const LoanAgreementDocument = forwardRef((
             </Clen>
             <Clen>
                 <p className="bold">Clen 2</p>
-                <p>Zamodavacot mu dava na Zaemoprimacot iznos od {moneyGiven} <span className="bold">denari</span> (so bukvi: {moneyGivenStr}).
+                <p>Zamodavacot mu dava na Zaemoprimacot iznos od {moneyGiven} <span className="bold">denari</span> (so bukvi: {moneyGivenToString}).
                     Zaemoprimacot gorenavedeniot iznos ke go koristi za sopstveni potrebi so <span className="bold">dogovorna kamata od 1%</span>
                     (eden procent) na gorenavedeniot iznos.</p>
             </Clen>
@@ -30,7 +35,7 @@ const LoanAgreementDocument = forwardRef((
                 <p className="bold">Clen 3</p>
                 <p>Zaemodavacot go dava, a Zaemoprimacot go prima zaemot opisan od clenot 2 na ovoj Dogovor pod
                     slednite uslovi:
-                    - rok na otplata od {pawnDays} <span className="bold">denovi</span> (so bukvi: {pawnDaysStr} denovi), smetano od den {dateFrom} godina, zaklucno
+                    - rok na otplata od {pawnDays} <span className="bold">denovi</span> (so bukvi: {pawnDaysToString} denovi), smetano od den {dateFrom} godina, zaklucno
                     so {dateTo} godina, najdocna do 16.00 casot istiot den;
                     - so sekoja otplata se plakja i dogovorenata kamata od 1% na celokupniot zaem.
                     Za sekoj den na zadocnuvanje, na site dostasani, a nenaplateni pobaruvanja po osnov na zaemot od clen 2

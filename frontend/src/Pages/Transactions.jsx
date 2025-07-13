@@ -14,6 +14,7 @@ export default function Transactions() {
     const [searchByName, setSearchByName] = useState("");
     const [searchByEmbg, setSearchByEmbg] = useState("");
     const [searchByDate, setSearchByDate] = useState("");
+    const [searchByCategory, setSearchByCategory] = useState("");
     const [refresh, setRefresh] = useState(false);
     const offset = useRef(0);
     const limit = 20;
@@ -45,12 +46,25 @@ export default function Transactions() {
         "Transferred pawn to sale": "Префрлен залог во продажба",
     }
 
-    const fetchTransactions = (limit, offset, order, direction, searchByName, searchByEmbg, searchByDate, isLoading) => {
+    const filterSelectOptions = [
+        { value: "Gold", label: "Залог злато" },
+        { value: "Electronics", label: "Залог електроника" },
+        { value: "Watch", label: "Залог часовници" },
+        { value: "Vehicle", label: "Залог возила" },
+        { value: "Other", label: "Залог останато" },
+        { value: "Sale", label: "Продажби" },
+        { value: "Change", label: "Промени во залози" },
+        { value: "Insert", label: "Внес каса" },
+        { value: "Remove", label: "Излез каса" },
+        { value: "Expense", label: "Расходи" },
+    ]
+
+    const fetchTransactions = (limit, offset, order, direction, searchByName, searchByEmbg, searchByDate, searchByCategory, isLoading) => {
         if (isFetching) return;
         setIsFetching(true);
         setLoading(isLoading);
         isFetchingRef.current = true;
-        axios.get(`http://localhost:3000/transactions?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByDate=${searchByDate}`)
+        axios.get(`http://localhost:3000/transactions?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByDate=${searchByDate}&searchByCategory=${searchByCategory}`)
             .then(res => {
                 if (JSON.stringify(prevTransactions.current) !== JSON.stringify(res.data)) {
                     setAllTransactions(prev => [...prev, ...res.data]);
@@ -95,8 +109,8 @@ export default function Transactions() {
         setAllTransactions([]);
         prevTransactions.current = [];
         offset.current = 0;
-        fetchTransactions(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByDate, true);
-    }, [refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByDate]);
+        fetchTransactions(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByDate, searchByCategory, true);
+    }, [refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByDate, searchByCategory]);
 
     const handleOrder = (orderBy, index) => {
         const oldDirection = [...orderDirectionArr.current];
@@ -115,6 +129,20 @@ export default function Transactions() {
                     <h1>Трансакции</h1>
                 </HeaderWrapper>
                 <FilterWrapper>
+                    <StyledSelect
+                        style={{
+                            color: searchByCategory === "" ? "#888" : "#000",
+                        }}
+                        onChange={(e) => setSearchByCategory(e.target.value)} >
+                        <option
+                            style={{ color: "#888"}}
+                            value="">Сортирај по</option>
+                        {
+                            filterSelectOptions.map((option, index) => (
+                                <option style={{ color: "#111"}} key={index} value={option.value}>{option.label}</option>
+                            ))
+                        }
+                    </StyledSelect>
                     <StyledInput placeholder="Пребарувај по име" onKeyUp={(e) => setSearchByName(e.target.value)} />
                     <StyledInput placeholder="Пребарувај по ембг" onKeyUp={(e) => setSearchByEmbg(e.target.value)} />
                     <StyledInput placeholder="Пребарувај по датум (yyyy-mm-dd)" onKeyUp={(e) => setSearchByDate(e.target.value)} />
@@ -200,11 +228,20 @@ const FilterWrapper = styled.div`
     width: 100%;
 `;
 
+const StyledSelect = styled.select`
+    border: none;
+    border-radius: .2rem;
+    font-size: 1rem;
+    width: 20%;
+    padding: .5rem;
+    box-shadow: 0 0 8px rgba(0,0,0,0.2);
+`;
+
 const StyledInput = styled.input`
     border: none;
     border-radius: .2rem;
     font-size: 1rem;
-    width: 25%;
+    width: 20%;
     padding: .5rem;
     box-shadow: 0 0 8px rgba(0,0,0,0.2);
 `;

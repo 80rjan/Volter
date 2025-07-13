@@ -1,10 +1,14 @@
 import styled from "styled-components";
 import {forwardRef} from "react";
+import {numberInWordsMkd} from "../Utils/numberInWordsMkd.js";
 
 
 const AneksDogovorZaZaem = forwardRef((
-    { fullName, city, address, embg, idCard, telephone, moneyGiven, moneyGivenStr, pawnDays, pawnDaysStr, dateFrom, dateTo },
+    { fullName, city, address, embg, idCard, telephone, moneyGiven, pawnDays, dateFrom, dateTo },
     ref) => {
+
+    const pawnDaysToString = numberInWordsMkd(pawnDays)
+
     return (
         <Section ref={ref}>
             <h1>АНЕКС ЗА ДОГОВОР ЗА ЗАЕМ</h1>
@@ -21,7 +25,7 @@ const AneksDogovorZaZaem = forwardRef((
             <Clen>
                 <p className="bold">Член 2</p>
                 <p>Се менува чл.3 ст.1 т.1 од Договорот за заем цитиран погоре, па гласи: - рок на отплата се продолжува
-                    на дополнителни {pawnDays} <span className="bold">денови</span> (со букви: {pawnDaysStr} денови),
+                    на дополнителни {pawnDays} <span className="bold">денови</span> (со букви: {pawnDaysToString} денови),
                     сметано од ден {dateFrom} година, заклучно со {dateTo} година, најдоцна до 16.00 часот истиот
                     ден.
                 </p>

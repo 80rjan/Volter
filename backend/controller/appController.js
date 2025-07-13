@@ -301,10 +301,11 @@ const getAllTransactions = asyncHandler(async (req, res) => {
     let searchByName = req.query.searchByName !== 'undefined' ? req.query.searchByName.toLowerCase() : '';
     let searchByEmbg = req.query.searchByEmbg !== 'undefined' ? req.query.searchByEmbg : '';
     let searchByDate = req.query.searchByDate && req.query.searchByDate !== 'undefined' && req.query.searchByDate !== '' ? req.query.searchByDate : null;
+    let searchByCategory = req.query.searchByCategory !== 'undefined' ? req.query.searchByCategory : '';
     const limit = req.query.limit;
     const offset = req.query.offset;
 
-    const transactions = await db.getAllTransactions(limit, offset, req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, searchByDate);
+    const transactions = await db.getAllTransactions(limit, offset, req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, searchByDate, searchByCategory);
     res.send(transactions);
 })
 

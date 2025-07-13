@@ -107,6 +107,8 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
         fetchClients(limit, offset.current, autocompleteValue);
     }, []);
 
+    console.log(clients)
+
     return ReactDom.createPortal(
         <>
             <Overlay />
@@ -150,13 +152,15 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
                                                 <strong>{option.name}</strong>
                                                 <span>{option.embg}</span>
                                                 <span>{option.telephone}</span>
+                                                <span>{option.telephone_2}</span>
                                             </li>
                                         )}
                                         filterOptions={(options, state) =>
                                             options.filter(option =>
                                                 option.name.toLowerCase().includes(state.inputValue.toLowerCase()) ||
-                                                option.embg.includes(state.inputValue) ||
-                                                option.telephone.includes(state.inputValue)
+                                                (option.embg && option.embg.includes(state.inputValue)) ||
+                                                ( option.telephone && option.telephone.includes(state.inputValue)) ||
+                                                (option.telephone_2 && option.telephone_2.includes(state.inputValue))
                                             )
                                         }
                                         sx={{

@@ -36,8 +36,6 @@ export default function ModalReadMorePawn({
     const [modalPrintDocument, setModalPrintDocument] = React.useState(false);
     const [clientAddress, setClientAddress] = React.useState("");
     const [idCard, setIdCard] = React.useState("");
-    const [moneyStr, setMoneyStr] = React.useState("");
-    const [daysPawnStr, setDaysPawnStr] = React.useState("");
     const [pawnDescription, setPawnDescription] = React.useState("");
     const client = pawnInfo.client;
     const [pawn, setPawn] = useState({...pawnInfo.pawn, "Days Left": pawnInfo["Days Left"]});
@@ -261,9 +259,7 @@ export default function ModalReadMorePawn({
                                     idCard={idCard}
                                     telephone={client.telephone}
                                     moneyGiven={pawn.price_pawned}
-                                    moneyGivenStr={moneyStr}
                                     pawnDays={pawn.total_days}
-                                    pawnDaysStr={daysPawnStr}
                                     dateFrom={pawn.date_from.substring(0, 10)}
                                     dateTo={pawn.date_to.substring(0, 10)}
                                 />
@@ -278,9 +274,7 @@ export default function ModalReadMorePawn({
                                     idCard={idCard}
                                     telephone={client.telephone}
                                     moneyGiven={pawn.price_pawned}
-                                    moneyGivenStr={moneyStr}
                                     pawnDays={pawn.total_days}
-                                    pawnDaysStr={daysPawnStr}
                                     dateFrom={pawn.date_from.substring(0, 10)}
                                     dateTo={pawn.date_to.substring(0, 10)}
                                     pawnInfo={pawnDescription}
@@ -296,9 +290,7 @@ export default function ModalReadMorePawn({
                                     idCard={idCard}
                                     telephone={client.telephone}
                                     moneyGiven={pawn.price_pawned}
-                                    moneyGivenStr={moneyStr}
                                     pawnDays={pawn.total_days}
-                                    pawnDaysStr={daysPawnStr}
                                     dateFrom={pawn.date_from.substring(0, 10)}
                                     dateTo={pawn.date_to.substring(0, 10)}
                                 />
@@ -326,16 +318,6 @@ export default function ModalReadMorePawn({
                                 <span>
                                     Внеси број на лична карта:
                                     <input onChange={(e) => setIdCard(e.target.value)}/>
-                                </span>
-                                <span>
-                                    Внеси износ на залог во зборови:
-                                    <input placeholder={pawn.price_pawned}
-                                           onChange={(e) => setMoneyStr(e.target.value)}/>
-                                </span>
-                                <span>
-                                    Внеси денови на валидност на залогот во зборови:
-                                    <input placeholder={pawn.total_days}
-                                           onChange={(e) => setDaysPawnStr(e.target.value)}/>
                                 </span>
                                 <div>
                                     <button onClick={() => setModalPrintDocument(false)} style={{background: "#444"}}>

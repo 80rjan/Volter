@@ -1,10 +1,15 @@
 import styled from "styled-components";
 import {forwardRef} from "react";
+import {numberInWordsMkd} from "../Utils/numberInWordsMkd.js";
 
 
 const DogovorZaZaem = forwardRef((
-    { fullName, city, address, embg, idCard, telephone, moneyGiven, moneyGivenStr, pawnDays, pawnDaysStr, dateFrom, dateTo },
+    { fullName, city, address, embg, idCard, telephone, moneyGiven, pawnDays, dateFrom, dateTo },
     ref) => {
+
+    const moneyGivenToString = numberInWordsMkd(moneyGiven)
+    const pawnDaysToString = numberInWordsMkd(pawnDays)
+
     return (
         <Section ref={ref}>
             <h1>ДОГОВОР ЗА ЗАЕМ</h1>
@@ -22,14 +27,14 @@ const DogovorZaZaem = forwardRef((
             </Clen>
             <Clen>
                 <p className="bold">Член 2</p>
-                <p>Заемодавачот му дава на Заемопримачот износ од {moneyGiven} <span className="bold">денари</span> (со букви: {moneyGivenStr}).
+                <p>Заемодавачот му дава на Заемопримачот износ од {moneyGiven} <span className="bold">денари</span> (со букви: {moneyGivenToString}).
                     Заемопримачот горенаведениот износ ќе го користи за сопствени потреби со <span className="bold">договорна камата од 1%</span> (еден процент) на горенаведениот износ.</p>
             </Clen>
             <Clen>
                 <p className="bold">Член 3</p>
                 <p>Заемодавачот го дава, а Заемопримачот го прима заемот опишан од членот 2 на овој Договор под следниве
                     услови:
-                    - рок на отплата од {pawnDays} <span className="bold">дена</span> (со букви: {pawnDaysStr} дена),
+                    - рок на отплата од {pawnDays} <span className="bold">дена</span> (со букви: {pawnDaysToString} дена),
                     сметано од ден {dateFrom} година, заклучно со {dateTo} година, најдоцна до 16.00 часот истиот ден;
                     - со секоја отплата се плаќа и договорената камата од 1% на целокупниот заем.
                     За секој ден на задоцнување, на сите достасани, а ненаплатени побарувања по основ на заемот од член
