@@ -12,6 +12,7 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
         name: '',
         embg: '',
         telephone: '',
+        telephone_2: '',
         city: '',
         price_bought: 0,
         description: ''
@@ -30,6 +31,7 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
                 name: value.name,
                 embg: value.embg,
                 telephone: value.telephone,
+                telephone_2: value.telephone_2,
                 city: value.city,
             }));
         }
@@ -106,7 +108,8 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
                                 <Form onSubmit={handleSubmit}>
                                     <div>
                                         <ClientInputs>
-                                            <span style={{width: "max-content", marginBottom: ".8rem"}} ><User size={20}/> Внеси Податоци за Клиентот</span>
+                                            <span style={{width: "max-content", marginBottom: ".8rem"}}><User
+                                                size={20}/> Внеси Податоци за Клиентот</span>
                                             <Autocomplete
                                                 ref={scrollableClientsRef}
                                                 options={clients}
@@ -131,13 +134,15 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
                                                         <strong>{option.name}</strong>
                                                         <span>{option.embg}</span>
                                                         <span>{option.telephone}</span>
+                                                        <span>{option.telephone_2}</span>
                                                     </li>
                                                 )}
                                                 filterOptions={(options, state) =>
                                                     options.filter(option =>
                                                         option.name.toLowerCase().includes(state.inputValue.toLowerCase()) ||
                                                         option.embg.includes(state.inputValue) ||
-                                                        option.telephone.includes(state.inputValue)
+                                                        option.telephone.includes(state.inputValue) ||
+                                                        option.telephone_2.includes(state.inputValue)
                                                     )
                                                 }
                                                 sx={{
@@ -172,6 +177,14 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
                                                     value={formData.telephone}
                                                     onChange={handleInputChange}
                                                     required
+                                                />
+                                            </div>
+                                            <div>
+                                                <p>Телефон 2</p>
+                                                <StyledInput
+                                                    name="telephone_2"
+                                                    value={formData.telephone_2}
+                                                    onChange={handleInputChange}    
                                                 />
                                             </div>
                                             <div>

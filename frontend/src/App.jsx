@@ -1,17 +1,17 @@
 import {useEffect, useState} from 'react'
 import './App.css'
-import Pawns from "./Pages/Pawns.jsx";
+import Pawns from "./pages/Pawns.jsx";
 
 // import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import { HashRouter, Routes, Route } from "react-router-dom";
 
-import Sales from "./Pages/Sales.jsx";
-import Transactions from "./Pages/Transactions.jsx";
-import MonthlyReport from "./Pages/MonthlyReport.jsx";
-import YearlyReport from "./Pages/YearlyReport.jsx";
-import DailyReport from "./Pages/DailyReport.jsx";
-import LoanAgreementDocument from "./Documents/LoanAgreementDocument.jsx";
-import Expenses from "./Pages/Expenses.jsx";
+import Sales from "./pages/Sales.jsx";
+import Transactions from "./pages/Transactions.jsx";
+import MonthlyReport from "./pages/MonthlyReport.jsx";
+import YearlyReport from "./pages/YearlyReport.jsx";
+import DailyReport from "./pages/DailyReport.jsx";
+import LoanAgreementDocument from "./documents/LoanAgreementDocument.jsx";
+import Expenses from "./pages/Expenses.jsx";
 
 function App() {
     return (

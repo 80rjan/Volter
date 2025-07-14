@@ -12,11 +12,6 @@ export default function Sale({ sale, refresh, isOdd }) {
     const [saleInfo, setSaleInfo] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    // useEffect(() => {
-    //     if (!modalSellItem)
-    //         refresh();
-    // }, [modalSellItem])
-
     useEffect(() =>{
         if (saleInfo != null)
             setModalReadMore(true);

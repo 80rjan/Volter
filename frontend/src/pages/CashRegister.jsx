@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import {Handshake, Tag, Sigma, CalendarClock, Plus, Minus, Coins, Percent, HandCoins} from "lucide-react";
 import styled from "styled-components";
-import ModalAdjustCashRegister from "../Components/ModalAdjustCashRegister.jsx";
-import Loading from "../Components/Loading.jsx";
+import ModalAdjustCashRegister from "../components/ModalAdjustCashRegister.jsx";
+import Loading from "../components/Loading.jsx";
 
 export default function CashRegister({ refreshDependancy, refreshDependancyAdjustPawn, refreshTransactions }) {
     const [cashReg, setCashReg] = useState({});

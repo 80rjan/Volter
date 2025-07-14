@@ -26,6 +26,7 @@ app.put('/cashRegister/insert', appController.insertIntoCashRegister)
 app.put('/cashRegister/remove', appController.removeFromCashRegister)
 
 app.get('/expenses', appController.getAllExpenses)
+app.get('/expenses/getExpense', appController.getExpense)
 app.post('/expenses/insert', appController.insertExpense)
 
 app.get('/transactions', appController.getAllTransactions)

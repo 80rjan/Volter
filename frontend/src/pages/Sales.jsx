@@ -1,12 +1,12 @@
 import {useEffect, useRef, useState} from "react";
 import axios from "axios";
 import styled from "styled-components";
-import Nav from "../Components/Nav.jsx";
+import Nav from "../components/Nav.jsx";
 import { Plus, X, Euro, RotateCcw, ChevronUp, ChevronDown, Minus} from "lucide-react";
-import ModalAddNewSale from "../Components/ModalAddNewSale.jsx";
-import Sale from "../Components/Sale.jsx";
+import ModalAddNewSale from "../components/ModalAddNewSale.jsx";
+import Sale from "../components/Sale.jsx";
 import CashRegister from "./CashRegister.jsx";
-import Loading from "../Components/Loading.jsx";
+import Loading from "../components/Loading.jsx";
 
 export default function Sales() {
     const [allSales, setAllSales] = useState([]);
@@ -131,7 +131,7 @@ export default function Sales() {
                 <SalesWrapper>
                     <TableHeader >
                         <Text onClick={() => handleOrder("Client Id", 0)}>
-                            Ид {orderDirectionArr.current[0] === 0 ? <Minus size={14} /> : orderDirectionArr.current[0] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Код {orderDirectionArr.current[0] === 0 ? <Minus size={14} /> : orderDirectionArr.current[0] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Name", 1)}>
                             Име {orderDirectionArr.current[1] === 0 ? <Minus size={14} /> : orderDirectionArr.current[1] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}

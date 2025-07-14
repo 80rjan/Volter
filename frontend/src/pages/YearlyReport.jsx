@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import Nav from "../Components/Nav.jsx";
+import Nav from "../components/Nav.jsx";
 import CashRegister from "./CashRegister.jsx";
 
 export default function YearlyReport() {

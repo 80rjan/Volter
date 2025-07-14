@@ -280,7 +280,7 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
         clientId = clientCheck.rows[0].id;
         await pool.query(
             `UPDATE client
-             SET telephone = $1,
+             SET telephone   = $1,
                  telephone_2 = $2
              WHERE id = $3;`,
             [clientObj.telephone, clientObj.telephone_2, clientId]
@@ -774,18 +774,51 @@ async function getAllExpenses(limit, offset, orderBy, orderDirection, searchByMo
     return rows;
 }
 
+async function getExpense(month, year) {
+    // First, get expense
+    const expenseResult = await pool.query(`
+        SELECT e.year        AS "Year",
+               e.month       AS "Month",
+               e.rent        AS "Rent",
+               e.salaries    AS "Salaries",
+               e.bills       AS "Bills",
+               e.other       AS "Other",
+               e.description AS "Description"
+        FROM expense e
+        WHERE month = $1::INT
+          AND year = $2::INT;
+    `, [month, year]);
+
+    if (expenseResult.rows.length === 0) {
+        throw new Error("Expense not found");
+    }
+
+    const expense = expenseResult.rows[0];
+
+    // Get all transactions matching category 'Expense' and same month/year
+    const transactionsResult = await pool.query(`
+        SELECT t.date        AS "Date",
+               t.description AS "Description"
+        FROM transaction t
+        WHERE category = 'Expense'
+          AND EXTRACT(MONTH FROM date) = $1
+          AND EXTRACT(YEAR FROM date) = $2
+    `, [month, year]);
+
+    // Return both
+    return {
+        expense,
+        transactions: transactionsResult.rows
+    };
+}
+
 async function insertExpense(year, month, rent, salaries, bills, other, description) {
-    let hasRoomForDescription = true;
     let transaction_description = `${month}/${year}. `;
     if (rent !== 0) transaction_description += 'Кирија: ' + rent + '. '
     if (salaries !== 0) transaction_description += 'Плати: ' + salaries + '. '
     if (bills !== 0) transaction_description += 'Сметки: ' + bills + '. '
     if (other !== 0) transaction_description += 'Останато: ' + other + '. '
-    if (description !== '')
-        if (transaction_description.length + description.length <= 90)
-            transaction_description += 'Опис: ' + description + '.';
-        else
-            hasRoomForDescription = false;
+    if (description !== '' && transaction_description.length + description.length + "Опис: .".length < 200) transaction_description += 'Опис: ' + description + '.';
 
     const {rows: hasExpense} = await pool.query(`SELECT *
                                                  FROM expense
@@ -798,33 +831,34 @@ async function insertExpense(year, month, rent, salaries, bills, other, descript
                 salaries    = salaries + $4,
                 bills       = bills + $5,
                 other       = other + $6,
-                description = CASE WHEN description != '' THEN description || '. ' || $7 ELSE $7 END
+                description = $7
             WHERE year = $1::INT
               AND month = $2::INT
-        `, [year, month, rent, salaries, bills, other, description])
+        `, [year, month, rent, salaries, bills, other, '']) // no description in expense, descriptions are kept in transactions
     else {
         await pool.query(`
-            INSERT INTO expense
-            VALUES ($1, $2, $3, $4, $6, $7, $5)
-        `, [year, month, rent, salaries, bills, other, description])
+            INSERT INTO expense (year, month, rent, salaries, bills, other, description)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `, [year, month, rent, salaries, bills, other, '']) // no description in expense, descriptions are kept in transactions
     }
 
-
-    const now = new Date();
+    const today = new Date();
+    let expenseDate;
+    if (today.getFullYear() === year && (today.getMonth() + 1) === month) {
+        // Same year and month as today → use full today’s date (including day & time)
+        expenseDate = today;
+    } else {
+        // Different month/year → use the 1st day of that month/year
+        expenseDate = new Date(year, month, 0);
+    }
     // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
-    const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
+    const UTC_TIME = new Date(expenseDate.getTime() - (expenseDate.getTimezoneOffset() * 60000));
     //Insert a new transaction with cash inserted and profit made
 
     await pool.query(`
         INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
         VALUES (0, 'Expense', $1, $2, 0, 0, $3);
     `, [transaction_description, rent + salaries + bills + other, UTC_TIME])
-
-    if (!hasRoomForDescription && description.length < 100)
-        await pool.query(`
-            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-            VALUES (0, 'Expense', $1, 0, 0, 0, $2);
-        `, [description, UTC_TIME])
 
     if (rent + salaries + bills + other !== 0) {
         await pool.query(`
@@ -840,7 +874,6 @@ async function insertExpense(year, month, rent, salaries, bills, other, descript
 
 
 async function getAllTransactions(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByDate = "", searchByCategory = "") {
-
 
     const {rows} = await pool.query(`
         SELECT c.id          AS "Client Id",
@@ -858,7 +891,7 @@ async function getAllTransactions(limit, offset, orderBy, orderDirection, search
                             ON c.id = t.client_id
         WHERE LOWER(c.name) LIKE $1 || '%'
           AND c.embg LIKE $2 || '%'
-          AND ($3::DATE IS NULL OR t.date::DATE = $3::DATE)
+          AND ($3 = '' OR $3 IS NULL OR t.date::DATE = $3::DATE)
           AND (
             $4 = ''
                 OR ($4 = 'Change' AND t.description ILIKE '%Промена%')
@@ -1189,6 +1222,7 @@ module.exports = {
     insertIntoCashRegister,
     removeFromCashRegister,
     getAllExpenses,
+    getExpense,
     insertExpense,
     getAllTransactions,
     getDailyReport,

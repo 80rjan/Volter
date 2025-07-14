@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import {forwardRef} from "react";
-import {numberInWordsMkd} from "../Utils/numberInWordsMkd.js";
+import {numberInWordsMkd} from "../utils/numberInWordsMkd.js";
 
 
 const DogovorZaZaem = forwardRef((

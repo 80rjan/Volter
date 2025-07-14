@@ -5,7 +5,7 @@ import {useEffect, useRef, useState} from "react";
 import axios from "axios";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import PotvrdaZaVratenPredmet from "../Documents/PotvrdaZaVratenPredmet.jsx";
+import PotvrdaZaVratenPredmet from "../documents/PotvrdaZaVratenPredmet.jsx";
 
 //This modal is for closing, continuing or moving a pawn to sale and for selling items
 export default function ModalActions({ id, category, clientName, successMsg, action, priceBought, provision, dailyProvision, suggestedPrice, daysLeft, closeModal, title, refresh}) {
@@ -98,7 +98,17 @@ export default function ModalActions({ id, category, clientName, successMsg, act
                             <X size={32} onClick={closeModal}/>
                             <CircleHelp size={120}/>
                             <h1>{title}</h1>
-                            <form onSubmit={e => e.preventDefault()}>
+                            <form onSubmit={e => {
+                                e.preventDefault()
+                                if (price.length > 0 || price > 0) {
+                                    isNaN(price) ?
+                                        setError('Внеси валиден број!') && setError(true) :
+                                        setShowEnterPrice(false) && setShowError(false);
+                                } else {
+                                    setShowError(true);
+                                    setError('Внеси сума!')
+                                }
+                            }}>
                                 <div>
                                     <p>Исплатени пари: <span
                                         style={{fontWeight: 600}}>{priceBought.toLocaleString("de-DE")}</span></p>
@@ -120,16 +130,7 @@ export default function ModalActions({ id, category, clientName, successMsg, act
                                                      value={description}/>
                                     </div>
                                 </div>
-                                <Button onClick={() => {
-                                    if (price.length > 0 || price > 0) {
-                                        isNaN(price) ?
-                                            setError('Внеси валиден број!') && setError(true) :
-                                            setShowEnterPrice(false) && setShowError(false);
-                                    } else {
-                                        setShowError(true);
-                                        setError('Внеси сума!')
-                                    }
-                                }}>
+                                <Button type="submit">
                                     <CheckCheck size={28}/> Потврди
                                 </Button>
                             </form>

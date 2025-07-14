@@ -1,11 +1,11 @@
 import styled from "styled-components";
-import Nav from "../Components/Nav.jsx";
+import Nav from "../components/Nav.jsx";
 import CashRegister from "./CashRegister.jsx";
 import {ChevronDown, ChevronUp, Ellipsis, Minus, Plus} from "lucide-react";
 import {useEffect, useRef, useState} from "react";
 import axios from "axios";
-import Loading from "../Components/Loading.jsx";
-import ModalReadMoreMonthReport from "../Components/ModalReadMoreMonthReport.jsx";
+import Loading from "../components/Loading.jsx";
+import ModalReadMoreMonthReport from "../components/ModalReadMoreMonthReport.jsx";
 
 export default function MonthlyReport() {
     const [allReports, setAllReports] = useState([]);

@@ -52,6 +52,7 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
                 name: value.name,
                 embg: value.embg,
                 telephone: value.telephone,
+                telephone_2: value.telephone_2,
                 city: value.city,
             }));
         }

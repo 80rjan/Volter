@@ -1,11 +1,13 @@
 import {useEffect, useRef, useState} from "react";
 import axios from "axios";
 import styled from "styled-components";
-import Nav from "../Components/Nav.jsx";
-import { Plus, X, Euro, RotateCcw, ChevronUp, ChevronDown, Minus} from "lucide-react";
+import Nav from "../components/Nav.jsx";
+import {Plus, X, Euro, RotateCcw, ChevronUp, ChevronDown, Minus, Ellipsis} from "lucide-react";
 import CashRegister from "./CashRegister.jsx";
-import Loading from "../Components/Loading.jsx";
-import ModalAddNewExpense from "../Components/ModalAddNewExpense.jsx";
+import Loading from "../components/Loading.jsx";
+import ModalAddNewExpense from "../components/ModalAddNewExpense.jsx";
+import ModalReadMoreSale from "../components/ModalReadMoreSale.jsx";
+import Expense from "../components/Expense.jsx";
 
 export default function Expenses() {
     const [allExpenses, setAllExpenses] = useState([]);
@@ -24,6 +26,7 @@ export default function Expenses() {
     const [loading, setLoading] = useState(false);
     const isFetchingRef = useRef(false);
     const [isFetching, setIsFetching] = useState(false);
+    const [modalReadMore, setModalReadMore] = useState(false);
 
     const fetchExpenses = (limit, offset, order, direction, searchByMonth, searchByYear, isLoading) => {
         if (isFetching) return;
@@ -76,7 +79,6 @@ export default function Expenses() {
         offset.current = 0;
         fetchExpenses(limit, offset.current, orderBy, orderDirection, searchByMonth, searchByYear, true);
     }, [refresh, orderBy, orderDirection, searchByMonth, searchByYear])
-
 
     const handleOrder = (orderBy, index) => {
         const oldDirection = [...orderDirectionArr.current];
@@ -143,28 +145,28 @@ export default function Expenses() {
                         <Text onClick={() => handleOrder("Other", 5)}>
                             Друго {orderDirectionArr.current[5] === 0 ? <Minus size={14} /> : orderDirectionArr.current[5] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
-                        <Text style={{cursor: "default"}}>Опис</Text>
+                        <Text style={{cursor: "default"}}>Повеќе</Text>
                     </TableHeader>
 
                     <ScrollableExpenses ref={scrollableExpensesRef}>
                         { loading ?
                             <Loading /> :
                             allExpenses.map((expense, index) => (
-                                <Expense key={index} style={index % 2 === 1 ? { background: "#f0f0f0" } : { background: "#ffffff" }}>
-                                    <TextExpense>{expense.Year}</TextExpense>
-                                    <TextExpense>{expense.Month}</TextExpense>
-                                    <TextExpense>{Number(expense.Rent).toLocaleString("de-DE")}</TextExpense>
-                                    <TextExpense>{Number(expense.Salaries).toLocaleString("de-DE")}</TextExpense>
-                                    <TextExpense>{Number(expense.Bills).toLocaleString("de-DE")}</TextExpense>
-                                    <TextExpense>{Number(expense.Other).toLocaleString("de-DE")}</TextExpense>
-                                    <TextExpense>{expense.Description}</TextExpense>
-                                </Expense>
+                                <Expense key={index} expense={expense} index={index} />
                             )) }
                     </ScrollableExpenses>
                 </ExpensesWrapper>
 
                 <CashRegister refreshDependancy={refresh}/>
             </Container>
+
+            {modalReadMore &&
+                <ModalReadMoreSale
+                    saleInfo={saleInfo}
+                    closeModal={() => setModalReadMore(false)}
+                    sellItem={() => setModalSellItem(true)}
+                />
+            }
         </ExpensesPage>
     )
 }
@@ -280,34 +282,3 @@ const ScrollableExpenses = styled.div`
         }
     }
 `
-
-const Expense = styled.div`
-    display: grid;
-    place-items: center;
-    grid-template-columns: repeat(7, 1fr);
-    gap: .4rem;
-    padding: .8rem;
-    border-bottom: rgba(0,0,0,0.2) 2px solid;
-    transition: all 200ms ease-in-out;
-    z-index: 1;
-
-    //&:hover {
-    //    padding: 1rem;
-    //    box-shadow: 0 0 8px rgba(0,0,0,0.6);
-    //    z-index: 10;
-    //    scale: 1.001;
-    //    //border: none;
-    //}
-`;
-
-const TextExpense = styled.p`
-    font-weight: 500;
-    font-size: .8rem;
-
-    &.bold {
-        font-weight: bold;
-    }
-    &.color {
-        font-style: italic;
-    }
-`;

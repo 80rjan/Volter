@@ -17,11 +17,11 @@ import {
 } from 'lucide-react';
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import DogovorZaZaem from "../Documents/DogovorZaZaem.jsx";
-import DogovorZaRacenZalog from "../Documents/DogovorZaRacenZalog.jsx";
+import DogovorZaZaem from "../documents/DogovorZaZaem.jsx";
+import DogovorZaRacenZalog from "../documents/DogovorZaRacenZalog.jsx";
 import Loading from "./Loading.jsx";
 import {parse} from "dotenv";
-import AneksDogovorZaZaem from "../Documents/AneksDogovorZaZaem.jsx";
+import AneksDogovorZaZaem from "../documents/AneksDogovorZaZaem.jsx";
 
 export default function ModalReadMorePawn({
                                               category,

@@ -284,8 +284,15 @@ const getAllExpenses = asyncHandler(async (req, res) => {
     res.send(expenses);
 })
 
+const getExpense = asyncHandler(async (req, res) => {
+    let month = req.query.month;
+    let year = req.query.year;
+
+    const expense = await db.getExpense(month, year);
+    res.send(expense);
+})
+
 const insertExpense = asyncHandler(async (req, res) => {
-    console.log(req.body)
     const { year, month, rent, salaries, bills, other, description } = req.body;
 
     try {
@@ -364,6 +371,7 @@ module.exports = {
     insertIntoCashRegister,
     removeFromCashRegister,
     getAllExpenses,
+    getExpense,
     insertExpense,
     getAllTransactions,
     getDailyReport,

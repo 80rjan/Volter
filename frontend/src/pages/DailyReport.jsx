@@ -1,10 +1,10 @@
 import styled from "styled-components";
-import Nav from "../Components/Nav.jsx";
+import Nav from "../components/Nav.jsx";
 import CashRegister from "./CashRegister.jsx";
 import {DollarSign, Handshake, Landmark, Plus, Repeat, Tag} from "lucide-react";
 import {useState} from "react";
 import axios from "axios";
-import Loading from "../Components/Loading.jsx";
+import Loading from "../components/Loading.jsx";
 
 export default function DailyReport() {
     const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
