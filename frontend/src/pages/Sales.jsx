@@ -2,7 +2,7 @@ import {useEffect, useRef, useState} from "react";
 import axios from "axios";
 import styled from "styled-components";
 import Nav from "../components/Nav.jsx";
-import { Plus, X, Euro, RotateCcw, ChevronUp, ChevronDown, Minus} from "lucide-react";
+import { Plus, Euro, ChevronUp, ChevronDown, Minus} from "lucide-react";
 import ModalAddNewSale from "../components/ModalAddNewSale.jsx";
 import Sale from "../components/Sale.jsx";
 import CashRegister from "./CashRegister.jsx";
@@ -11,11 +11,8 @@ import Loading from "../components/Loading.jsx";
 export default function Sales() {
     const [allSales, setAllSales] = useState([]);
     const [orderBy, setOrderBy] = useState("Date Bought");
-    const orderDirectionArr = useRef([0,0,0,0,-1]); // -1=desc 0=normal 1=asc
+    const orderDirectionArr = useRef([0,0,-1]); // -1=desc 0=normal 1=asc
     const [orderDirection, setOrderDirection] = useState("DESC");
-    const [searchByName, setSearchByName] = useState("");
-    const [searchByEmbg, setSearchByEmbg] = useState("");
-    const [searchByTel, setSearchByTel] = useState("");
     const [modalAddNewSale, setModalAddNewSale] = useState(false);
     const [refresh, setRefresh] = useState(false);
     const offset = useRef(0);
@@ -27,12 +24,12 @@ export default function Sales() {
     const isFetchingRef = useRef(false);
     const [isFetching, setIsFetching] = useState(false);
 
-    const fetchSales = (limit, offset, order, direction, searchByName, searchByEmbg, searchByTel, isLoading) => {
+    const fetchSales = (limit, offset, order, direction, isLoading) => {
         if (isFetching) return;
         setIsFetching(true);
         setLoading(isLoading);
         isFetchingRef.current = true;
-        axios.get(`http://localhost:3000/sales?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByTel=${searchByTel}`)
+        axios.get(`http://localhost:3000/sales?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}`)
             .then(res => {
                 if (JSON.stringify(prevSales.current) !== JSON.stringify(res.data)) {
                     setAllSales(prev => [...prev, ...res.data]);
@@ -60,7 +57,7 @@ export default function Sales() {
             // Check if the scrollbar is 30% up from the bottom
             if (scrollHeight - scrollTop - clientHeight <= scrollHeight * 0.3 && !isLastPage && !isFetchingRef.current) {
                 offset.current += limit; // Increase offset for the next fetch
-                fetchSales(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, false);
+                fetchSales(limit, offset.current, orderBy, orderDirection, false);
             }
         };
 
@@ -70,14 +67,14 @@ export default function Sales() {
         return () => {
             scrollableDiv.removeEventListener("scroll", handleScroll);
         };
-    }, [isLastPage, refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel])
+    }, [isLastPage, refresh])
 
     useEffect(() => {
         setAllSales([]);
         prevSales.current = [];
         offset.current = 0;
-        fetchSales(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, true);
-    }, [refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel])
+        fetchSales(limit, offset.current, orderBy, orderDirection, true);
+    }, [refresh, orderBy, orderDirection])
 
 
     const handleOrder = (orderBy, index) => {
@@ -110,40 +107,16 @@ export default function Sales() {
                     />}
                 </HeaderWrapper>
 
-                <FilterWrapper >
-                    <StyledInput placeholder="Пребарувај по име"
-                                 onKeyUp={(e) => {
-                                     setSearchByName(e.target.value)
-                                 }}
-                    />
-                    <StyledInput placeholder="Пребарувај по ембг"
-                                 onKeyUp={(e) => {
-                                     setSearchByEmbg(e.target.value)
-                                 }}
-                    />
-                    <StyledInput placeholder="Пребарувај по телефон"
-                                 onKeyUp={(e) => {
-                                     setSearchByTel(e.target.value)
-                                 }}
-                    />
-                </FilterWrapper>
-
                 <SalesWrapper>
                     <TableHeader >
-                        <Text onClick={() => handleOrder("Client Id", 0)}>
-                            Код {orderDirectionArr.current[0] === 0 ? <Minus size={14} /> : orderDirectionArr.current[0] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        <Text onClick={() => handleOrder("About", 0)}>
+                            Опис {orderDirectionArr.current[0] === 0 ? <Minus size={14} /> : orderDirectionArr.current[0] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
-                        <Text onClick={() => handleOrder("Name", 1)}>
-                            Име {orderDirectionArr.current[1] === 0 ? <Minus size={14} /> : orderDirectionArr.current[1] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        <Text onClick={() => handleOrder("Item Cost", 1)}>
+                            Вредност {orderDirectionArr.current[1] === 0 ? <Minus size={14} /> : orderDirectionArr.current[1] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
-                            <Text onClick={() => handleOrder("About", 2)}>
-                            Опис {orderDirectionArr.current[2] === 0 ? <Minus size={14} /> : orderDirectionArr.current[2] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
-                        </Text>
-                        <Text onClick={() => handleOrder("Item Cost", 3)}>
-                            Вредност {orderDirectionArr.current[3] === 0 ? <Minus size={14} /> : orderDirectionArr.current[3] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
-                        </Text>
-                        <Text onClick={() => handleOrder("Date Bought", 4)}>
-                            Датум Купено {orderDirectionArr.current[4] === 0 ? <Minus size={14} /> : orderDirectionArr.current[4] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        <Text onClick={() => handleOrder("Date Bought", 2)}>
+                            Датум Купено {orderDirectionArr.current[2] === 0 ? <Minus size={14} /> : orderDirectionArr.current[2] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text style={{cursor: "default"}}>Акции</Text>
                         <Text style={{cursor: "default"}}>Повеќе</Text>
@@ -223,21 +196,6 @@ const ButtonAddNewSale = styled.button`
     }
 `
 
-const FilterWrapper = styled.div`
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-`
-
-const StyledInput = styled.input`
-    border: none;
-    border-radius: .2rem;
-    font-size: 1rem;
-    width: 25%;
-    padding: .5rem;
-    box-shadow: 0 0 8px rgba(0,0,0,0.2);
-`
-
 const SalesWrapper = styled.div`
     display: flex;
     flex-direction: column;
@@ -252,7 +210,7 @@ const SalesWrapper = styled.div`
 const TableHeader = styled.div`
     display: grid;
     place-items: center;
-    grid-template-columns: 2rem 1fr 2fr 1fr 1fr 1.5fr .5fr;
+    grid-template-columns: 3fr 1fr 1fr 1.5fr .5fr;
     padding: 1rem .5rem;
     border-bottom: rgba(0, 0, 0, 0.2) 2px solid;
     color: #eee;

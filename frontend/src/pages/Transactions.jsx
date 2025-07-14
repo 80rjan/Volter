@@ -151,7 +151,7 @@ export default function Transactions() {
                 <TransactionsWrapper>
                     <TableHeader>
                         <Text onClick={() => handleOrder("Client Id", 0)}>
-                            Код {orderDirectionArr.current[0] === 0 ? <Minus size={14} /> : orderDirectionArr.current[0] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                            Ид {orderDirectionArr.current[0] === 0 ? <Minus size={14} /> : orderDirectionArr.current[0] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                         <Text onClick={() => handleOrder("Name", 1)}>
                             Име {orderDirectionArr.current[1] === 0 ? <Minus size={14} /> : orderDirectionArr.current[1] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}

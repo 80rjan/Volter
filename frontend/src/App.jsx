@@ -12,6 +12,7 @@ import YearlyReport from "./pages/YearlyReport.jsx";
 import DailyReport from "./pages/DailyReport.jsx";
 import LoanAgreementDocument from "./documents/LoanAgreementDocument.jsx";
 import Expenses from "./pages/Expenses.jsx";
+import Clients from "./pages/Clients.jsx";
 
 function App() {
     return (
@@ -19,8 +20,9 @@ function App() {
             <Routes>
                 <Route path="/" element={<Pawns />} />
                 <Route path="/sales" element={<Sales />} />
-                <Route path="/expenses" element={<Expenses />} />
                 <Route path="/transactions" element={<Transactions />} />
+                <Route path="/clients" element={<Clients />} />
+                <Route path="/expenses" element={<Expenses />} />
                 <Route path="/dailyReport" element={<DailyReport />} />
                 <Route path="/monthlyReport" element={<MonthlyReport />} />
                 <Route path="/yearlyReport" element={<YearlyReport />} />

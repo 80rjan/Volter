@@ -16,7 +16,6 @@ export default function Expense({ expense, index }) {
     }, [expenseInfo])
 
     const fetchExpense = () => {
-        console.log(expense)
         setLoading(true);
         axios.get(`http://localhost:3000/expenses/getExpense?month=${expense.Month}&year=${expense.Year}`)
             .then(res => {

@@ -1,77 +1,46 @@
 import ReactDom from "react-dom";
 import styled from "styled-components";
-import { UserRound, Euro, X, Tag } from 'lucide-react'
+import { Euro, X, Tag} from 'lucide-react'
 
-export default function ModalReadMoreSale({ saleInfo, closeModal, sellItem }) {
-    const client = saleInfo.client;
-    const sale = saleInfo.sale;
+export default function ModalReadMoreSale({sale, closeModal, sellItem}) {
 
     return ReactDom.createPortal(
         <>
-            <Overlay />
-            <Wrapper >
-                <X size={32} onClick={closeModal} />
-                <InformationWrapper >
+            <Overlay/>
+            <Wrapper>
+                <X size={32} onClick={closeModal}/>
+                <InformationWrapper>
 
-                    <ClientWrapper >
-                        <div>
-                            <UserRound size={32} />
-                            <p>{client.name}</p>
-                        </div>
-                        <div>
-                            <span>
-                                <p>Шифра на клиент:</p>
-                                <p>{client.id}</p>
-                            </span>
-                            <span>
-                                <p>Ембг:</p>
-                                <p>{client.embg}</p>
-                            </span>
-                            <span>
-                                <p>Телефон:</p>
-                                <p>{client.telephone}</p>
-                            </span>
-                            <span>
-                                <p>Град:</p>
-                                <p>{client.city}</p>
-                            </span>
-                        </div>
-
-                    </ClientWrapper>
-
-                    <Separator />
-
-                    <SaleWrapper>
-                        <div>
-                            <Tag size={32}/>
-                            Продажба
-                        </div>
-                        <SaleDetailsWrapper>
-                            <span>
-                                <p>Шифра на продажба:</p>
-                                <p>{sale.id}</p>
-                            </span>
-                                            <span>
-                                <p>Вредност на предметот:</p>
-                                <p>{Number(sale.price_bought).toLocaleString("de-DE")}</p>
-                            </span>
-                                            <span>
-                                <p>Опис:</p>
-                                <p>{sale.description}</p>
-                            </span>
-                            <span>
-                                <p>Купено на:</p>
-                                <p>{sale.date_from.substring(0, 10)}</p>
-                            </span>
-                        </SaleDetailsWrapper>
-                    </SaleWrapper>
+                    <div>
+                        <Tag size={32}/>
+                        Продажба
+                    </div>
+                    <SaleDetailsWrapper>
+                        <span>
+                            <p>Шифра на продажба:</p>
+                            <p>{sale.Id}</p>
+                        </span>
+                        <span>
+                            <p>Вредност на предметот:</p>
+                            <p>{Number(sale["Item Cost"]).toLocaleString("de-DE")}</p>
+                        </span>
+                        <span>
+                            <p>Опис:</p>
+                            <p>{sale.About}</p>
+                        </span>
+                        <span>
+                            <p>Купено на:</p>
+                            <p>{sale["Date Bought"].substring(0, 10)}</p>
+                        </span>
+                    </SaleDetailsWrapper>
 
                 </InformationWrapper>
                 <ButtonWrapper>
                     <button onClick={() => {
                         sellItem();
                         closeModal();
-                    }}><Euro size={32}/> Продади </button>
+                    }}><Euro size={32}/> Продади
+                    </button>
                 </ButtonWrapper>
 
             </Wrapper>
@@ -79,7 +48,6 @@ export default function ModalReadMoreSale({ saleInfo, closeModal, sellItem }) {
         document.getElementById("portal")
     )
 }
-
 
 
 const Overlay = styled.div`
@@ -119,56 +87,7 @@ const Wrapper = styled.div`
 `
 
 const InformationWrapper = styled.div`
-    display: flex;
-    //flex-direction: column;
-    gap: 4rem;
-`
-
-const ClientWrapper = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-
-    & > div {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: .4rem;
-    }
-    & > div:first-child {
-        flex-direction: row;
-        align-items: center;
-    }
-    & > div > p {
-        font-size: 1.6rem;
-        font-weight: 600;
-        text-wrap: wrap;
-    }
-    
-
-    span {
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        font-weight: 500;
-    }
-
-    span > p:first-child {
-        font-weight: 400;
-        color: #666;
-        margin-left: -.4rem;
-    }
-`
-
-const Separator = styled.div`
-    width: 2px;
-    height: 250px;
-    background: rgba(0,0,0,0.2);
-    border-radius: 100px;
-`
-
-const SaleWrapper = styled.div`
-    display: flex;
+    display: grid;
     flex-direction: column;
     gap: 1rem;
 
@@ -179,13 +98,19 @@ const SaleWrapper = styled.div`
         font-size: 1.6rem;
         font-weight: 600;
     }
+`
+
+const SaleDetailsWrapper = styled.div`
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .4rem 2rem;
 
     span {
         display: flex;
         flex-direction: column;
         gap: 0;
         font-weight: 500;
-        
+
     }
 
     span > p:first-child {
@@ -193,15 +118,8 @@ const SaleWrapper = styled.div`
         color: #666;
         margin-left: -.4rem;
     }
-`
-
-const SaleDetailsWrapper = styled.div`
-    display: grid;
-    grid-template-rows: repeat(4, max-content);
-    gap: .4rem 2rem;
-    grid-auto-flow: column;
     
-    p {
+    span > p {
         min-width: fit-content;
     }
 `
@@ -210,7 +128,7 @@ const ButtonWrapper = styled.div`
     display: flex;
     gap: 2rem;
     margin-top: 2rem;
-    
+
     button {
         display: flex;
         align-items: center;
@@ -224,6 +142,7 @@ const ButtonWrapper = styled.div`
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         background: var(--green);
     }
+
     button:hover {
         scale: 1.05;
     }

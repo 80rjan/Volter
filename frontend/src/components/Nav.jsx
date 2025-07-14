@@ -1,7 +1,18 @@
 import styled from "styled-components";
 import navImage from "../assets/volter-zalozna-kukja-3D-slika.png"
 import { NavLink } from "react-router-dom";
-import { Percent, Tag, Landmark, CalendarFold, Calendar1, CalendarDays, Handshake, ArrowLeftRight, BanknoteArrowDown } from "lucide-react";
+import {
+    Percent,
+    Tag,
+    Landmark,
+    CalendarFold,
+    Calendar1,
+    CalendarDays,
+    Handshake,
+    ArrowLeftRight,
+    BanknoteArrowDown,
+    Users, User, UsersRound, UserRound
+} from "lucide-react";
 
 export default function Nav() {
     return (
@@ -10,6 +21,7 @@ export default function Nav() {
             <StyledNavLink to="/"><Handshake size={28} /> Залози</StyledNavLink>
             <StyledNavLink to="/sales" ><Tag size={28} /> Продажба</StyledNavLink>
             <StyledNavLink to="/transactions" ><ArrowLeftRight size={28} /> Трансакции</StyledNavLink>
+            <StyledNavLink to="/clients" ><UserRound size={28} /> Клиенти</StyledNavLink>
             <StyledNavLink to="/expenses" ><BanknoteArrowDown size={28} /> Расходи</StyledNavLink>
             <StyledNavLink to="/dailyReport" ><CalendarFold size={28} /> Дневен Извештај</StyledNavLink>
             <StyledNavLink to="/monthlyReport" ><Calendar1 size={28} /> Месечен Извештај</StyledNavLink>

@@ -172,40 +172,25 @@ const changePawnToSale = asyncHandler(async (req, res) => {
 })
 
 const getAllSales = asyncHandler(async (req, res) => {
-    let searchByName = req.query.searchByName !== 'undefined' ? req.query.searchByName.toLowerCase() : '';
-    let searchByEmbg = req.query.searchByEmbg !== 'undefined' ? req.query.searchByEmbg : '';
-    let searchByTel = req.query.searchByTel !== 'undefined' ? req.query.searchByTel : '';
-    const limit = req.query.limit;
-    const offset = req.query.offset;
-
-    const sales = await db.getAllSales(limit, offset, req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, searchByTel);
+    const sales = await db.getAllSales(req.query.limit, req.query.offset, req.query.orderBy, req.query.orderDirection);
     res.send(sales);
 })
 
 const getSale = asyncHandler(async (req, res) => {
 
     try {
-        const saleInfo = await db.getSale(req.query.clientId, req.query.saleId);
-        res.status(200).json({ saleInfo });
+        const sale = await db.getSale(req.query.saleId);
+        res.status(200).json({ sale });
     } catch (error) {
         res.status(500).json({ message: "Error query get specific sale " + error });
     }
 })
 
 const insertSale = asyncHandler(async (req, res) => {
-    let clientObj = {
-        name: req.body.name,
-        embg: req.body.embg,
-        telephone: req.body.telephone,
-        city: req.body.city
-    }
-    let saleObj = {
-        priceBought: req.body.price_bought,
-        description: req.body.description
-    }
+    const { price_bought, description } = req.body;
 
     try {
-        await db.addNewSale(saleObj, clientObj);
+        await db.addNewSale(Number(price_bought), description);
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,OPTIONS');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
@@ -227,18 +212,34 @@ const sellItem = asyncHandler(async (req, res) => {
 })
 
 
-const getAllClients = asyncHandler(async (req, res) => {
+const getAllClientsAutocomplete = asyncHandler(async (req, res) => {
     const limit = req.query.limit;
     const offset = req.query.offset;
     const search = req.query.search.toLowerCase();
 
     try {
-        const clients = await db.getAllClients(limit, offset, search);
+        const clients = await db.getAllClientsAutocomplete(limit, offset, search);
         res.send(clients);
     } catch (error) {
         res.status(500).json({ message: "Error query get all clients" });
     }
 })
+
+const getAllClients = asyncHandler(async (req, res) => {
+    console.log("getAllClients called");
+    let searchByName = req.query.searchByName !== 'undefined' ? req.query.searchByName.toLowerCase() : '';
+    let searchByEmbg = req.query.searchByEmbg !== 'undefined' ? req.query.searchByEmbg : '';
+    let searchByTel = req.query.searchByTel !== 'undefined' ? req.query.searchByTel : '';
+    const limit = req.query.limit;
+    const offset = req.query.offset;
+
+    try {
+        const clients = await db.getAllClients(limit, offset, req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, searchByTel);
+        res.send(clients);
+    } catch (error) {
+        res.status(500).send({ message: `Error query get all clients ${error}` });
+    }
+});
 
 
 const getCashRegister = asyncHandler(async (req, res) => {
@@ -367,6 +368,7 @@ module.exports = {
     insertSale,
     sellItem,
     getAllClients,
+    getAllClientsAutocomplete,
     getCashRegister,
     insertIntoCashRegister,
     removeFromCashRegister,

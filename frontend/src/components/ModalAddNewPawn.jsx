@@ -66,7 +66,7 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
     };
 
     const fetchClients = (limit, offset, search) => {
-        axios.get(`http://localhost:3000/clients?limit=${limit}&offset=${offset}&search=${search}`)
+        axios.get(`http://localhost:3000/clientsAutocomplete?limit=${limit}&offset=${offset}&search=${search}`)
             .then(res => {
                 if (res.data.length > 0) {
                     offset === 0 ? setClients(res.data) : setClients(prev => [...prev, ...res.data]);
@@ -107,8 +107,6 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
     useEffect(() => {
         fetchClients(limit, offset.current, autocompleteValue);
     }, []);
-
-    console.log(clients)
 
     return ReactDom.createPortal(
         <>
@@ -153,7 +151,7 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
                                                 <strong>{option.name}</strong>
                                                 <span>{option.embg}</span>
                                                 <span>{option.telephone}</span>
-                                                <span>{option.telephone_2}</span>
+                                                {option.telephone_2 && (<span>{option.telephone_2}</span>)}
                                             </li>
                                         )}
                                         filterOptions={(options, state) =>

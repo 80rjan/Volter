@@ -17,7 +17,8 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
                             ON c.id = ep.client_id
         WHERE LOWER(c.name) LIKE $1 || '%'
           AND c.embg LIKE $2 || '%'
-          AND c.telephone LIKE $3 || '%'
+          AND (c.telephone LIKE $3 || '%'
+            OR c.telephone_2 LIKE $3 || '%')
 
         UNION ALL
 
@@ -36,7 +37,8 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
                             ON c.id = gp.client_id
         WHERE LOWER(c.name) LIKE $1 || '%'
           AND c.embg LIKE $2 || '%'
-          AND c.telephone LIKE $3 || '%'
+          AND (c.telephone LIKE $3 || '%'
+            OR c.telephone_2 LIKE $3 || '%')
 
         UNION ALL
 
@@ -55,7 +57,8 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
                             ON c.id = op.client_id
         WHERE LOWER(c.name) LIKE $1 || '%'
           AND c.embg LIKE $2 || '%'
-          AND c.telephone LIKE $3 || '%'
+          AND (c.telephone LIKE $3 || '%'
+            OR c.telephone_2 LIKE $3 || '%')
 
         UNION ALL
 
@@ -74,7 +77,8 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
                             ON c.id = vp.client_id
         WHERE LOWER(c.name) LIKE $1 || '%'
           AND c.embg LIKE $2 || '%'
-          AND c.telephone LIKE $3 || '%'
+          AND (c.telephone LIKE $3 || '%'
+            OR c.telephone_2 LIKE $3 || '%')
 
         UNION ALL
 
@@ -93,7 +97,8 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
                             ON c.id = wp.client_id
         WHERE LOWER(c.name) LIKE $1 || '%'
           AND c.embg LIKE $2 || '%'
-          AND c.telephone LIKE $3 || '%'
+          AND (c.telephone LIKE $3 || '%'
+            OR c.telephone_2 LIKE $3 || '%')
 
         ORDER BY "${orderBy}" ${orderDirection}
         LIMIT ${limit} OFFSET ${offset};
@@ -492,7 +497,7 @@ async function changePawnToSale(id, pawnCategory) {
                                       FROM electronics_pawn
                                       WHERE id = $1;`, [id])
             if (query.rows.length > 0)
-                description = `${query.rows[0].brand} ${query.rows[0].year} ${query.rows[0].description}`;
+                description = `${query.rows[0].brand}, ${query.rows[0].year}, ${query.rows[0].description}`;
             break;
         case "gold_pawn":
             query = await pool.query(`SELECT price_pawned, weight, carats, description
@@ -500,7 +505,7 @@ async function changePawnToSale(id, pawnCategory) {
                                       WHERE id = $1;`, [id])
             if (query.rows.length > 0) {
                 gold_grams = query.rows[0].weight;
-                description = `${query.rows[0].weight}g ${query.rows[0].carats}k ${query.rows[0].price_pawned / query.rows[0].weight} per gram ${query.rows[0].description}`;
+                description = `${query.rows[0].weight}g, ${query.rows[0].carats}k, ${query.rows[0].price_pawned / query.rows[0].weight} по грам, ${query.rows[0].description}`;
             }
             break;
         case "other_pawn":
@@ -515,14 +520,14 @@ async function changePawnToSale(id, pawnCategory) {
                                       FROM vehicle_pawn
                                       WHERE id = $1;`, [id])
             if (query.rows.length > 0)
-                description = `${query.rows[0].brand} ${query.rows[0].model} ${query.rows[0].year} ${query.rows[0].description}`;
+                description = `${query.rows[0].brand} ${query.rows[0].model}, ${query.rows[0].year}, ${query.rows[0].description}`;
             break;
         case "watch_pawn":
             query = await pool.query(`SELECT brand, year, description
                                       FROM watch_pawn
                                       WHERE id = $1;`, [id])
             if (query.rows.length > 0)
-                description = `${query.rows[0].brand} ${query.rows[0].year} ${query.rows[0].description}`;
+                description = `${query.rows[0].brand}, ${query.rows[0].year}, ${query.rows[0].description}`;
             break;
         default:
             throw new Error("Invalid pawn category in ADD SALE");
@@ -530,9 +535,9 @@ async function changePawnToSale(id, pawnCategory) {
 
     //Insert sale into sale table
     await pool.query(`
-        INSERT INTO sale (client_id, price_bought, date_from, description)
-        VALUES ($1, $2, CURRENT_DATE, $3)
-    `, [clientId, priceBought, description])
+        INSERT INTO sale (price_bought, date_from, description)
+        VALUES ($1, CURRENT_DATE, $2)
+    `, [priceBought, description])
 
     //Delete pawn from pawn table
     await pool.query(`
@@ -548,7 +553,7 @@ async function changePawnToSale(id, pawnCategory) {
     let transactionDescription = "Transferred pawn to sale";
 
     const now = new Date();
-// Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+    // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
     const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
     //Insert a new transaction with profit made
     await pool.query(`
@@ -569,49 +574,35 @@ async function changePawnToSale(id, pawnCategory) {
     `, [priceBought, gold_grams, provision, UTC_TIME])
 }
 
-async function getAllSales(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByTel = "") {
+async function getAllSales(limit, offset, orderBy, orderDirection) {
     const {rows} = await pool.query(`
-        SELECT c.id                               AS "Client Id",
-               c.name                             AS "Name",
-               s.id                               AS "Id",
+        SELECT s.id                               AS "Id",
                s.description                      AS "About",
                to_char(s.date_from, 'YYYY-MM-DD') AS "Date Bought",
                s.price_bought                     AS "Item Cost"
-        FROM client c
-                 INNER JOIN sale s
-                            ON c.id = s.client_id
-        WHERE LOWER(c.name) LIKE $1 || '%'
-          AND c.embg LIKE $2 || '%'
-          AND c.telephone LIKE $3 || '%'
+        FROM sale s
         ORDER BY "${orderBy}" ${orderDirection}
         LIMIT ${limit} OFFSET ${offset};
-    `, [searchByName, searchByEmbg, searchByTel])
+    `, [])
 
     return rows;
 }
 
-async function getSale(clientId, saleId) {
+async function getSale(saleId) {
 
-    const {rows: saleRows} = await pool.query(`SELECT *, to_char(date_from, 'YYYY-MM-DD') AS date_from
-                                               FROM sale
-                                               WHERE id = $1`, [saleId]);
-    const sale = saleRows[0];
-    const {rows: clientRows} = await pool.query(`SELECT *
-                                                 FROM client
-                                                 WHERE id = $1`, [clientId]);
-    const client = clientRows[0];
-    return {sale, client};
+    const {rows} = await pool.query(`SELECT *, to_char(date_from, 'YYYY-MM-DD') AS date_from
+                                     FROM sale
+                                     WHERE id = $1`, [saleId]);
+    return rows[0];
 }
 
 async function closeSale(id, priceSold, description) {
-    const query = await pool.query(`SELECT price_bought, client_id
+    const query = await pool.query(`SELECT price_bought
                                     FROM sale
                                     WHERE id = $1;`, [id]);
     let priceBought = null;
-    let clientId = null;
     if (query.rows.length > 0) {
         priceBought = query.rows[0].price_bought;
-        clientId = query.rows[0].client_id;
     } else
         throw new Error("Cant find information in sale table to REMOVE SALE");
 
@@ -634,8 +625,8 @@ async function closeSale(id, priceSold, description) {
     //Insert a new transaction with cash inserted and profit made
     await pool.query(`
         INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES ($1, $2, $3, 0, $4, $5, $6);
-    `, [clientId, transactionCategory, transactionDescription, priceBought, priceSold - priceBought, UTC_TIME])
+        VALUES (0, $1, $2, 0, $3, $4, $5);
+    `, [transactionCategory, transactionDescription, priceBought, priceSold - priceBought, UTC_TIME])
 
     //Update cash register with money inserted, decrease numSales and decrease moneySales
     await pool.query(`
@@ -651,42 +642,26 @@ async function closeSale(id, priceSold, description) {
     return priceSold;
 }
 
-async function addNewSale(saleObj, clientObj) {
-    //Insert a new client if name, embg and telephone arent already a combination in another client
-    await pool.query(`
-        INSERT INTO client (name, embg, telephone, city)
-        VALUES ($1, $2, $3, $4)
-        ON CONFLICT (name, embg, telephone) DO NOTHING;
-    `, [clientObj.name, clientObj.embg, clientObj.telephone, clientObj.city]);
-
-    const query = await pool.query(`SELECT id
-                                    FROM client
-                                    WHERE name = $1
-                                      AND embg = $2
-                                      AND telephone = $3;`, [clientObj.name, clientObj.embg, clientObj.telephone]);
-    let clientId = null;
-    if (query.rows.length > 0) {
-        clientId = query.rows[0].id;
-    } else
-        throw new Error("Cant find information in client table to ADD PAWN");
+async function addNewSale(priceBought, description) {
 
     //Insert a new sale into sale table
     await pool.query(`
-        INSERT INTO sale (client_id, price_bought, date_from, description)
-        VALUES ($1, $2, CURRENT_DATE, $3)
-    `, [clientId, saleObj.priceBought, saleObj.description])
+        INSERT INTO sale (price_bought, date_from, description)
+        VALUES ($1, CURRENT_DATE, $2)
+    `, [priceBought, description])
 
     let transactionCategory = "Sale";
     let transactionDescription = "Added new sale";
 
     const now = new Date();
-// Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+    // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
     const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
+
     //Insert a new transaction with money given
     await pool.query(`
         INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES ($1, $2, $3, $4, 0, 0, $5);
-    `, [clientId, transactionCategory, transactionDescription, saleObj.priceBought, UTC_TIME])
+        VALUES (0, $1, $2, $3, 0, 0, $4);
+    `, [transactionCategory, transactionDescription, priceBought, UTC_TIME])
 
     //Update cash register with money given, increase numSales and increase moneySales
     await pool.query(`
@@ -695,11 +670,11 @@ async function addNewSale(saleObj, clientObj) {
             money_sale_items = money_sale_items + $1,
             register_money   = register_money - $1,
             last_updated     = $2;
-    `, [Number(saleObj.priceBought), UTC_TIME])
+    `, [priceBought, UTC_TIME])
 }
 
 
-async function getAllClients(limit, offset, search) {
+async function getAllClientsAutocomplete(limit, offset, search) {
 
     const {rows} = await pool.query(`
         SELECT *
@@ -707,8 +682,92 @@ async function getAllClients(limit, offset, search) {
         WHERE LOWER(name) LIKE $1
            OR embg LIKE $1
            OR telephone LIKE $1
+           OR telephone_2 LIKE $1
         LIMIT ${limit} OFFSET ${offset};
     `, [`${search}%`]);
+    return rows;
+}
+
+async function getAllClients(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByTel = "") {
+    const {rows} = await pool.query(`
+        SELECT c.id                                         AS "Id",
+               c.name                                       AS "Name",
+               c.telephone                                  AS "Telephone 1",
+               c.telephone_2                                AS "Telephone 2",
+               c.city                                       AS "City",
+               (SELECT COUNT(*)
+                FROM transaction t
+                WHERE t.client_id = c.id
+                  AND t.description = 'Added new pawn')     AS "Total Pawns",
+               (SELECT COUNT(*)
+                FROM (SELECT id
+                      FROM gold_pawn
+                      WHERE client_id = c.id
+                      UNION ALL
+                      SELECT id
+                      FROM electronics_pawn
+                      WHERE client_id = c.id
+                      UNION ALL
+                      SELECT id
+                      FROM watch_pawn
+                      WHERE client_id = c.id
+                      UNION ALL
+                      SELECT id
+                      FROM vehicle_pawn
+                      WHERE client_id = c.id
+                      UNION ALL
+                      SELECT id
+                      FROM other_pawn
+                      WHERE client_id = c.id) AS all_pawns) AS "Active Pawns",
+               (SELECT SUM(price_pawned)
+                FROM (SELECT price_pawned
+                      FROM gold_pawn
+                      WHERE client_id = c.id
+                      UNION ALL
+                      SELECT price_pawned
+                      FROM electronics_pawn
+                      WHERE client_id = c.id
+                      UNION ALL
+                      SELECT price_pawned
+                      FROM watch_pawn
+                      WHERE client_id = c.id
+                      UNION ALL
+                      SELECT price_pawned
+                      FROM vehicle_pawn
+                      WHERE client_id = c.id
+                      UNION ALL
+                      SELECT price_pawned
+                      FROM other_pawn
+                      WHERE client_id = c.id) AS all_pawns) AS "Money Pawns",
+               (SELECT SUM(provision)
+                FROM (SELECT provision
+                      FROM gold_pawn
+                      WHERE client_id = c.id
+                      UNION ALL
+                      SELECT provision
+                      FROM electronics_pawn
+                      WHERE client_id = c.id
+                      UNION ALL
+                      SELECT provision
+                      FROM watch_pawn
+                      WHERE client_id = c.id
+                      UNION ALL
+                      SELECT provision
+                      FROM vehicle_pawn
+                      WHERE client_id = c.id
+                      UNION ALL
+                      SELECT provision
+                      FROM other_pawn
+                      WHERE client_id = c.id) AS all_pawns) AS "Money Provision"
+        FROM client c
+        WHERE c.name <> 'Admin'
+          AND LOWER(c.name) LIKE $1 || '%'
+          AND c.embg LIKE $2 || '%'
+          AND (c.telephone LIKE $3 || '%'
+            OR c.telephone_2 LIKE $3 || '%')
+        ORDER BY "${orderBy}" ${orderDirection}
+        LIMIT ${limit} OFFSET ${offset};
+    `, [searchByName, searchByEmbg, searchByTel]);
     return rows;
 }
 
@@ -820,6 +879,15 @@ async function insertExpense(year, month, rent, salaries, bills, other, descript
     if (other !== 0) transaction_description += 'Останато: ' + other + '. '
     if (description !== '' && transaction_description.length + description.length + "Опис: .".length < 200) transaction_description += 'Опис: ' + description + '.';
 
+    const {rows: hasReport} = await pool.query(`SELECT *
+                                                FROM monthly_report
+                                                WHERE year = $1::INT
+                                                  AND month = $2::INT`, [year, month])
+
+    if (hasReport.length > 0) {
+        return `Не може да се внесе расход, бидејќи веќе е внесен месечен извештај за ${month}/${year}. За внес контактирајте со одржувачот на системот.`
+    }
+
     const {rows: hasExpense} = await pool.query(`SELECT *
                                                  FROM expense
                                                  WHERE year = $1::INT
@@ -852,20 +920,21 @@ async function insertExpense(year, month, rent, salaries, bills, other, descript
         expenseDate = new Date(year, month, 0);
     }
     // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
-    const UTC_TIME = new Date(expenseDate.getTime() - (expenseDate.getTimezoneOffset() * 60000));
+    const UTC_TIME_EXPENSE_DATE = new Date(expenseDate.getTime() - (expenseDate.getTimezoneOffset() * 60000));
     //Insert a new transaction with cash inserted and profit made
 
     await pool.query(`
         INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
         VALUES (0, 'Expense', $1, $2, 0, 0, $3);
-    `, [transaction_description, rent + salaries + bills + other, UTC_TIME])
+    `, [transaction_description, rent + salaries + bills + other, UTC_TIME_EXPENSE_DATE])
 
     if (rent + salaries + bills + other !== 0) {
+        const UTC_TIME_TODAY = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
         await pool.query(`
             UPDATE cash_register
             SET register_money = register_money - $1,
                 last_updated   = $2;
-        `, [rent + salaries + bills + other, UTC_TIME])
+        `, [rent + salaries + bills + other, UTC_TIME_TODAY])
     }
 
 
@@ -1217,6 +1286,7 @@ module.exports = {
     getSale,
     closeSale,
     addNewSale,
+    getAllClientsAutocomplete,
     getAllClients,
     getCashRegister,
     insertIntoCashRegister,

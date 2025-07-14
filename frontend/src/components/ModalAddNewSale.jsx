@@ -1,41 +1,16 @@
 import styled from "styled-components";
 import ReactDom from "react-dom";
-import { X, BookmarkPlus, CheckCheck, User, Tag } from 'lucide-react';
-import {useEffect, useRef, useState} from "react";
-import { Autocomplete, TextField } from '@mui/material';
+import { X, BookmarkPlus, CheckCheck } from 'lucide-react';
+import {useState} from "react";
 import axios from "axios";
 import Loading from "./Loading.jsx";
 
 export default function ModalAddNewSale({ closeModal, refresh }) {
-    const [clients, setClients] = useState([]);
     const [formData, setFormData] = useState({
-        name: '',
-        embg: '',
-        telephone: '',
-        telephone_2: '',
-        city: '',
         price_bought: 0,
         description: ''
     });
-    const offset = useRef(0);
-    const limit = 5;
-    const [isLastPage, setIsLastPage] = useState(false);
-    const scrollableClientsRef = useRef(null);
-    const [autocompleteValue, setAutocompleteValue] = useState("");
     const [loading, setLoading] = useState(false);
-
-    const handleObjectSelect = (event, value) => {
-        if (value) {
-            setFormData((prev) => ({
-                ...prev,
-                name: value.name,
-                embg: value.embg,
-                telephone: value.telephone,
-                telephone_2: value.telephone_2,
-                city: value.city,
-            }));
-        }
-    };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -43,32 +18,6 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
             ...prev,
             [name]: value,
         }));
-    };
-
-    const fetchClients = (limit, offset, search) => {
-        axios.get(`http://localhost:3000/clients?limit=${limit}&offset=${offset}&search=${search}`)
-            .then(res => {
-                if (res.data.length > 0) {
-                    offset === 0 ? setClients(res.data) : setClients(prev => [...prev, ...res.data]);
-                    setIsLastPage(res.data.length < limit);
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching all clients:', error);
-            });
-    }
-
-    const handleScroll = (event) => {
-        const scrollDiv = event.target;
-        const scrollHeight = scrollDiv.scrollHeight; // Total content height
-        const scrollTop = scrollDiv.scrollTop; // Current scroll position
-        const clientHeight = scrollDiv.clientHeight; // Visible height of the div
-
-        // Check if the scrollbar is 20% up from the bottom
-        if (scrollHeight - scrollTop - clientHeight <= scrollHeight * 0.2 && !isLastPage) {
-            offset.current += limit;
-            fetchClients(limit, offset.current, autocompleteValue);
-        }
     };
 
     const handleSubmit = (e) => {
@@ -84,10 +33,6 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
             })
             .finally(() => setLoading(false))
     };
-
-    useEffect(() => {
-        fetchClients(limit, offset.current, autocompleteValue)
-    }, []);
 
     return ReactDom.createPortal(
         <>
@@ -106,111 +51,18 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
                                     </ButtonClose>
                                 </Header>
                                 <Form onSubmit={handleSubmit}>
-                                    <div>
-                                        <ClientInputs>
-                                            <span style={{width: "max-content", marginBottom: ".8rem"}}><User
-                                                size={20}/> Внеси Податоци за Клиентот</span>
-                                            <Autocomplete
-                                                ref={scrollableClientsRef}
-                                                options={clients}
-                                                getOptionLabel={(option) => option.name}
-                                                onChange={handleObjectSelect}
-                                                onInputChange={(event, value) => {
-                                                    offset.current = 0;
-                                                    setAutocompleteValue(value)
-                                                    fetchClients(limit, offset.current, value);
-                                                }}
-                                                ListboxProps={{onScroll: handleScroll}}
-                                                renderInput={(params) => <TextField {...params}
-                                                                                    label="Постоечки клиенти"/>}
-                                                isOptionEqualToValue={(option, value) => option.id === value.id} // Optional: ensures the correct option is selected
-                                                renderOption={(props, option) => (
-                                                    <li {...props} key={option.id} style={{
-                                                        display: 'flex',
-                                                        flexDirection: 'column',
-                                                        gap: '.1rem',
-                                                        alignItems: 'flex-start'
-                                                    }}>
-                                                        <strong>{option.name}</strong>
-                                                        <span>{option.embg}</span>
-                                                        <span>{option.telephone}</span>
-                                                        <span>{option.telephone_2}</span>
-                                                    </li>
-                                                )}
-                                                filterOptions={(options, state) =>
-                                                    options.filter(option =>
-                                                        option.name.toLowerCase().includes(state.inputValue.toLowerCase()) ||
-                                                        option.embg.includes(state.inputValue) ||
-                                                        option.telephone.includes(state.inputValue) ||
-                                                        option.telephone_2.includes(state.inputValue)
-                                                    )
-                                                }
-                                                sx={{
-                                                    background: "white",
-                                                    borderRadius: ".3rem",
-                                                    fontSize: "1rem",
-                                                    boxShadow: "0 0 4px rgba(0,0,0,0.2)",
-                                                }}
-                                            />
-                                            <div>
-                                                <p>Име</p>
-                                                <StyledInput
-                                                    name="name"
-                                                    value={formData.name}
-                                                    onChange={handleInputChange}
-                                                    required
-                                                />
-                                            </div>
-                                            <div>
-                                                <p>Ембг</p>
-                                                <StyledInput
-                                                    name="embg"
-                                                    value={formData.embg}
-                                                    onChange={handleInputChange}
-                                                    required
-                                                />
-                                            </div>
-                                            <div>
-                                                <p>Телефон</p>
-                                                <StyledInput
-                                                    name="telephone"
-                                                    value={formData.telephone}
-                                                    onChange={handleInputChange}
-                                                    required
-                                                />
-                                            </div>
-                                            <div>
-                                                <p>Телефон 2</p>
-                                                <StyledInput
-                                                    name="telephone_2"
-                                                    value={formData.telephone_2}
-                                                    onChange={handleInputChange}    
-                                                />
-                                            </div>
-                                            <div>
-                                                <p>Град</p>
-                                                <StyledInput
-                                                    name="city"
-                                                    value={formData.city}
-                                                    onChange={handleInputChange}
-                                                    required
-                                                />
-                                            </div>
-                                        </ClientInputs>
-                                        <SaleInputs>
-                                            <span><Tag size={20}/> Внеси Податоци за Предметот</span> <p></p>
-                                            <div>
-                                                <p>Вредност на предметот</p>
-                                                <StyledInput name="price_bought" onChange={handleInputChange}
-                                                             type="number"
-                                                             required/>
-                                            </div>
-                                            <div>
-                                                <p>Опис</p>
-                                                <StyledInput name="description" onChange={handleInputChange} required/>
-                                            </div>
-                                        </SaleInputs>
-                                    </div>
+                                    <SaleInputs>
+                                        <div>
+                                            <p>Вредност на предметот</p>
+                                            <StyledInput name="price_bought" onChange={handleInputChange}
+                                                         type="number"
+                                                         required/>
+                                        </div>
+                                        <div>
+                                            <p>Опис</p>
+                                            <StyledInput name="description" onChange={handleInputChange} required/>
+                                        </div>
+                                    </SaleInputs>
                                     <Button type="submit">
                                         <CheckCheck size={28}/> Потврди
                                     </Button>
@@ -274,11 +126,6 @@ const Form = styled.form`
     align-items: center;
     gap: 2rem;
     
-    & > div {
-        display: flex;
-        gap: 2rem;
-        align-items: flex-start;
-    }
     span {
         display: flex;
         align-items: center;
@@ -288,27 +135,9 @@ const Form = styled.form`
     }
 `;
 
-const ClientInputs = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: .8rem;
-    
-    & > div {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        justify-content: space-between;
-
-        & > p {
-            color: #666;
-        }
-    }
-`;
-
 const SaleInputs = styled.div`
     display: flex;
-    flex-direction: column;
-    gap: .4rem;
+    gap: 2rem;
 
     & > div {
         display: flex;
