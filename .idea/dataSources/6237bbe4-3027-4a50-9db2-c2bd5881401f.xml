@@ -3,7 +3,7 @@
   <database-model serializer="dbm" dbms="POSTGRES" family-id="POSTGRES" format-version="4.53">
     <root id="1">
       <DateStyle>mdy</DateStyle>
-      <IntrospectionStateNumber>8003</IntrospectionStateNumber>
+      <IntrospectionStateNumber>9260</IntrospectionStateNumber>
       <ServerVersion>16.9</ServerVersion>
       <StartupTime>1752323978</StartupTime>
       <TimeZones>true ACDT
@@ -1406,7 +1406,7 @@ true posixrules
 13212||10|C|G
 13212||-9223372036854775808|U|G
 13212||10|U|G</Grants>
-      <IntrospectionStateNumber>8003</IntrospectionStateNumber>
+      <IntrospectionStateNumber>9260</IntrospectionStateNumber>
       <ObjectId>16389</ObjectId>
       <OwnerName>borjan</OwnerName>
     </database>
@@ -4841,281 +4841,305 @@ true posixrules
     <schema id="267" parent="3" name="public">
       <Comment>standard public schema</Comment>
       <Current>1</Current>
-      <IntrospectionStateNumber>8003</IntrospectionStateNumber>
-      <LastIntrospectionLocalTimestamp>2025-07-14.21:57:34</LastIntrospectionLocalTimestamp>
+      <IntrospectionStateNumber>9260</IntrospectionStateNumber>
+      <LastIntrospectionLocalTimestamp>2025-07-15.07:19:14</LastIntrospectionLocalTimestamp>
       <ObjectId>2200</ObjectId>
       <StateNumber>737</StateNumber>
       <OwnerName>borjan</OwnerName>
     </schema>
     <sequence id="268" parent="267" name="client_id_seq">
-      <ObjectId>16731</ObjectId>
+      <ObjectId>16878</ObjectId>
       <SequenceIdentity>1</SequenceIdentity>
       <StartValue>1</StartValue>
-      <StateNumber>7947</StateNumber>
+      <StateNumber>9191</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <OwnerName>borjan</OwnerName>
     </sequence>
     <sequence id="269" parent="267" name="electronics_pawn_id_seq">
-      <ObjectId>16738</ObjectId>
+      <ObjectId>16882</ObjectId>
       <SequenceIdentity>1</SequenceIdentity>
       <StartValue>1</StartValue>
-      <StateNumber>7954</StateNumber>
+      <StateNumber>9196</StateNumber>
       <StoredType>integer|0s</StoredType>
       <OwnerName>borjan</OwnerName>
     </sequence>
     <sequence id="270" parent="267" name="gold_pawn_id_seq">
-      <ObjectId>16747</ObjectId>
+      <ObjectId>16891</ObjectId>
       <SequenceIdentity>1</SequenceIdentity>
       <StartValue>1</StartValue>
-      <StateNumber>7959</StateNumber>
+      <StateNumber>9202</StateNumber>
       <StoredType>integer|0s</StoredType>
       <OwnerName>borjan</OwnerName>
     </sequence>
     <sequence id="271" parent="267" name="other_pawn_id_seq">
-      <ObjectId>16754</ObjectId>
+      <ObjectId>16899</ObjectId>
       <SequenceIdentity>1</SequenceIdentity>
       <StartValue>1</StartValue>
-      <StateNumber>7964</StateNumber>
+      <StateNumber>9209</StateNumber>
       <StoredType>integer|0s</StoredType>
       <OwnerName>borjan</OwnerName>
     </sequence>
     <sequence id="272" parent="267" name="sale_id_seq">
-      <ObjectId>16758</ObjectId>
+      <ObjectId>16903</ObjectId>
       <SequenceIdentity>1</SequenceIdentity>
       <StartValue>1</StartValue>
-      <StateNumber>7967</StateNumber>
+      <StateNumber>9212</StateNumber>
       <StoredType>integer|0s</StoredType>
       <OwnerName>borjan</OwnerName>
     </sequence>
-    <sequence id="273" parent="267" name="transaction_id_seq">
-      <ObjectId>16762</ObjectId>
+    <sequence id="273" parent="267" name="shop_id_seq">
+      <ObjectId>16862</ObjectId>
       <SequenceIdentity>1</SequenceIdentity>
       <StartValue>1</StartValue>
-      <StateNumber>7970</StateNumber>
+      <StateNumber>9184</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <OwnerName>borjan</OwnerName>
     </sequence>
-    <sequence id="274" parent="267" name="vehicle_pawn_id_seq">
-      <ObjectId>16766</ObjectId>
+    <sequence id="274" parent="267" name="transaction_id_seq">
+      <ObjectId>16907</ObjectId>
       <SequenceIdentity>1</SequenceIdentity>
       <StartValue>1</StartValue>
-      <StateNumber>7973</StateNumber>
+      <StateNumber>9215</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <OwnerName>borjan</OwnerName>
+    </sequence>
+    <sequence id="275" parent="267" name="vehicle_pawn_id_seq">
+      <ObjectId>16911</ObjectId>
+      <SequenceIdentity>1</SequenceIdentity>
+      <StartValue>1</StartValue>
+      <StateNumber>9218</StateNumber>
       <StoredType>integer|0s</StoredType>
       <OwnerName>borjan</OwnerName>
     </sequence>
-    <sequence id="275" parent="267" name="watch_pawn_id_seq">
-      <ObjectId>16770</ObjectId>
+    <sequence id="276" parent="267" name="watch_pawn_id_seq">
+      <ObjectId>16915</ObjectId>
       <SequenceIdentity>1</SequenceIdentity>
       <StartValue>1</StartValue>
-      <StateNumber>7976</StateNumber>
+      <StateNumber>9221</StateNumber>
       <StoredType>integer|0s</StoredType>
       <OwnerName>borjan</OwnerName>
     </sequence>
-    <table id="276" parent="267" name="cash_register">
-      <ObjectId>16717</ObjectId>
-      <StateNumber>7941</StateNumber>
+    <table id="277" parent="267" name="cash_register">
+      <ObjectId>16863</ObjectId>
+      <StateNumber>9259</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>borjan</OwnerName>
     </table>
-    <table id="277" parent="267" name="client">
-      <ObjectId>16728</ObjectId>
-      <StateNumber>7991</StateNumber>
-      <AccessMethodId>2</AccessMethodId>
-      <OwnerName>borjan</OwnerName>
-    </table>
-    <table id="278" parent="267" name="daily_report">
-      <ObjectId>16732</ObjectId>
-      <StateNumber>7950</StateNumber>
+    <table id="278" parent="267" name="client">
+      <ObjectId>16875</ObjectId>
+      <StateNumber>9237</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>borjan</OwnerName>
     </table>
     <table id="279" parent="267" name="electronics_pawn">
-      <ObjectId>16735</ObjectId>
-      <StateNumber>7991</StateNumber>
+      <ObjectId>16879</ObjectId>
+      <StateNumber>9237</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>borjan</OwnerName>
     </table>
     <table id="280" parent="267" name="expense">
-      <ObjectId>16739</ObjectId>
-      <StateNumber>7955</StateNumber>
+      <ObjectId>16883</ObjectId>
+      <StateNumber>9244</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>borjan</OwnerName>
     </table>
     <table id="281" parent="267" name="gold_pawn">
-      <ObjectId>16742</ObjectId>
-      <StateNumber>7993</StateNumber>
+      <ObjectId>16886</ObjectId>
+      <StateNumber>9238</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>borjan</OwnerName>
     </table>
     <table id="282" parent="267" name="monthly_report">
-      <ObjectId>16748</ObjectId>
-      <StateNumber>7960</StateNumber>
+      <ObjectId>16893</ObjectId>
+      <StateNumber>9245</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>borjan</OwnerName>
     </table>
     <table id="283" parent="267" name="other_pawn">
-      <ObjectId>16751</ObjectId>
-      <StateNumber>7994</StateNumber>
+      <ObjectId>16896</ObjectId>
+      <StateNumber>9239</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>borjan</OwnerName>
     </table>
     <table id="284" parent="267" name="sale">
-      <ObjectId>16755</ObjectId>
-      <StateNumber>7965</StateNumber>
+      <ObjectId>16900</ObjectId>
+      <StateNumber>9242</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>borjan</OwnerName>
     </table>
-    <table id="285" parent="267" name="transaction">
-      <ObjectId>16759</ObjectId>
-      <StateNumber>7995</StateNumber>
+    <table id="285" parent="267" name="shop">
+      <ObjectId>16859</ObjectId>
+      <StateNumber>9237</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>borjan</OwnerName>
     </table>
-    <table id="286" parent="267" name="vehicle_pawn">
-      <ObjectId>16763</ObjectId>
-      <StateNumber>7996</StateNumber>
+    <table id="286" parent="267" name="transaction">
+      <ObjectId>16904</ObjectId>
+      <StateNumber>9243</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>borjan</OwnerName>
     </table>
-    <table id="287" parent="267" name="watch_pawn">
-      <ObjectId>16767</ObjectId>
-      <StateNumber>7997</StateNumber>
+    <table id="287" parent="267" name="vehicle_pawn">
+      <ObjectId>16908</ObjectId>
+      <StateNumber>9240</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>borjan</OwnerName>
     </table>
-    <table id="288" parent="267" name="yearly_report">
-      <ObjectId>16771</ObjectId>
-      <StateNumber>7977</StateNumber>
+    <table id="288" parent="267" name="watch_pawn">
+      <ObjectId>16912</ObjectId>
+      <StateNumber>9241</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>borjan</OwnerName>
     </table>
-    <column id="289" parent="276" name="num_pawns">
+    <table id="289" parent="267" name="yearly_report">
+      <ObjectId>16916</ObjectId>
+      <StateNumber>9246</StateNumber>
+      <AccessMethodId>2</AccessMethodId>
+      <OwnerName>borjan</OwnerName>
+    </table>
+    <column id="290" parent="277" name="shop_id">
       <DefaultExpression>0</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>1</Position>
-      <StateNumber>7941</StateNumber>
+      <StateNumber>9186</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="290" parent="276" name="money_pawns">
+    <column id="291" parent="277" name="num_pawns">
       <DefaultExpression>0</DefaultExpression>
+      <NotNull>1</NotNull>
       <Position>2</Position>
-      <StateNumber>7941</StateNumber>
+      <StateNumber>9186</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="291" parent="276" name="num_sale_items">
+    <column id="292" parent="277" name="money_pawns">
       <DefaultExpression>0</DefaultExpression>
       <Position>3</Position>
-      <StateNumber>7941</StateNumber>
+      <StateNumber>9186</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="292" parent="276" name="money_sale_items">
+    <column id="293" parent="277" name="num_sale_items">
       <DefaultExpression>0</DefaultExpression>
       <Position>4</Position>
-      <StateNumber>7941</StateNumber>
+      <StateNumber>9186</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="293" parent="276" name="register_money">
+    <column id="294" parent="277" name="money_sale_items">
       <DefaultExpression>0</DefaultExpression>
       <Position>5</Position>
-      <StateNumber>7941</StateNumber>
+      <StateNumber>9186</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="294" parent="276" name="last_updated">
-      <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
+    <column id="295" parent="277" name="register_money">
+      <DefaultExpression>0</DefaultExpression>
       <Position>6</Position>
-      <StateNumber>7941</StateNumber>
+      <StateNumber>9186</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="296" parent="277" name="last_updated">
+      <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
+      <Position>7</Position>
+      <StateNumber>9186</StateNumber>
       <StoredType>timestamp with time zone|0s</StoredType>
       <TypeId>1184</TypeId>
     </column>
-    <column id="295" parent="276" name="gold_grams">
+    <column id="297" parent="277" name="gold_grams">
       <DefaultExpression>0.0</DefaultExpression>
-      <Position>7</Position>
-      <StateNumber>7941</StateNumber>
+      <Position>8</Position>
+      <StateNumber>9186</StateNumber>
       <StoredType>numeric(7,3 digit)|0s</StoredType>
       <TypeId>1700</TypeId>
     </column>
-    <column id="296" parent="276" name="total_provision">
+    <column id="298" parent="277" name="total_provision">
       <DefaultExpression>0</DefaultExpression>
-      <Position>8</Position>
-      <StateNumber>7941</StateNumber>
+      <Position>9</Position>
+      <StateNumber>9186</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <index id="297" parent="276" name="cash_register_pkey">
+    <foreign-key id="299" parent="277" name="cash_register_shop_id_fkey">
+      <ColNames>shop_id</ColNames>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>17030</ObjectId>
+      <StateNumber>9259</StateNumber>
+      <RefKeyColPositions>1</RefKeyColPositions>
+      <RefTableId>16859</RefTableId>
+    </foreign-key>
+    <index id="300" parent="277" name="cash_register_pkey">
       <ColNames>num_pawns</ColNames>
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16774</ObjectId>
+      <ObjectId>16921</ObjectId>
       <Primary>1</Primary>
-      <StateNumber>7979</StateNumber>
+      <StateNumber>9225</StateNumber>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <key id="298" parent="276" name="cash_register_pkey">
+    <key id="301" parent="277" name="cash_register_pkey">
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16775</ObjectId>
+      <ObjectId>16922</ObjectId>
       <Primary>1</Primary>
-      <StateNumber>7979</StateNumber>
-      <UnderlyingIndexId>16774</UnderlyingIndexId>
+      <StateNumber>9225</StateNumber>
+      <UnderlyingIndexId>16921</UnderlyingIndexId>
     </key>
-    <column id="299" parent="277" name="id">
+    <column id="302" parent="278" name="id">
       <IdentityKind>by-default</IdentityKind>
       <NotNull>1</NotNull>
       <Position>1</Position>
-      <StateNumber>7947</StateNumber>
+      <StateNumber>9191</StateNumber>
       <StoredType>bigint|0s</StoredType>
-      <SequenceId>16731</SequenceId>
+      <SequenceId>16878</SequenceId>
       <TypeId>20</TypeId>
     </column>
-    <column id="300" parent="277" name="name">
+    <column id="303" parent="278" name="name">
       <Position>2</Position>
-      <StateNumber>7945</StateNumber>
+      <StateNumber>9189</StateNumber>
       <StoredType>varchar(100)|0s</StoredType>
       <TypeId>1043</TypeId>
     </column>
-    <column id="301" parent="277" name="embg">
+    <column id="304" parent="278" name="embg">
       <Position>3</Position>
-      <StateNumber>7945</StateNumber>
+      <StateNumber>9189</StateNumber>
       <StoredType>char(13)|0s</StoredType>
       <TypeId>1042</TypeId>
     </column>
-    <column id="302" parent="277" name="telephone">
+    <column id="305" parent="278" name="telephone">
       <Position>4</Position>
-      <StateNumber>7945</StateNumber>
+      <StateNumber>9189</StateNumber>
       <StoredType>char(20)|0s</StoredType>
       <TypeId>1042</TypeId>
     </column>
-    <column id="303" parent="277" name="telephone_2">
+    <column id="306" parent="278" name="telephone_2">
       <Position>5</Position>
-      <StateNumber>7945</StateNumber>
+      <StateNumber>9189</StateNumber>
       <StoredType>char(20)|0s</StoredType>
       <TypeId>1042</TypeId>
     </column>
-    <column id="304" parent="277" name="city">
+    <column id="307" parent="278" name="city">
       <Position>6</Position>
-      <StateNumber>7945</StateNumber>
+      <StateNumber>9189</StateNumber>
       <StoredType>varchar(20)|0s</StoredType>
       <TypeId>1043</TypeId>
     </column>
-    <index id="305" parent="277" name="client_pkey">
+    <index id="308" parent="278" name="client_pkey">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16776</ObjectId>
+      <ObjectId>16923</ObjectId>
       <Primary>1</Primary>
-      <StateNumber>7980</StateNumber>
+      <StateNumber>9226</StateNumber>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <index id="306" parent="277" name="unique_client">
+    <index id="309" parent="278" name="unique_client">
       <ColNames>name
 embg
 telephone</ColNames>
-      <ObjectId>16790</ObjectId>
-      <StateNumber>7987</StateNumber>
+      <ObjectId>16937</ObjectId>
+      <StateNumber>9233</StateNumber>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
       <CollationNames>default
@@ -5128,1134 +5152,1149 @@ pg_catalog</CollationParentNames>
 100
 100</CollationIds>
     </index>
-    <key id="307" parent="277" name="client_pkey">
+    <key id="310" parent="278" name="client_pkey">
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16777</ObjectId>
+      <ObjectId>16924</ObjectId>
       <Primary>1</Primary>
-      <StateNumber>7980</StateNumber>
-      <UnderlyingIndexId>16776</UnderlyingIndexId>
+      <StateNumber>9226</StateNumber>
+      <UnderlyingIndexId>16923</UnderlyingIndexId>
     </key>
-    <key id="308" parent="277" name="unique_client">
-      <ObjectId>16791</ObjectId>
-      <StateNumber>7987</StateNumber>
-      <UnderlyingIndexId>16790</UnderlyingIndexId>
+    <key id="311" parent="278" name="unique_client">
+      <ObjectId>16938</ObjectId>
+      <StateNumber>9233</StateNumber>
+      <UnderlyingIndexId>16937</UnderlyingIndexId>
     </key>
-    <column id="309" parent="278" name="year">
+    <column id="312" parent="279" name="shop_id">
       <Position>1</Position>
-      <StateNumber>7950</StateNumber>
+      <StateNumber>9194</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="310" parent="278" name="month">
-      <Position>2</Position>
-      <StateNumber>7950</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="311" parent="278" name="money_given">
-      <Position>3</Position>
-      <StateNumber>7950</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="312" parent="278" name="money_got">
-      <Position>4</Position>
-      <StateNumber>7950</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="313" parent="278" name="total_turnover">
-      <Position>5</Position>
-      <StateNumber>7950</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="314" parent="278" name="total_profit">
-      <Position>6</Position>
-      <StateNumber>7950</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="315" parent="278" name="total_pawns">
-      <Position>7</Position>
-      <StateNumber>7950</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="316" parent="278" name="num_gold_pawns">
-      <Position>8</Position>
-      <StateNumber>7950</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="317" parent="278" name="num_electronics_pawns">
-      <Position>9</Position>
-      <StateNumber>7950</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="318" parent="278" name="num_vehicle_pawns">
-      <Position>10</Position>
-      <StateNumber>7950</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="319" parent="278" name="num_watch_pawns">
-      <Position>11</Position>
-      <StateNumber>7950</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="320" parent="278" name="num_other_pawns">
-      <Position>12</Position>
-      <StateNumber>7950</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="321" parent="278" name="money_gold_pawns">
-      <Position>13</Position>
-      <StateNumber>7950</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="322" parent="278" name="money_electronics_pawns">
-      <Position>14</Position>
-      <StateNumber>7950</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="323" parent="278" name="money_vehicle_pawns">
-      <Position>15</Position>
-      <StateNumber>7950</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="324" parent="278" name="money_watch_pawns">
-      <Position>16</Position>
-      <StateNumber>7950</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="325" parent="278" name="money_other_pawns">
-      <Position>17</Position>
-      <StateNumber>7950</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="326" parent="278" name="total_sales">
-      <Position>18</Position>
-      <StateNumber>7950</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="327" parent="278" name="money_sales">
-      <Position>19</Position>
-      <StateNumber>7950</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="328" parent="278" name="money_pawns">
-      <Position>20</Position>
-      <StateNumber>7950</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="329" parent="279" name="id">
+    <column id="313" parent="279" name="id">
       <IdentityKind>always</IdentityKind>
       <NotNull>1</NotNull>
-      <Position>1</Position>
-      <StateNumber>7954</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <SequenceId>16738</SequenceId>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="330" parent="279" name="client_id">
-      <NotNull>1</NotNull>
       <Position>2</Position>
-      <StateNumber>7952</StateNumber>
+      <StateNumber>9196</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <SequenceId>16882</SequenceId>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="314" parent="279" name="client_id">
+      <NotNull>1</NotNull>
+      <Position>3</Position>
+      <StateNumber>9194</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="331" parent="279" name="brand">
-      <Position>3</Position>
-      <StateNumber>7952</StateNumber>
+    <column id="315" parent="279" name="brand">
+      <Position>4</Position>
+      <StateNumber>9194</StateNumber>
       <StoredType>varchar(50)|0s</StoredType>
       <TypeId>1043</TypeId>
     </column>
-    <column id="332" parent="279" name="year">
-      <Position>4</Position>
-      <StateNumber>7952</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="333" parent="279" name="price_pawned">
+    <column id="316" parent="279" name="year">
       <Position>5</Position>
-      <StateNumber>7952</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="334" parent="279" name="price_to_redeem">
-      <Position>6</Position>
-      <StateNumber>7952</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="335" parent="279" name="provision">
-      <Position>7</Position>
-      <StateNumber>7952</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="336" parent="279" name="date_from">
-      <Position>8</Position>
-      <StateNumber>7952</StateNumber>
-      <StoredType>date|0s</StoredType>
-      <TypeId>1082</TypeId>
-    </column>
-    <column id="337" parent="279" name="date_to">
-      <Position>9</Position>
-      <StateNumber>7952</StateNumber>
-      <StoredType>date|0s</StoredType>
-      <TypeId>1082</TypeId>
-    </column>
-    <column id="338" parent="279" name="total_days">
-      <Position>10</Position>
-      <StateNumber>7952</StateNumber>
+      <StateNumber>9194</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="339" parent="279" name="description">
+    <column id="317" parent="279" name="price_pawned">
+      <Position>6</Position>
+      <StateNumber>9194</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="318" parent="279" name="price_to_redeem">
+      <Position>7</Position>
+      <StateNumber>9194</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="319" parent="279" name="provision">
+      <Position>8</Position>
+      <StateNumber>9194</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="320" parent="279" name="date_from">
+      <Position>9</Position>
+      <StateNumber>9194</StateNumber>
+      <StoredType>date|0s</StoredType>
+      <TypeId>1082</TypeId>
+    </column>
+    <column id="321" parent="279" name="date_to">
+      <Position>10</Position>
+      <StateNumber>9194</StateNumber>
+      <StoredType>date|0s</StoredType>
+      <TypeId>1082</TypeId>
+    </column>
+    <column id="322" parent="279" name="total_days">
       <Position>11</Position>
-      <StateNumber>7952</StateNumber>
+      <StateNumber>9194</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="323" parent="279" name="description">
+      <Position>12</Position>
+      <StateNumber>9194</StateNumber>
       <StoredType>varchar(300)|0s</StoredType>
       <TypeId>1043</TypeId>
     </column>
-    <foreign-key id="340" parent="279" name="electronics_pawn_client_id_fkey">
+    <foreign-key id="324" parent="279" name="electronics_pawn_shop_id_fkey">
+      <ColNames>shop_id</ColNames>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>16950</ObjectId>
+      <StateNumber>9237</StateNumber>
+      <RefKeyColPositions>1</RefKeyColPositions>
+      <RefTableId>16859</RefTableId>
+    </foreign-key>
+    <foreign-key id="325" parent="279" name="electronics_pawn_client_id_fkey">
       <ColNames>client_id</ColNames>
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16798</ObjectId>
-      <StateNumber>7991</StateNumber>
+      <ObjectId>16945</ObjectId>
+      <StateNumber>9237</StateNumber>
       <RefKeyColPositions>1</RefKeyColPositions>
-      <RefTableId>16728</RefTableId>
+      <RefTableId>16875</RefTableId>
     </foreign-key>
-    <foreign-key id="341" parent="279" name="fkelectronicspawnclient">
-      <ColNames>client_id</ColNames>
-      <ObjectId>16803</ObjectId>
-      <OnDelete>cascade</OnDelete>
-      <StateNumber>7992</StateNumber>
-      <RefKeyColPositions>1</RefKeyColPositions>
-      <RefTableId>16728</RefTableId>
-    </foreign-key>
-    <index id="342" parent="279" name="electronics_pawn_pkey">
+    <index id="326" parent="279" name="electronics_pawn_pkey">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16778</ObjectId>
+      <ObjectId>16925</ObjectId>
       <Primary>1</Primary>
-      <StateNumber>7981</StateNumber>
+      <StateNumber>9227</StateNumber>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <key id="343" parent="279" name="electronics_pawn_pkey">
+    <key id="327" parent="279" name="electronics_pawn_pkey">
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16779</ObjectId>
+      <ObjectId>16926</ObjectId>
       <Primary>1</Primary>
-      <StateNumber>7981</StateNumber>
-      <UnderlyingIndexId>16778</UnderlyingIndexId>
+      <StateNumber>9227</StateNumber>
+      <UnderlyingIndexId>16925</UnderlyingIndexId>
     </key>
-    <column id="344" parent="280" name="year">
+    <column id="328" parent="280" name="shop_id">
       <Position>1</Position>
-      <StateNumber>7955</StateNumber>
+      <StateNumber>9197</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="345" parent="280" name="month">
+    <column id="329" parent="280" name="year">
       <Position>2</Position>
-      <StateNumber>7955</StateNumber>
+      <StateNumber>9197</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="346" parent="280" name="rent">
+    <column id="330" parent="280" name="month">
       <Position>3</Position>
-      <StateNumber>7955</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
+      <StateNumber>9197</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
     </column>
-    <column id="347" parent="280" name="salaries">
+    <column id="331" parent="280" name="rent">
       <Position>4</Position>
-      <StateNumber>7955</StateNumber>
+      <StateNumber>9197</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="348" parent="280" name="other">
+    <column id="332" parent="280" name="salaries">
       <Position>5</Position>
-      <StateNumber>7955</StateNumber>
+      <StateNumber>9197</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="349" parent="280" name="description">
+    <column id="333" parent="280" name="other">
       <Position>6</Position>
-      <StateNumber>7955</StateNumber>
+      <StateNumber>9197</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="334" parent="280" name="description">
+      <Position>7</Position>
+      <StateNumber>9197</StateNumber>
       <StoredType>varchar(300)|0s</StoredType>
       <TypeId>1043</TypeId>
     </column>
-    <column id="350" parent="280" name="bills">
-      <Position>7</Position>
-      <StateNumber>7955</StateNumber>
+    <column id="335" parent="280" name="bills">
+      <Position>8</Position>
+      <StateNumber>9197</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="351" parent="281" name="id">
+    <foreign-key id="336" parent="280" name="expense_shop_id_fkey">
+      <ColNames>shop_id</ColNames>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>17010</ObjectId>
+      <StateNumber>9244</StateNumber>
+      <RefKeyColPositions>1</RefKeyColPositions>
+      <RefTableId>16859</RefTableId>
+    </foreign-key>
+    <column id="337" parent="281" name="shop_id">
+      <Position>1</Position>
+      <StateNumber>9199</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="338" parent="281" name="id">
       <IdentityKind>always</IdentityKind>
       <NotNull>1</NotNull>
-      <Position>1</Position>
-      <StateNumber>7959</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <SequenceId>16747</SequenceId>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="352" parent="281" name="client_id">
-      <NotNull>1</NotNull>
       <Position>2</Position>
-      <StateNumber>7957</StateNumber>
+      <StateNumber>9202</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <SequenceId>16891</SequenceId>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="339" parent="281" name="client_id">
+      <NotNull>1</NotNull>
+      <Position>3</Position>
+      <StateNumber>9199</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="353" parent="281" name="weight">
-      <Position>3</Position>
-      <StateNumber>7957</StateNumber>
+    <column id="340" parent="281" name="weight">
+      <Position>4</Position>
+      <StateNumber>9199</StateNumber>
       <StoredType>numeric(7,3 digit)|0s</StoredType>
       <TypeId>1700</TypeId>
     </column>
-    <column id="354" parent="281" name="carats">
-      <Position>4</Position>
-      <StateNumber>7957</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="355" parent="281" name="price_pawned">
+    <column id="341" parent="281" name="carats">
       <Position>5</Position>
-      <StateNumber>7957</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="356" parent="281" name="price_to_redeem">
-      <Position>6</Position>
-      <StateNumber>7957</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="357" parent="281" name="provision">
-      <Position>7</Position>
-      <StateNumber>7957</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="358" parent="281" name="date_from">
-      <Position>8</Position>
-      <StateNumber>7957</StateNumber>
-      <StoredType>date|0s</StoredType>
-      <TypeId>1082</TypeId>
-    </column>
-    <column id="359" parent="281" name="date_to">
-      <Position>9</Position>
-      <StateNumber>7957</StateNumber>
-      <StoredType>date|0s</StoredType>
-      <TypeId>1082</TypeId>
-    </column>
-    <column id="360" parent="281" name="total_days">
-      <Position>10</Position>
-      <StateNumber>7957</StateNumber>
+      <StateNumber>9199</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="361" parent="281" name="description">
+    <column id="342" parent="281" name="price_pawned">
+      <Position>6</Position>
+      <StateNumber>9199</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="343" parent="281" name="price_to_redeem">
+      <Position>7</Position>
+      <StateNumber>9199</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="344" parent="281" name="provision">
+      <Position>8</Position>
+      <StateNumber>9199</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="345" parent="281" name="date_from">
+      <Position>9</Position>
+      <StateNumber>9199</StateNumber>
+      <StoredType>date|0s</StoredType>
+      <TypeId>1082</TypeId>
+    </column>
+    <column id="346" parent="281" name="date_to">
+      <Position>10</Position>
+      <StateNumber>9199</StateNumber>
+      <StoredType>date|0s</StoredType>
+      <TypeId>1082</TypeId>
+    </column>
+    <column id="347" parent="281" name="total_days">
       <Position>11</Position>
-      <StateNumber>7957</StateNumber>
-      <StoredType>varchar(300)|0s</StoredType>
-      <TypeId>1043</TypeId>
+      <StateNumber>9199</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
     </column>
-    <column id="362" parent="281" name="type">
+    <column id="348" parent="281" name="description">
       <Position>12</Position>
-      <StateNumber>7957</StateNumber>
+      <StateNumber>9199</StateNumber>
       <StoredType>varchar(300)|0s</StoredType>
       <TypeId>1043</TypeId>
     </column>
-    <foreign-key id="363" parent="281" name="fkgoldpawnclient">
-      <ColNames>client_id</ColNames>
-      <ObjectId>16808</ObjectId>
-      <OnDelete>cascade</OnDelete>
-      <StateNumber>7993</StateNumber>
+    <column id="349" parent="281" name="type">
+      <Position>13</Position>
+      <StateNumber>9199</StateNumber>
+      <StoredType>varchar(300)|0s</StoredType>
+      <TypeId>1043</TypeId>
+    </column>
+    <foreign-key id="350" parent="281" name="gold_pawn_shop_id_fkey">
+      <ColNames>shop_id</ColNames>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>16960</ObjectId>
+      <StateNumber>9238</StateNumber>
       <RefKeyColPositions>1</RefKeyColPositions>
-      <RefTableId>16728</RefTableId>
+      <RefTableId>16859</RefTableId>
     </foreign-key>
-    <foreign-key id="364" parent="281" name="gold_pawn_client_id_fkey">
+    <foreign-key id="351" parent="281" name="gold_pawn_client_id_fkey">
       <ColNames>client_id</ColNames>
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16833</ObjectId>
-      <StateNumber>7998</StateNumber>
+      <ObjectId>16955</ObjectId>
+      <StateNumber>9238</StateNumber>
       <RefKeyColPositions>1</RefKeyColPositions>
-      <RefTableId>16728</RefTableId>
+      <RefTableId>16875</RefTableId>
     </foreign-key>
-    <index id="365" parent="281" name="gold_pawn_pkey">
+    <index id="352" parent="281" name="gold_pawn_pkey">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16780</ObjectId>
+      <ObjectId>16927</ObjectId>
       <Primary>1</Primary>
-      <StateNumber>7982</StateNumber>
+      <StateNumber>9228</StateNumber>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <key id="366" parent="281" name="gold_pawn_pkey">
+    <key id="353" parent="281" name="gold_pawn_pkey">
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16781</ObjectId>
+      <ObjectId>16928</ObjectId>
       <Primary>1</Primary>
-      <StateNumber>7982</StateNumber>
-      <UnderlyingIndexId>16780</UnderlyingIndexId>
+      <StateNumber>9228</StateNumber>
+      <UnderlyingIndexId>16927</UnderlyingIndexId>
     </key>
-    <column id="367" parent="282" name="year">
-      <NotNull>1</NotNull>
+    <column id="354" parent="282" name="shop_id">
       <Position>1</Position>
-      <StateNumber>7960</StateNumber>
+      <StateNumber>9204</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="368" parent="282" name="month">
+    <column id="355" parent="282" name="year">
       <NotNull>1</NotNull>
       <Position>2</Position>
-      <StateNumber>7960</StateNumber>
+      <StateNumber>9204</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="369" parent="282" name="money_given">
+    <column id="356" parent="282" name="month">
+      <NotNull>1</NotNull>
       <Position>3</Position>
-      <StateNumber>7960</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
+      <StateNumber>9204</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
     </column>
-    <column id="370" parent="282" name="money_got">
+    <column id="357" parent="282" name="money_given">
       <Position>4</Position>
-      <StateNumber>7960</StateNumber>
+      <StateNumber>9204</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="371" parent="282" name="total_turnover">
+    <column id="358" parent="282" name="money_got">
       <Position>5</Position>
-      <StateNumber>7960</StateNumber>
+      <StateNumber>9204</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="372" parent="282" name="total_pawns">
+    <column id="359" parent="282" name="total_turnover">
       <Position>6</Position>
-      <StateNumber>7960</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
+      <StateNumber>9204</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
     </column>
-    <column id="373" parent="282" name="num_gold_pawns">
+    <column id="360" parent="282" name="total_pawns">
       <Position>7</Position>
-      <StateNumber>7960</StateNumber>
+      <StateNumber>9204</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="374" parent="282" name="num_electronics_pawns">
+    <column id="361" parent="282" name="num_gold_pawns">
       <Position>8</Position>
-      <StateNumber>7960</StateNumber>
+      <StateNumber>9204</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="375" parent="282" name="num_vehicle_pawns">
+    <column id="362" parent="282" name="num_electronics_pawns">
       <Position>9</Position>
-      <StateNumber>7960</StateNumber>
+      <StateNumber>9204</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="376" parent="282" name="num_watch_pawns">
+    <column id="363" parent="282" name="num_vehicle_pawns">
       <Position>10</Position>
-      <StateNumber>7960</StateNumber>
+      <StateNumber>9204</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="377" parent="282" name="num_other_pawns">
+    <column id="364" parent="282" name="num_watch_pawns">
       <Position>11</Position>
-      <StateNumber>7960</StateNumber>
+      <StateNumber>9204</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="378" parent="282" name="money_gold_pawns">
+    <column id="365" parent="282" name="num_other_pawns">
       <Position>12</Position>
-      <StateNumber>7960</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="379" parent="282" name="money_electronics_pawns">
-      <Position>13</Position>
-      <StateNumber>7960</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="380" parent="282" name="money_vehicle_pawns">
-      <Position>14</Position>
-      <StateNumber>7960</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="381" parent="282" name="money_watch_pawns">
-      <Position>15</Position>
-      <StateNumber>7960</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="382" parent="282" name="money_other_pawns">
-      <Position>16</Position>
-      <StateNumber>7960</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="383" parent="282" name="total_sales">
-      <Position>17</Position>
-      <StateNumber>7960</StateNumber>
+      <StateNumber>9204</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="384" parent="282" name="money_sales">
+    <column id="366" parent="282" name="money_gold_pawns">
+      <Position>13</Position>
+      <StateNumber>9204</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="367" parent="282" name="money_electronics_pawns">
+      <Position>14</Position>
+      <StateNumber>9204</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="368" parent="282" name="money_vehicle_pawns">
+      <Position>15</Position>
+      <StateNumber>9204</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="369" parent="282" name="money_watch_pawns">
+      <Position>16</Position>
+      <StateNumber>9204</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="370" parent="282" name="money_other_pawns">
+      <Position>17</Position>
+      <StateNumber>9204</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="371" parent="282" name="total_sales">
       <Position>18</Position>
-      <StateNumber>7960</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
+      <StateNumber>9204</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
     </column>
-    <column id="385" parent="282" name="money_pawns">
+    <column id="372" parent="282" name="money_sales">
       <Position>19</Position>
-      <StateNumber>7960</StateNumber>
+      <StateNumber>9204</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="386" parent="282" name="net_profit">
+    <column id="373" parent="282" name="money_pawns">
       <Position>20</Position>
-      <StateNumber>7960</StateNumber>
+      <StateNumber>9204</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="387" parent="282" name="gross_profit">
+    <column id="374" parent="282" name="net_profit">
       <Position>21</Position>
-      <StateNumber>7960</StateNumber>
+      <StateNumber>9204</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="388" parent="282" name="profit_electronics_pawns">
+    <column id="375" parent="282" name="gross_profit">
       <Position>22</Position>
-      <StateNumber>7960</StateNumber>
+      <StateNumber>9204</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="389" parent="282" name="profit_gold_pawns">
+    <column id="376" parent="282" name="profit_electronics_pawns">
       <Position>23</Position>
-      <StateNumber>7960</StateNumber>
+      <StateNumber>9204</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="390" parent="282" name="profit_vehicle_pawns">
+    <column id="377" parent="282" name="profit_gold_pawns">
       <Position>24</Position>
-      <StateNumber>7960</StateNumber>
+      <StateNumber>9204</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="391" parent="282" name="profit_watch_pawns">
+    <column id="378" parent="282" name="profit_vehicle_pawns">
       <Position>25</Position>
-      <StateNumber>7960</StateNumber>
+      <StateNumber>9204</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="392" parent="282" name="profit_other_pawns">
+    <column id="379" parent="282" name="profit_watch_pawns">
       <Position>26</Position>
-      <StateNumber>7960</StateNumber>
+      <StateNumber>9204</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="393" parent="282" name="profit_sales">
+    <column id="380" parent="282" name="profit_other_pawns">
       <Position>27</Position>
-      <StateNumber>7960</StateNumber>
+      <StateNumber>9204</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="394" parent="282" name="profit_pawns">
+    <column id="381" parent="282" name="profit_sales">
       <Position>28</Position>
-      <StateNumber>7960</StateNumber>
+      <StateNumber>9204</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <index id="395" parent="282" name="monthly_report_pkey">
+    <column id="382" parent="282" name="profit_pawns">
+      <Position>29</Position>
+      <StateNumber>9204</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <foreign-key id="383" parent="282" name="monthly_report_shop_id_fkey">
+      <ColNames>shop_id</ColNames>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>17015</ObjectId>
+      <StateNumber>9245</StateNumber>
+      <RefKeyColPositions>1</RefKeyColPositions>
+      <RefTableId>16859</RefTableId>
+    </foreign-key>
+    <index id="384" parent="282" name="monthly_report_pkey">
       <ColNames>year
 month</ColNames>
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16782</ObjectId>
+      <ObjectId>16929</ObjectId>
       <Primary>1</Primary>
-      <StateNumber>7983</StateNumber>
+      <StateNumber>9229</StateNumber>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <key id="396" parent="282" name="monthly_report_pkey">
+    <key id="385" parent="282" name="monthly_report_pkey">
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16783</ObjectId>
+      <ObjectId>16930</ObjectId>
       <Primary>1</Primary>
-      <StateNumber>7983</StateNumber>
-      <UnderlyingIndexId>16782</UnderlyingIndexId>
+      <StateNumber>9229</StateNumber>
+      <UnderlyingIndexId>16929</UnderlyingIndexId>
     </key>
-    <column id="397" parent="283" name="id">
+    <column id="386" parent="283" name="shop_id">
+      <Position>1</Position>
+      <StateNumber>9207</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="387" parent="283" name="id">
       <IdentityKind>always</IdentityKind>
       <NotNull>1</NotNull>
-      <Position>1</Position>
-      <StateNumber>7964</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <SequenceId>16754</SequenceId>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="398" parent="283" name="client_id">
-      <NotNull>1</NotNull>
       <Position>2</Position>
-      <StateNumber>7962</StateNumber>
+      <StateNumber>9209</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <SequenceId>16899</SequenceId>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="388" parent="283" name="client_id">
+      <NotNull>1</NotNull>
+      <Position>3</Position>
+      <StateNumber>9207</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="399" parent="283" name="price_pawned">
-      <Position>3</Position>
-      <StateNumber>7962</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="400" parent="283" name="price_to_redeem">
+    <column id="389" parent="283" name="price_pawned">
       <Position>4</Position>
-      <StateNumber>7962</StateNumber>
+      <StateNumber>9207</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="401" parent="283" name="provision">
+    <column id="390" parent="283" name="price_to_redeem">
       <Position>5</Position>
-      <StateNumber>7962</StateNumber>
+      <StateNumber>9207</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="402" parent="283" name="date_from">
+    <column id="391" parent="283" name="provision">
       <Position>6</Position>
-      <StateNumber>7962</StateNumber>
-      <StoredType>date|0s</StoredType>
-      <TypeId>1082</TypeId>
+      <StateNumber>9207</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
     </column>
-    <column id="403" parent="283" name="date_to">
+    <column id="392" parent="283" name="date_from">
       <Position>7</Position>
-      <StateNumber>7962</StateNumber>
+      <StateNumber>9207</StateNumber>
       <StoredType>date|0s</StoredType>
       <TypeId>1082</TypeId>
     </column>
-    <column id="404" parent="283" name="total_days">
+    <column id="393" parent="283" name="date_to">
       <Position>8</Position>
-      <StateNumber>7962</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="405" parent="283" name="description">
-      <Position>9</Position>
-      <StateNumber>7962</StateNumber>
-      <StoredType>varchar(300)|0s</StoredType>
-      <TypeId>1043</TypeId>
-    </column>
-    <foreign-key id="406" parent="283" name="fkotherpawnclient">
-      <ColNames>client_id</ColNames>
-      <ObjectId>16813</ObjectId>
-      <OnDelete>cascade</OnDelete>
-      <StateNumber>7994</StateNumber>
-      <RefKeyColPositions>1</RefKeyColPositions>
-      <RefTableId>16728</RefTableId>
-    </foreign-key>
-    <foreign-key id="407" parent="283" name="other_pawn_client_id_fkey">
-      <ColNames>client_id</ColNames>
-      <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16838</ObjectId>
-      <StateNumber>7999</StateNumber>
-      <RefKeyColPositions>1</RefKeyColPositions>
-      <RefTableId>16728</RefTableId>
-    </foreign-key>
-    <index id="408" parent="283" name="other_pawn_pkey">
-      <ColNames>id</ColNames>
-      <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16784</ObjectId>
-      <Primary>1</Primary>
-      <StateNumber>7984</StateNumber>
-      <Unique>1</Unique>
-      <AccessMethodId>403</AccessMethodId>
-    </index>
-    <key id="409" parent="283" name="other_pawn_pkey">
-      <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16785</ObjectId>
-      <Primary>1</Primary>
-      <StateNumber>7984</StateNumber>
-      <UnderlyingIndexId>16784</UnderlyingIndexId>
-    </key>
-    <column id="410" parent="284" name="id">
-      <IdentityKind>always</IdentityKind>
-      <NotNull>1</NotNull>
-      <Position>1</Position>
-      <StateNumber>7967</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <SequenceId>16758</SequenceId>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="411" parent="284" name="price_bought">
-      <Position>2</Position>
-      <StateNumber>7965</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="412" parent="284" name="date_from">
-      <Position>3</Position>
-      <StateNumber>7965</StateNumber>
+      <StateNumber>9207</StateNumber>
       <StoredType>date|0s</StoredType>
       <TypeId>1082</TypeId>
     </column>
-    <column id="413" parent="284" name="description">
-      <Position>4</Position>
-      <StateNumber>7965</StateNumber>
+    <column id="394" parent="283" name="total_days">
+      <Position>9</Position>
+      <StateNumber>9207</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="395" parent="283" name="description">
+      <Position>10</Position>
+      <StateNumber>9207</StateNumber>
       <StoredType>varchar(300)|0s</StoredType>
       <TypeId>1043</TypeId>
     </column>
-    <index id="414" parent="284" name="sale_pkey">
+    <foreign-key id="396" parent="283" name="other_pawn_shop_id_fkey">
+      <ColNames>shop_id</ColNames>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>16970</ObjectId>
+      <StateNumber>9239</StateNumber>
+      <RefKeyColPositions>1</RefKeyColPositions>
+      <RefTableId>16859</RefTableId>
+    </foreign-key>
+    <foreign-key id="397" parent="283" name="other_pawn_client_id_fkey">
+      <ColNames>client_id</ColNames>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>16965</ObjectId>
+      <StateNumber>9239</StateNumber>
+      <RefKeyColPositions>1</RefKeyColPositions>
+      <RefTableId>16875</RefTableId>
+    </foreign-key>
+    <index id="398" parent="283" name="other_pawn_pkey">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16786</ObjectId>
+      <ObjectId>16931</ObjectId>
       <Primary>1</Primary>
-      <StateNumber>7985</StateNumber>
+      <StateNumber>9230</StateNumber>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <key id="415" parent="284" name="sale_pkey">
+    <key id="399" parent="283" name="other_pawn_pkey">
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16787</ObjectId>
+      <ObjectId>16932</ObjectId>
       <Primary>1</Primary>
-      <StateNumber>7985</StateNumber>
-      <UnderlyingIndexId>16786</UnderlyingIndexId>
+      <StateNumber>9230</StateNumber>
+      <UnderlyingIndexId>16931</UnderlyingIndexId>
     </key>
-    <column id="416" parent="285" name="id">
+    <column id="400" parent="284" name="shop_id">
+      <Position>1</Position>
+      <StateNumber>9210</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="401" parent="284" name="id">
       <IdentityKind>always</IdentityKind>
       <NotNull>1</NotNull>
-      <Position>1</Position>
-      <StateNumber>7970</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <SequenceId>16762</SequenceId>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="417" parent="285" name="client_id">
-      <NotNull>1</NotNull>
       <Position>2</Position>
-      <StateNumber>7968</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
+      <StateNumber>9212</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <SequenceId>16903</SequenceId>
+      <TypeId>23</TypeId>
     </column>
-    <column id="418" parent="285" name="money_given">
+    <column id="402" parent="284" name="price_bought">
       <Position>3</Position>
-      <StateNumber>7968</StateNumber>
+      <StateNumber>9210</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <column id="419" parent="285" name="money_got">
+    <column id="403" parent="284" name="date_from">
       <Position>4</Position>
-      <StateNumber>7968</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
+      <StateNumber>9210</StateNumber>
+      <StoredType>date|0s</StoredType>
+      <TypeId>1082</TypeId>
     </column>
-    <column id="420" parent="285" name="profit">
+    <column id="404" parent="284" name="description">
       <Position>5</Position>
-      <StateNumber>7968</StateNumber>
+      <StateNumber>9210</StateNumber>
+      <StoredType>varchar(300)|0s</StoredType>
+      <TypeId>1043</TypeId>
+    </column>
+    <foreign-key id="405" parent="284" name="sale_shop_id_fkey">
+      <ColNames>shop_id</ColNames>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>16995</ObjectId>
+      <StateNumber>9242</StateNumber>
+      <RefKeyColPositions>1</RefKeyColPositions>
+      <RefTableId>16859</RefTableId>
+    </foreign-key>
+    <index id="406" parent="284" name="sale_pkey">
+      <ColNames>id</ColNames>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>16933</ObjectId>
+      <Primary>1</Primary>
+      <StateNumber>9231</StateNumber>
+      <Unique>1</Unique>
+      <AccessMethodId>403</AccessMethodId>
+    </index>
+    <key id="407" parent="284" name="sale_pkey">
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>16934</ObjectId>
+      <Primary>1</Primary>
+      <StateNumber>9231</StateNumber>
+      <UnderlyingIndexId>16933</UnderlyingIndexId>
+    </key>
+    <column id="408" parent="285" name="id">
+      <IdentityKind>by-default</IdentityKind>
+      <NotNull>1</NotNull>
+      <Position>1</Position>
+      <StateNumber>9184</StateNumber>
       <StoredType>bigint|0s</StoredType>
+      <SequenceId>16862</SequenceId>
       <TypeId>20</TypeId>
     </column>
-    <column id="421" parent="285" name="date">
-      <Position>6</Position>
-      <StateNumber>7968</StateNumber>
-      <StoredType>timestamp with time zone|0s</StoredType>
-      <TypeId>1184</TypeId>
+    <column id="409" parent="285" name="name">
+      <Position>2</Position>
+      <StateNumber>9182</StateNumber>
+      <StoredType>varchar(100)|0s</StoredType>
+      <TypeId>1043</TypeId>
     </column>
-    <column id="422" parent="285" name="category">
-      <Position>7</Position>
-      <StateNumber>7968</StateNumber>
+    <column id="410" parent="285" name="city">
+      <Position>3</Position>
+      <StateNumber>9182</StateNumber>
       <StoredType>varchar(20)|0s</StoredType>
       <TypeId>1043</TypeId>
     </column>
-    <column id="423" parent="285" name="description">
+    <column id="411" parent="285" name="location">
+      <Position>4</Position>
+      <StateNumber>9182</StateNumber>
+      <StoredType>varchar(20)|0s</StoredType>
+      <TypeId>1043</TypeId>
+    </column>
+    <index id="412" parent="285" name="shop_pkey">
+      <ColNames>id</ColNames>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>16919</ObjectId>
+      <Primary>1</Primary>
+      <StateNumber>9224</StateNumber>
+      <Unique>1</Unique>
+      <AccessMethodId>403</AccessMethodId>
+    </index>
+    <key id="413" parent="285" name="shop_pkey">
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>16920</ObjectId>
+      <Primary>1</Primary>
+      <StateNumber>9224</StateNumber>
+      <UnderlyingIndexId>16919</UnderlyingIndexId>
+    </key>
+    <column id="414" parent="286" name="shop_id">
+      <Position>1</Position>
+      <StateNumber>9213</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="415" parent="286" name="id">
+      <IdentityKind>always</IdentityKind>
+      <NotNull>1</NotNull>
+      <Position>2</Position>
+      <StateNumber>9215</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <SequenceId>16907</SequenceId>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="416" parent="286" name="client_id">
+      <NotNull>1</NotNull>
+      <Position>3</Position>
+      <StateNumber>9213</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="417" parent="286" name="money_given">
+      <Position>4</Position>
+      <StateNumber>9213</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="418" parent="286" name="money_got">
+      <Position>5</Position>
+      <StateNumber>9213</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="419" parent="286" name="profit">
+      <Position>6</Position>
+      <StateNumber>9213</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="420" parent="286" name="date">
+      <Position>7</Position>
+      <StateNumber>9213</StateNumber>
+      <StoredType>timestamp with time zone|0s</StoredType>
+      <TypeId>1184</TypeId>
+    </column>
+    <column id="421" parent="286" name="category">
       <Position>8</Position>
-      <StateNumber>7968</StateNumber>
+      <StateNumber>9213</StateNumber>
+      <StoredType>varchar(20)|0s</StoredType>
+      <TypeId>1043</TypeId>
+    </column>
+    <column id="422" parent="286" name="description">
+      <Position>9</Position>
+      <StateNumber>9213</StateNumber>
       <StoredType>varchar(200)|0s</StoredType>
       <TypeId>1043</TypeId>
     </column>
-    <foreign-key id="424" parent="285" name="fktransactionclient">
-      <ColNames>client_id</ColNames>
-      <ObjectId>16818</ObjectId>
-      <OnDelete>cascade</OnDelete>
-      <StateNumber>7995</StateNumber>
+    <foreign-key id="423" parent="286" name="transaction_shop_id_fkey">
+      <ColNames>shop_id</ColNames>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>17005</ObjectId>
+      <StateNumber>9243</StateNumber>
       <RefKeyColPositions>1</RefKeyColPositions>
-      <RefTableId>16728</RefTableId>
+      <RefTableId>16859</RefTableId>
     </foreign-key>
-    <foreign-key id="425" parent="285" name="transaction_client_id_fkey">
+    <foreign-key id="424" parent="286" name="transaction_client_id_fkey">
       <ColNames>client_id</ColNames>
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16843</ObjectId>
-      <StateNumber>8000</StateNumber>
+      <ObjectId>17000</ObjectId>
+      <StateNumber>9243</StateNumber>
       <RefKeyColPositions>1</RefKeyColPositions>
-      <RefTableId>16728</RefTableId>
+      <RefTableId>16875</RefTableId>
     </foreign-key>
-    <index id="426" parent="285" name="transaction_pkey">
+    <index id="425" parent="286" name="transaction_pkey">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16788</ObjectId>
+      <ObjectId>16935</ObjectId>
       <Primary>1</Primary>
-      <StateNumber>7986</StateNumber>
+      <StateNumber>9232</StateNumber>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <key id="427" parent="285" name="transaction_pkey">
+    <key id="426" parent="286" name="transaction_pkey">
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16789</ObjectId>
+      <ObjectId>16936</ObjectId>
       <Primary>1</Primary>
-      <StateNumber>7986</StateNumber>
-      <UnderlyingIndexId>16788</UnderlyingIndexId>
+      <StateNumber>9232</StateNumber>
+      <UnderlyingIndexId>16935</UnderlyingIndexId>
     </key>
-    <column id="428" parent="286" name="id">
+    <column id="427" parent="287" name="shop_id">
+      <Position>1</Position>
+      <StateNumber>9216</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="428" parent="287" name="id">
       <IdentityKind>always</IdentityKind>
       <NotNull>1</NotNull>
-      <Position>1</Position>
-      <StateNumber>7973</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <SequenceId>16766</SequenceId>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="429" parent="286" name="client_id">
-      <NotNull>1</NotNull>
       <Position>2</Position>
-      <StateNumber>7971</StateNumber>
+      <StateNumber>9218</StateNumber>
       <StoredType>integer|0s</StoredType>
+      <SequenceId>16911</SequenceId>
       <TypeId>23</TypeId>
     </column>
-    <column id="430" parent="286" name="brand">
+    <column id="429" parent="287" name="client_id">
+      <NotNull>1</NotNull>
       <Position>3</Position>
-      <StateNumber>7971</StateNumber>
-      <StoredType>varchar(50)|0s</StoredType>
-      <TypeId>1043</TypeId>
+      <StateNumber>9216</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
     </column>
-    <column id="431" parent="286" name="model">
+    <column id="430" parent="287" name="brand">
       <Position>4</Position>
-      <StateNumber>7971</StateNumber>
+      <StateNumber>9216</StateNumber>
       <StoredType>varchar(50)|0s</StoredType>
       <TypeId>1043</TypeId>
     </column>
-    <column id="432" parent="286" name="year">
+    <column id="431" parent="287" name="model">
       <Position>5</Position>
-      <StateNumber>7971</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
+      <StateNumber>9216</StateNumber>
+      <StoredType>varchar(50)|0s</StoredType>
+      <TypeId>1043</TypeId>
     </column>
-    <column id="433" parent="286" name="price_pawned">
+    <column id="432" parent="287" name="year">
       <Position>6</Position>
-      <StateNumber>7971</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="434" parent="286" name="price_to_redeem">
-      <Position>7</Position>
-      <StateNumber>7971</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="435" parent="286" name="provision">
-      <Position>8</Position>
-      <StateNumber>7971</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="436" parent="286" name="date_from">
-      <Position>9</Position>
-      <StateNumber>7971</StateNumber>
-      <StoredType>date|0s</StoredType>
-      <TypeId>1082</TypeId>
-    </column>
-    <column id="437" parent="286" name="date_to">
-      <Position>10</Position>
-      <StateNumber>7971</StateNumber>
-      <StoredType>date|0s</StoredType>
-      <TypeId>1082</TypeId>
-    </column>
-    <column id="438" parent="286" name="total_days">
-      <Position>11</Position>
-      <StateNumber>7971</StateNumber>
+      <StateNumber>9216</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="439" parent="286" name="description">
+    <column id="433" parent="287" name="price_pawned">
+      <Position>7</Position>
+      <StateNumber>9216</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="434" parent="287" name="price_to_redeem">
+      <Position>8</Position>
+      <StateNumber>9216</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="435" parent="287" name="provision">
+      <Position>9</Position>
+      <StateNumber>9216</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="436" parent="287" name="date_from">
+      <Position>10</Position>
+      <StateNumber>9216</StateNumber>
+      <StoredType>date|0s</StoredType>
+      <TypeId>1082</TypeId>
+    </column>
+    <column id="437" parent="287" name="date_to">
+      <Position>11</Position>
+      <StateNumber>9216</StateNumber>
+      <StoredType>date|0s</StoredType>
+      <TypeId>1082</TypeId>
+    </column>
+    <column id="438" parent="287" name="total_days">
       <Position>12</Position>
-      <StateNumber>7971</StateNumber>
-      <StoredType>varchar(300)|0s</StoredType>
-      <TypeId>1043</TypeId>
-    </column>
-    <foreign-key id="440" parent="286" name="fkvehiclepawnclient">
-      <ColNames>client_id</ColNames>
-      <ObjectId>16823</ObjectId>
-      <OnDelete>cascade</OnDelete>
-      <StateNumber>7996</StateNumber>
-      <RefKeyColPositions>1</RefKeyColPositions>
-      <RefTableId>16728</RefTableId>
-    </foreign-key>
-    <foreign-key id="441" parent="286" name="vehicle_pawn_client_id_fkey">
-      <ColNames>client_id</ColNames>
-      <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16848</ObjectId>
-      <StateNumber>8001</StateNumber>
-      <RefKeyColPositions>1</RefKeyColPositions>
-      <RefTableId>16728</RefTableId>
-    </foreign-key>
-    <index id="442" parent="286" name="vehicle_pawn_pkey">
-      <ColNames>id</ColNames>
-      <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16792</ObjectId>
-      <Primary>1</Primary>
-      <StateNumber>7988</StateNumber>
-      <Unique>1</Unique>
-      <AccessMethodId>403</AccessMethodId>
-    </index>
-    <key id="443" parent="286" name="vehicle_pawn_pkey">
-      <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16793</ObjectId>
-      <Primary>1</Primary>
-      <StateNumber>7988</StateNumber>
-      <UnderlyingIndexId>16792</UnderlyingIndexId>
-    </key>
-    <column id="444" parent="287" name="id">
-      <IdentityKind>always</IdentityKind>
-      <NotNull>1</NotNull>
-      <Position>1</Position>
-      <StateNumber>7976</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <SequenceId>16770</SequenceId>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="445" parent="287" name="client_id">
-      <NotNull>1</NotNull>
-      <Position>2</Position>
-      <StateNumber>7974</StateNumber>
+      <StateNumber>9216</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="446" parent="287" name="brand">
-      <Position>3</Position>
-      <StateNumber>7974</StateNumber>
-      <StoredType>varchar(50)|0s</StoredType>
-      <TypeId>1043</TypeId>
-    </column>
-    <column id="447" parent="287" name="year">
-      <Position>4</Position>
-      <StateNumber>7974</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="448" parent="287" name="price_pawned">
-      <Position>5</Position>
-      <StateNumber>7974</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="449" parent="287" name="price_to_redeem">
-      <Position>6</Position>
-      <StateNumber>7974</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="450" parent="287" name="provision">
-      <Position>7</Position>
-      <StateNumber>7974</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="451" parent="287" name="date_from">
-      <Position>8</Position>
-      <StateNumber>7974</StateNumber>
-      <StoredType>date|0s</StoredType>
-      <TypeId>1082</TypeId>
-    </column>
-    <column id="452" parent="287" name="date_to">
-      <Position>9</Position>
-      <StateNumber>7974</StateNumber>
-      <StoredType>date|0s</StoredType>
-      <TypeId>1082</TypeId>
-    </column>
-    <column id="453" parent="287" name="total_days">
-      <Position>10</Position>
-      <StateNumber>7974</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="454" parent="287" name="description">
-      <Position>11</Position>
-      <StateNumber>7974</StateNumber>
-      <StoredType>varchar(300)|0s</StoredType>
-      <TypeId>1043</TypeId>
-    </column>
-    <foreign-key id="455" parent="287" name="fkwatchpawnclient">
-      <ColNames>client_id</ColNames>
-      <ObjectId>16828</ObjectId>
-      <OnDelete>cascade</OnDelete>
-      <StateNumber>7997</StateNumber>
-      <RefKeyColPositions>1</RefKeyColPositions>
-      <RefTableId>16728</RefTableId>
-    </foreign-key>
-    <foreign-key id="456" parent="287" name="watch_pawn_client_id_fkey">
-      <ColNames>client_id</ColNames>
-      <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16853</ObjectId>
-      <StateNumber>8002</StateNumber>
-      <RefKeyColPositions>1</RefKeyColPositions>
-      <RefTableId>16728</RefTableId>
-    </foreign-key>
-    <index id="457" parent="287" name="watch_pawn_pkey">
-      <ColNames>id</ColNames>
-      <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16794</ObjectId>
-      <Primary>1</Primary>
-      <StateNumber>7989</StateNumber>
-      <Unique>1</Unique>
-      <AccessMethodId>403</AccessMethodId>
-    </index>
-    <key id="458" parent="287" name="watch_pawn_pkey">
-      <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16795</ObjectId>
-      <Primary>1</Primary>
-      <StateNumber>7989</StateNumber>
-      <UnderlyingIndexId>16794</UnderlyingIndexId>
-    </key>
-    <column id="459" parent="288" name="year">
-      <NotNull>1</NotNull>
-      <Position>1</Position>
-      <StateNumber>7977</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="460" parent="288" name="money_given">
-      <Position>2</Position>
-      <StateNumber>7977</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="461" parent="288" name="money_got">
-      <Position>3</Position>
-      <StateNumber>7977</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="462" parent="288" name="total_turnover">
-      <Position>4</Position>
-      <StateNumber>7977</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="463" parent="288" name="total_profit">
-      <Position>5</Position>
-      <StateNumber>7977</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="464" parent="288" name="total_pawns">
-      <Position>6</Position>
-      <StateNumber>7977</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="465" parent="288" name="num_gold_pawns">
-      <Position>7</Position>
-      <StateNumber>7977</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="466" parent="288" name="num_electronics_pawns">
-      <Position>8</Position>
-      <StateNumber>7977</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="467" parent="288" name="num_vehicle_pawns">
-      <Position>9</Position>
-      <StateNumber>7977</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="468" parent="288" name="num_watch_pawns">
-      <Position>10</Position>
-      <StateNumber>7977</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="469" parent="288" name="num_other_pawns">
-      <Position>11</Position>
-      <StateNumber>7977</StateNumber>
-      <StoredType>integer|0s</StoredType>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="470" parent="288" name="money_pawns">
-      <Position>12</Position>
-      <StateNumber>7977</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="471" parent="288" name="money_gold_pawns">
+    <column id="439" parent="287" name="description">
       <Position>13</Position>
-      <StateNumber>7977</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
+      <StateNumber>9216</StateNumber>
+      <StoredType>varchar(300)|0s</StoredType>
+      <TypeId>1043</TypeId>
     </column>
-    <column id="472" parent="288" name="money_electronics_pawns">
-      <Position>14</Position>
-      <StateNumber>7977</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="473" parent="288" name="money_vehicle_pawns">
-      <Position>15</Position>
-      <StateNumber>7977</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="474" parent="288" name="money_watch_pawns">
-      <Position>16</Position>
-      <StateNumber>7977</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="475" parent="288" name="money_other_pawns">
-      <Position>17</Position>
-      <StateNumber>7977</StateNumber>
-      <StoredType>bigint|0s</StoredType>
-      <TypeId>20</TypeId>
-    </column>
-    <column id="476" parent="288" name="total_sales">
-      <Position>18</Position>
-      <StateNumber>7977</StateNumber>
+    <foreign-key id="440" parent="287" name="vehicle_pawn_shop_id_fkey">
+      <ColNames>shop_id</ColNames>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>16980</ObjectId>
+      <StateNumber>9240</StateNumber>
+      <RefKeyColPositions>1</RefKeyColPositions>
+      <RefTableId>16859</RefTableId>
+    </foreign-key>
+    <foreign-key id="441" parent="287" name="vehicle_pawn_client_id_fkey">
+      <ColNames>client_id</ColNames>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>16975</ObjectId>
+      <StateNumber>9240</StateNumber>
+      <RefKeyColPositions>1</RefKeyColPositions>
+      <RefTableId>16875</RefTableId>
+    </foreign-key>
+    <index id="442" parent="287" name="vehicle_pawn_pkey">
+      <ColNames>id</ColNames>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>16939</ObjectId>
+      <Primary>1</Primary>
+      <StateNumber>9234</StateNumber>
+      <Unique>1</Unique>
+      <AccessMethodId>403</AccessMethodId>
+    </index>
+    <key id="443" parent="287" name="vehicle_pawn_pkey">
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>16940</ObjectId>
+      <Primary>1</Primary>
+      <StateNumber>9234</StateNumber>
+      <UnderlyingIndexId>16939</UnderlyingIndexId>
+    </key>
+    <column id="444" parent="288" name="shop_id">
+      <Position>1</Position>
+      <StateNumber>9219</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="477" parent="288" name="money_sales">
-      <Position>19</Position>
-      <StateNumber>7977</StateNumber>
+    <column id="445" parent="288" name="id">
+      <IdentityKind>always</IdentityKind>
+      <NotNull>1</NotNull>
+      <Position>2</Position>
+      <StateNumber>9221</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <SequenceId>16915</SequenceId>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="446" parent="288" name="client_id">
+      <NotNull>1</NotNull>
+      <Position>3</Position>
+      <StateNumber>9219</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="447" parent="288" name="brand">
+      <Position>4</Position>
+      <StateNumber>9219</StateNumber>
+      <StoredType>varchar(50)|0s</StoredType>
+      <TypeId>1043</TypeId>
+    </column>
+    <column id="448" parent="288" name="year">
+      <Position>5</Position>
+      <StateNumber>9219</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="449" parent="288" name="price_pawned">
+      <Position>6</Position>
+      <StateNumber>9219</StateNumber>
       <StoredType>bigint|0s</StoredType>
       <TypeId>20</TypeId>
     </column>
-    <index id="478" parent="288" name="yearly_report_pkey">
+    <column id="450" parent="288" name="price_to_redeem">
+      <Position>7</Position>
+      <StateNumber>9219</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="451" parent="288" name="provision">
+      <Position>8</Position>
+      <StateNumber>9219</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="452" parent="288" name="date_from">
+      <Position>9</Position>
+      <StateNumber>9219</StateNumber>
+      <StoredType>date|0s</StoredType>
+      <TypeId>1082</TypeId>
+    </column>
+    <column id="453" parent="288" name="date_to">
+      <Position>10</Position>
+      <StateNumber>9219</StateNumber>
+      <StoredType>date|0s</StoredType>
+      <TypeId>1082</TypeId>
+    </column>
+    <column id="454" parent="288" name="total_days">
+      <Position>11</Position>
+      <StateNumber>9219</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="455" parent="288" name="description">
+      <Position>12</Position>
+      <StateNumber>9219</StateNumber>
+      <StoredType>varchar(300)|0s</StoredType>
+      <TypeId>1043</TypeId>
+    </column>
+    <foreign-key id="456" parent="288" name="watch_pawn_shop_id_fkey">
+      <ColNames>shop_id</ColNames>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>16990</ObjectId>
+      <StateNumber>9241</StateNumber>
+      <RefKeyColPositions>1</RefKeyColPositions>
+      <RefTableId>16859</RefTableId>
+    </foreign-key>
+    <foreign-key id="457" parent="288" name="watch_pawn_client_id_fkey">
+      <ColNames>client_id</ColNames>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>16985</ObjectId>
+      <StateNumber>9241</StateNumber>
+      <RefKeyColPositions>1</RefKeyColPositions>
+      <RefTableId>16875</RefTableId>
+    </foreign-key>
+    <index id="458" parent="288" name="watch_pawn_pkey">
+      <ColNames>id</ColNames>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>16941</ObjectId>
+      <Primary>1</Primary>
+      <StateNumber>9235</StateNumber>
+      <Unique>1</Unique>
+      <AccessMethodId>403</AccessMethodId>
+    </index>
+    <key id="459" parent="288" name="watch_pawn_pkey">
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>16942</ObjectId>
+      <Primary>1</Primary>
+      <StateNumber>9235</StateNumber>
+      <UnderlyingIndexId>16941</UnderlyingIndexId>
+    </key>
+    <column id="460" parent="289" name="shop_id">
+      <Position>1</Position>
+      <StateNumber>9222</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="461" parent="289" name="year">
+      <NotNull>1</NotNull>
+      <Position>2</Position>
+      <StateNumber>9222</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="462" parent="289" name="money_given">
+      <Position>3</Position>
+      <StateNumber>9222</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="463" parent="289" name="money_got">
+      <Position>4</Position>
+      <StateNumber>9222</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="464" parent="289" name="total_turnover">
+      <Position>5</Position>
+      <StateNumber>9222</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="465" parent="289" name="total_profit">
+      <Position>6</Position>
+      <StateNumber>9222</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="466" parent="289" name="total_pawns">
+      <Position>7</Position>
+      <StateNumber>9222</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="467" parent="289" name="num_gold_pawns">
+      <Position>8</Position>
+      <StateNumber>9222</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="468" parent="289" name="num_electronics_pawns">
+      <Position>9</Position>
+      <StateNumber>9222</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="469" parent="289" name="num_vehicle_pawns">
+      <Position>10</Position>
+      <StateNumber>9222</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="470" parent="289" name="num_watch_pawns">
+      <Position>11</Position>
+      <StateNumber>9222</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="471" parent="289" name="num_other_pawns">
+      <Position>12</Position>
+      <StateNumber>9222</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="472" parent="289" name="money_pawns">
+      <Position>13</Position>
+      <StateNumber>9222</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="473" parent="289" name="money_gold_pawns">
+      <Position>14</Position>
+      <StateNumber>9222</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="474" parent="289" name="money_electronics_pawns">
+      <Position>15</Position>
+      <StateNumber>9222</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="475" parent="289" name="money_vehicle_pawns">
+      <Position>16</Position>
+      <StateNumber>9222</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="476" parent="289" name="money_watch_pawns">
+      <Position>17</Position>
+      <StateNumber>9222</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="477" parent="289" name="money_other_pawns">
+      <Position>18</Position>
+      <StateNumber>9222</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <column id="478" parent="289" name="total_sales">
+      <Position>19</Position>
+      <StateNumber>9222</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="479" parent="289" name="money_sales">
+      <Position>20</Position>
+      <StateNumber>9222</StateNumber>
+      <StoredType>bigint|0s</StoredType>
+      <TypeId>20</TypeId>
+    </column>
+    <foreign-key id="480" parent="289" name="yearly_report_shop_id_fkey">
+      <ColNames>shop_id</ColNames>
+      <NameSurrogate>1</NameSurrogate>
+      <ObjectId>17020</ObjectId>
+      <StateNumber>9246</StateNumber>
+      <RefKeyColPositions>1</RefKeyColPositions>
+      <RefTableId>16859</RefTableId>
+    </foreign-key>
+    <index id="481" parent="289" name="yearly_report_pkey">
       <ColNames>year</ColNames>
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16796</ObjectId>
+      <ObjectId>16943</ObjectId>
       <Primary>1</Primary>
-      <StateNumber>7990</StateNumber>
+      <StateNumber>9236</StateNumber>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <key id="479" parent="288" name="yearly_report_pkey">
+    <key id="482" parent="289" name="yearly_report_pkey">
       <NameSurrogate>1</NameSurrogate>
-      <ObjectId>16797</ObjectId>
+      <ObjectId>16944</ObjectId>
       <Primary>1</Primary>
-      <StateNumber>7990</StateNumber>
-      <UnderlyingIndexId>16796</UnderlyingIndexId>
+      <StateNumber>9236</StateNumber>
+      <UnderlyingIndexId>16943</UnderlyingIndexId>
     </key>
   </database-model>
 </dataSource>

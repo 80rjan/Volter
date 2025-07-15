@@ -1,5 +1,8 @@
 const pool = require('./pool');
 
+const SHOP_ID = process.env.VITE_DB_SHOP_ID;
+console.log("Shop id: ", SHOP_ID)
+
 async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByTel = "") {
     const {rows} = await pool.query(`
         SELECT c.id                                                AS "Client Id",
@@ -19,6 +22,7 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
           AND c.embg LIKE $2 || '%'
           AND (c.telephone LIKE $3 || '%'
             OR c.telephone_2 LIKE $3 || '%')
+          AND ep.shop_id = $4
 
         UNION ALL
 
@@ -39,6 +43,7 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
           AND c.embg LIKE $2 || '%'
           AND (c.telephone LIKE $3 || '%'
             OR c.telephone_2 LIKE $3 || '%')
+          AND gp.shop_id = $4
 
         UNION ALL
 
@@ -59,6 +64,7 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
           AND c.embg LIKE $2 || '%'
           AND (c.telephone LIKE $3 || '%'
             OR c.telephone_2 LIKE $3 || '%')
+          AND op.shop_id = $4
 
         UNION ALL
 
@@ -79,6 +85,7 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
           AND c.embg LIKE $2 || '%'
           AND (c.telephone LIKE $3 || '%'
             OR c.telephone_2 LIKE $3 || '%')
+          AND vp.shop_id = $4
 
         UNION ALL
 
@@ -99,10 +106,11 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
           AND c.embg LIKE $2 || '%'
           AND (c.telephone LIKE $3 || '%'
             OR c.telephone_2 LIKE $3 || '%')
+          AND wp.shop_id = $4
 
         ORDER BY "${orderBy}" ${orderDirection}
         LIMIT ${limit} OFFSET ${offset};
-    `, [searchByName, searchByEmbg, searchByTel]);
+    `, [searchByName, searchByEmbg, searchByTel, SHOP_ID]);
     return rows;
 }
 
@@ -186,9 +194,9 @@ async function closePawn(id, tableName, priceClosed, description) {
     const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
     //Insert a new transaction with cash inserted and profit made
     await pool.query(`
-        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES ($1, $2, $3, 0, $4, $5, $6);
-    `, [clientId, transactionCategory, transactionDescription, pawnMoney, priceClosed - pawnMoney, UTC_TIME])
+        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
+        VALUES ($1, $2, $3, 0, $4, $5, $6, $7);
+    `, [clientId, transactionCategory, transactionDescription, pawnMoney, priceClosed - pawnMoney, UTC_TIME, SHOP_ID])
 
 
     //Update cash register with money inserted, decrease numPawns, decrease moneyPawns, update quantity of gold in grams and update total provision for pawns
@@ -199,8 +207,9 @@ async function closePawn(id, tableName, priceClosed, description) {
             money_pawns     = money_pawns - $1,
             register_money  = register_money + $2,
             gold_grams      = gold_grams - $3,
-            last_updated    = $5;
-    `, [pawnMoney, priceClosed, gold_grams, provision, UTC_TIME])
+            last_updated    = $5
+        WHERE shop_id = $6;
+    `, [pawnMoney, priceClosed, gold_grams, provision, UTC_TIME, SHOP_ID])
 
     await pool.query(`COMMIT;`)
 }
@@ -247,16 +256,17 @@ async function continuePawn(id, tableName, provision, description, carryOverDays
     const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
     //Insert a new transaction with profit made
     await pool.query(`
-        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES ($1, $2, $3, 0, 0, $4, $5);
-    `, [clientId, transactionCategory, transactionDescription, provision, UTC_TIME])
+        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
+        VALUES ($1, $2, $3, 0, 0, $4, $5, $6);
+    `, [clientId, transactionCategory, transactionDescription, provision, UTC_TIME, SHOP_ID])
 
     //Update cash register with money inserted
     await pool.query(`
         UPDATE cash_register
         SET register_money = register_money + $1,
-            last_updated   = $2;
-    `, [provision, UTC_TIME])
+            last_updated   = $2
+        WHERE shop_id = $3;
+    `, [provision, UTC_TIME, SHOP_ID])
 
     await pool.query(`COMMIT;`)
 }
@@ -279,7 +289,7 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
         [clientObj.name, clientObj.embg]
     );
 
-    let clientId = null;
+    let clientId;
     if (clientCheck.rows.length > 0) {
         // Client found → update telephones
         clientId = clientCheck.rows[0].id;
@@ -306,37 +316,37 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
         case 'electronics_pawn':
             await pool.query(`
                 INSERT INTO electronics_pawn (client_id, brand, year, price_pawned, price_to_redeem, provision,
-                                              date_from, date_to, total_days, description)
-                VALUES ($1, $2, $3, $4, $5, $6, $9::DATE, $9::DATE + $7 * INTERVAL '1 day', $7, $8);
-            `, [clientId, pawnObj.brand, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description, pawnObj.date]);
+                                              date_from, date_to, total_days, description, shop_id)
+                VALUES ($1, $2, $3, $4, $5, $6, $9::DATE, $9::DATE + $7 * INTERVAL '1 day', $7, $8, $10);
+            `, [clientId, pawnObj.brand, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description, pawnObj.date, SHOP_ID]);
             break;
         case 'gold_pawn':
             await pool.query(`
                 INSERT INTO gold_pawn (client_id, weight, carats, price_pawned, price_to_redeem, provision, date_from,
-                                       date_to, total_days, description, type)
-                VALUES ($1, $2, $3, $4, $5, $6, $10::DATE, $10::DATE + $7 * INTERVAL '1 day', $7, $8, $9);
-            `, [clientId, pawnObj.weight, pawnObj.carats, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description, pawnObj.type, pawnObj.date]);
+                                       date_to, total_days, description, type, shop_id)
+                VALUES ($1, $2, $3, $4, $5, $6, $10::DATE, $10::DATE + $7 * INTERVAL '1 day', $7, $8, $9, $11);
+            `, [clientId, pawnObj.weight, pawnObj.carats, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description, pawnObj.type, pawnObj.date, SHOP_ID]);
             break;
         case 'other_pawn':
             await pool.query(`
                 INSERT INTO other_pawn (client_id, price_pawned, price_to_redeem, provision, date_from, date_to,
-                                        total_days, description)
-                VALUES ($1, $2, $3, $4, $7::DATE, $7::DATE + $5 * INTERVAL '1 day', $5, $6);
-            `, [clientId, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description, pawnObj.date]);
+                                        total_days, description, shop_id)
+                VALUES ($1, $2, $3, $4, $7::DATE, $7::DATE + $5 * INTERVAL '1 day', $5, $6, $8);
+            `, [clientId, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description, pawnObj.date, SHOP_ID]);
             break;
         case 'vehicle_pawn':
             await pool.query(`
                 INSERT INTO vehicle_pawn (client_id, brand, model, year, price_pawned, price_to_redeem, provision,
-                                          date_from, date_to, total_days, description)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $10::DATE, $10::DATE + $8 * INTERVAL '1 day', $8, $9);
-            `, [clientId, pawnObj.brand, pawnObj.model, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description, pawnObj.date]);
+                                          date_from, date_to, total_days, description, shop_id)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $10::DATE, $10::DATE + $8 * INTERVAL '1 day', $8, $9, $11);
+            `, [clientId, pawnObj.brand, pawnObj.model, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description, pawnObj.date, SHOP_ID]);
             break;
         case 'watch_pawn':
             await pool.query(`
                 INSERT INTO watch_pawn (client_id, brand, year, price_pawned, price_to_redeem, provision, date_from,
-                                        date_to, total_days, description)
-                VALUES ($1, $2, $3, $4, $5, $6, $9::DATE, $9::DATE + $7 * INTERVAL '1 day', $7, $8);
-            `, [clientId, pawnObj.brand, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description, pawnObj.date]);
+                                        date_to, total_days, description, shop_id)
+                VALUES ($1, $2, $3, $4, $5, $6, $9::DATE, $9::DATE + $7 * INTERVAL '1 day', $7, $8, $10);
+            `, [clientId, pawnObj.brand, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description, pawnObj.date, SHOP_ID]);
             break;
         default:
             throw new Error("Invalid pawn table name to ADD PAWN");
@@ -350,9 +360,9 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
 
     //Insert a new transaction where money is given to client for pawn
     await pool.query(`
-        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES ($1, $2, $3, $4, 0, 0, $5::DATE);
-    `, [clientId, transactionCategory, transactionDescription, pawnObj.price_pawned, pawnObj.date])
+        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
+        VALUES ($1, $2, $3, $4, 0, 0, $5::DATE, $6);
+    `, [clientId, transactionCategory, transactionDescription, pawnObj.price_pawned, pawnObj.date, SHOP_ID])
 
     const now = new Date();
 // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
@@ -365,8 +375,9 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
             money_pawns     = money_pawns + $1,
             register_money  = register_money - $1,
             gold_grams      = gold_grams + $2,
-            last_updated    = $4;
-    `, [pawnObj.price_pawned, gold_grams, pawnObj.provision, UTC_TIME]);
+            last_updated    = $4
+        WHERE shop_id = $5;
+    `, [pawnObj.price_pawned, gold_grams, pawnObj.provision, UTC_TIME, SHOP_ID]);
 }
 
 async function updatePawn(pawnTable, pawnId, pricePawned, provision, description, goldGramsDiff) {
@@ -442,9 +453,9 @@ async function updatePawn(pawnTable, pawnId, pricePawned, provision, description
     //Insert a new transaction with money given
     try {
         await pool.query(`
-            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-            VALUES ($1, $2, $3, $4, 0, 0, $5);
-        `, [clientId, category, s, pricePawned - oldPrice, UTC_TIME])
+            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
+            VALUES ($1, $2, $3, $4, 0, 0, $5, $6);
+        `, [clientId, category, s, pricePawned - oldPrice, UTC_TIME, SHOP_ID])
     } catch (error) {
         console.error("Error executing query transaction: " + error)
         throw new Error("Failed to modify transactions")
@@ -458,8 +469,9 @@ async function updatePawn(pawnTable, pawnId, pricePawned, provision, description
                 money_pawns     = money_pawns + $1,
                 total_provision = total_provision + $2,
                 gold_grams      = gold_grams + $3,
-                last_updated    = $4;
-        `, [pricePawned - oldPrice, provision - oldProvision, goldGramsDiff, UTC_TIME])
+                last_updated    = $4
+            WHERE shop_id = $5;
+        `, [pricePawned - oldPrice, provision - oldProvision, goldGramsDiff, UTC_TIME, SHOP_ID])
     } catch (error) {
         console.error("Error executing query cash reg: " + error)
         throw new Error("Failed to modify cash reg")
@@ -505,7 +517,7 @@ async function changePawnToSale(id, pawnCategory) {
                                       WHERE id = $1;`, [id])
             if (query.rows.length > 0) {
                 gold_grams = query.rows[0].weight;
-                description = `${query.rows[0].weight}g, ${query.rows[0].carats}k, ${query.rows[0].price_pawned / query.rows[0].weight} по грам, ${query.rows[0].description}`;
+                description = `${Number.isInteger(Number(query.rows[0].weight)) ? Number(query.rows[0].weight).toFixed(0) : query.rows[0].weight}g, ${query.rows[0].carats}k, ${Math.round(Number(query.rows[0].price_pawned / query.rows[0].weight))} по грам, ${query.rows[0].description}`;
             }
             break;
         case "other_pawn":
@@ -535,9 +547,9 @@ async function changePawnToSale(id, pawnCategory) {
 
     //Insert sale into sale table
     await pool.query(`
-        INSERT INTO sale (price_bought, date_from, description)
-        VALUES ($1, CURRENT_DATE, $2)
-    `, [priceBought, description])
+        INSERT INTO sale (price_bought, date_from, description, shop_id)
+        VALUES ($1, CURRENT_DATE, $2, $3)
+    `, [priceBought, description, SHOP_ID])
 
     //Delete pawn from pawn table
     await pool.query(`
@@ -557,9 +569,9 @@ async function changePawnToSale(id, pawnCategory) {
     const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
     //Insert a new transaction with profit made
     await pool.query(`
-        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES ($1, $2, $3, 0, 0, 0, $4);
-    `, [clientId, transactionCategory, transactionDescription, UTC_TIME])
+        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
+        VALUES ($1, $2, $3, 0, 0, 0, $4, $5);
+    `, [clientId, transactionCategory, transactionDescription, UTC_TIME, SHOP_ID])
 
     //Update cash register with decrease numPawns, decrease moneyPawns, increase numSales, increase moneySales, update quantity of gold in grams and update total provision for pawns
     await pool.query(`
@@ -570,8 +582,9 @@ async function changePawnToSale(id, pawnCategory) {
             num_sale_items   = num_sale_items + 1,
             money_sale_items = money_sale_items + $1,
             gold_grams       = gold_grams - $2,
-            last_updated     = $4;
-    `, [priceBought, gold_grams, provision, UTC_TIME])
+            last_updated     = $4
+        WHERE shop_id = $5;
+    `, [priceBought, gold_grams, provision, UTC_TIME, SHOP_ID])
 }
 
 async function getAllSales(limit, offset, orderBy, orderDirection) {
@@ -581,9 +594,10 @@ async function getAllSales(limit, offset, orderBy, orderDirection) {
                to_char(s.date_from, 'YYYY-MM-DD') AS "Date Bought",
                s.price_bought                     AS "Item Cost"
         FROM sale s
+        WHERE s.shop_id = $1
         ORDER BY "${orderBy}" ${orderDirection}
         LIMIT ${limit} OFFSET ${offset};
-    `, [])
+    `, [SHOP_ID])
 
     return rows;
 }
@@ -624,9 +638,9 @@ async function closeSale(id, priceSold, description) {
     const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
     //Insert a new transaction with cash inserted and profit made
     await pool.query(`
-        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES (0, $1, $2, 0, $3, $4, $5);
-    `, [transactionCategory, transactionDescription, priceBought, priceSold - priceBought, UTC_TIME])
+        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
+        VALUES (0, $1, $2, 0, $3, $4, $5, $6);
+    `, [transactionCategory, transactionDescription, priceBought, priceSold - priceBought, UTC_TIME, SHOP_ID])
 
     //Update cash register with money inserted, decrease numSales and decrease moneySales
     await pool.query(`
@@ -634,8 +648,9 @@ async function closeSale(id, priceSold, description) {
         SET num_sale_items   = num_sale_items - 1,
             money_sale_items = money_sale_items - $1,
             register_money   = register_money + $2,
-            last_updated     = $3;
-    `, [priceBought, priceSold, UTC_TIME])
+            last_updated     = $3
+        WHERE shop_id = $4;
+    `, [priceBought, priceSold, UTC_TIME, SHOP_ID])
 
     await pool.query(`COMMIT;`)
 
@@ -646,9 +661,9 @@ async function addNewSale(priceBought, description) {
 
     //Insert a new sale into sale table
     await pool.query(`
-        INSERT INTO sale (price_bought, date_from, description)
-        VALUES ($1, CURRENT_DATE, $2)
-    `, [priceBought, description])
+        INSERT INTO sale (price_bought, date_from, description, shop_id)
+        VALUES ($1, CURRENT_DATE, $2, $3)
+    `, [priceBought, description, SHOP_ID])
 
     let transactionCategory = "Sale";
     let transactionDescription = "Added new sale";
@@ -659,9 +674,9 @@ async function addNewSale(priceBought, description) {
 
     //Insert a new transaction with money given
     await pool.query(`
-        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES (0, $1, $2, $3, 0, 0, $4);
-    `, [transactionCategory, transactionDescription, priceBought, UTC_TIME])
+        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
+        VALUES (0, $1, $2, $3, 0, 0, $4, $5);
+    `, [transactionCategory, transactionDescription, priceBought, UTC_TIME, SHOP_ID])
 
     //Update cash register with money given, increase numSales and increase moneySales
     await pool.query(`
@@ -669,8 +684,9 @@ async function addNewSale(priceBought, description) {
         SET num_sale_items   = num_sale_items + 1,
             money_sale_items = money_sale_items + $1,
             register_money   = register_money - $1,
-            last_updated     = $2;
-    `, [priceBought, UTC_TIME])
+            last_updated     = $2
+        WHERE shop_id = $3;
+    `, [priceBought, UTC_TIME, SHOP_ID])
 }
 
 
@@ -689,76 +705,93 @@ async function getAllClientsAutocomplete(limit, offset, search) {
 }
 
 async function getAllClients(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByTel = "") {
+    // Active pawns, money pawns, money provision are calculated for users with shop_id = SHOP_ID (which is the current shop)
+    // everything else is calculated for all users
     const {rows} = await pool.query(`
-        SELECT c.id                                         AS "Id",
-               c.name                                       AS "Name",
-               c.telephone                                  AS "Telephone 1",
-               c.telephone_2                                AS "Telephone 2",
-               c.city                                       AS "City",
+        SELECT c.id                                     AS "Id",
+               c.name                                   AS "Name",
+               c.telephone                              AS "Telephone 1",
+               c.telephone_2                            AS "Telephone 2",
+               c.city                                   AS "City",
                (SELECT COUNT(*)
                 FROM transaction t
                 WHERE t.client_id = c.id
-                  AND t.description = 'Added new pawn')     AS "Total Pawns",
+                  AND t.description = 'Added new pawn') AS "Total Pawns",
                (SELECT COUNT(*)
                 FROM (SELECT id
                       FROM gold_pawn
                       WHERE client_id = c.id
+                        AND shop_id = $4
                       UNION ALL
                       SELECT id
                       FROM electronics_pawn
                       WHERE client_id = c.id
+                        AND shop_id = $4
                       UNION ALL
                       SELECT id
                       FROM watch_pawn
                       WHERE client_id = c.id
+                        AND shop_id = $4
                       UNION ALL
                       SELECT id
                       FROM vehicle_pawn
                       WHERE client_id = c.id
+                        AND shop_id = $4
                       UNION ALL
                       SELECT id
                       FROM other_pawn
-                      WHERE client_id = c.id) AS all_pawns) AS "Active Pawns",
+                      WHERE client_id = c.id
+                        AND shop_id = $4) AS all_pawns) AS "Active Pawns",
                (SELECT SUM(price_pawned)
                 FROM (SELECT price_pawned
                       FROM gold_pawn
                       WHERE client_id = c.id
+                        AND shop_id = $4
                       UNION ALL
                       SELECT price_pawned
                       FROM electronics_pawn
                       WHERE client_id = c.id
+                        AND shop_id = $4
                       UNION ALL
                       SELECT price_pawned
                       FROM watch_pawn
                       WHERE client_id = c.id
+                        AND shop_id = $4
                       UNION ALL
                       SELECT price_pawned
                       FROM vehicle_pawn
                       WHERE client_id = c.id
+                        AND shop_id = $4
                       UNION ALL
                       SELECT price_pawned
                       FROM other_pawn
-                      WHERE client_id = c.id) AS all_pawns) AS "Money Pawns",
+                      WHERE client_id = c.id
+                        AND shop_id = $4) AS all_pawns) AS "Money Pawns",
                (SELECT SUM(provision)
                 FROM (SELECT provision
                       FROM gold_pawn
                       WHERE client_id = c.id
+                        AND shop_id = $4
                       UNION ALL
                       SELECT provision
                       FROM electronics_pawn
                       WHERE client_id = c.id
+                        AND shop_id = $4
                       UNION ALL
                       SELECT provision
                       FROM watch_pawn
                       WHERE client_id = c.id
+                        AND shop_id = $4
                       UNION ALL
                       SELECT provision
                       FROM vehicle_pawn
                       WHERE client_id = c.id
+                        AND shop_id = $4
                       UNION ALL
                       SELECT provision
                       FROM other_pawn
-                      WHERE client_id = c.id) AS all_pawns) AS "Money Provision"
+                      WHERE client_id = c.id
+                        AND shop_id = $4) AS all_pawns) AS "Money Provision"
         FROM client c
         WHERE c.name <> 'Admin'
           AND LOWER(c.name) LIKE $1 || '%'
@@ -767,14 +800,15 @@ async function getAllClients(limit, offset, orderBy, orderDirection, searchByNam
             OR c.telephone_2 LIKE $3 || '%')
         ORDER BY "${orderBy}" ${orderDirection}
         LIMIT ${limit} OFFSET ${offset};
-    `, [searchByName, searchByEmbg, searchByTel]);
+    `, [searchByName, searchByEmbg, searchByTel, SHOP_ID]);
     return rows;
 }
 
 
 async function getCashRegister() {
     const {rows} = await pool.query(`SELECT *
-                                     FROM cash_register`);
+                                     FROM cash_register
+                                     WHERE shop_id = $1`, [SHOP_ID]);
 
     return rows[0];
 }
@@ -788,12 +822,13 @@ async function insertIntoCashRegister(amount, description) {
         UPDATE cash_register
         SET register_money = register_money + $1,
             last_updated   = $2
-    `, [amount, UTC_TIME])
+        WHERE shop_id = $3;
+    `, [amount, UTC_TIME, SHOP_ID])
 
     await pool.query(`
-        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES (0, 'Insert', $1, 0, $2, 0, $3);
-    `, [description, amount, UTC_TIME])
+        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
+        VALUES (0, 'Insert', $1, 0, $2, 0, $3, $4);
+    `, [description, amount, UTC_TIME, SHOP_ID])
 }
 
 async function removeFromCashRegister(amount, description) {
@@ -805,12 +840,13 @@ async function removeFromCashRegister(amount, description) {
         UPDATE cash_register
         SET register_money = register_money - $1,
             last_updated   = $2
-    `, [amount, UTC_TIME])
+        WHERE shop_id = $3;
+    `, [amount, UTC_TIME, SHOP_ID])
 
     await pool.query(`
-        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES (0, 'Remove', $1, $2, 0, 0, $3);
-    `, [description, amount, UTC_TIME])
+        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
+        VALUES (0, 'Remove', $1, $2, 0, 0, $3, $4);
+    `, [description, amount, UTC_TIME, SHOP_ID])
 }
 
 
@@ -826,9 +862,10 @@ async function getAllExpenses(limit, offset, orderBy, orderDirection, searchByMo
         FROM expense e
         WHERE ($1 = '' OR e.year = $1::INT)
           AND ($2 = '' OR e.month = $2::INT)
+          AND e.shop_id = $3
         ORDER BY ${orderBy} ${orderDirection}
         LIMIT ${limit} OFFSET ${offset};
-    `, [searchByYear, searchByMonth])
+    `, [searchByYear, searchByMonth, SHOP_ID])
 
     return rows;
 }
@@ -845,8 +882,9 @@ async function getExpense(month, year) {
                e.description AS "Description"
         FROM expense e
         WHERE month = $1::INT
-          AND year = $2::INT;
-    `, [month, year]);
+          AND year = $2::INT
+          AND shop_id = $3;
+    `, [month, year, SHOP_ID]);
 
     if (expenseResult.rows.length === 0) {
         throw new Error("Expense not found");
@@ -862,7 +900,8 @@ async function getExpense(month, year) {
         WHERE category = 'Expense'
           AND EXTRACT(MONTH FROM date) = $1
           AND EXTRACT(YEAR FROM date) = $2
-    `, [month, year]);
+          AND shop_id = $3
+    `, [month, year, SHOP_ID]);
 
     // Return both
     return {
@@ -882,7 +921,8 @@ async function insertExpense(year, month, rent, salaries, bills, other, descript
     const {rows: hasReport} = await pool.query(`SELECT *
                                                 FROM monthly_report
                                                 WHERE year = $1::INT
-                                                  AND month = $2::INT`, [year, month])
+                                                  AND month = $2::INT
+                                                  AND shop_id = $3`, [year, month, SHOP_ID])
 
     if (hasReport.length > 0) {
         return `Не може да се внесе расход, бидејќи веќе е внесен месечен извештај за ${month}/${year}. За внес контактирајте со одржувачот на системот.`
@@ -891,7 +931,8 @@ async function insertExpense(year, month, rent, salaries, bills, other, descript
     const {rows: hasExpense} = await pool.query(`SELECT *
                                                  FROM expense
                                                  WHERE year = $1::INT
-                                                   AND month = $2::INT`, [year, month])
+                                                   AND month = $2::INT
+                                                   AND shop_id = $3`, [year, month, SHOP_ID])
     if (hasExpense.length > 0)
         await pool.query(`
             UPDATE expense
@@ -902,12 +943,13 @@ async function insertExpense(year, month, rent, salaries, bills, other, descript
                 description = $7
             WHERE year = $1::INT
               AND month = $2::INT
-        `, [year, month, rent, salaries, bills, other, '']) // no description in expense, descriptions are kept in transactions
+              AND shop_id = $8;
+        `, [year, month, rent, salaries, bills, other, '', SHOP_ID]) // no description in expense, descriptions are kept in transactions
     else {
         await pool.query(`
-            INSERT INTO expense (year, month, rent, salaries, bills, other, description)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
-        `, [year, month, rent, salaries, bills, other, '']) // no description in expense, descriptions are kept in transactions
+            INSERT INTO expense (year, month, rent, salaries, bills, other, description, shop_id)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `, [year, month, rent, salaries, bills, other, '', SHOP_ID]) // no description in expense, descriptions are kept in transactions
     }
 
     const today = new Date();
@@ -924,17 +966,18 @@ async function insertExpense(year, month, rent, salaries, bills, other, descript
     //Insert a new transaction with cash inserted and profit made
 
     await pool.query(`
-        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date)
-        VALUES (0, 'Expense', $1, $2, 0, 0, $3);
-    `, [transaction_description, rent + salaries + bills + other, UTC_TIME_EXPENSE_DATE])
+        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
+        VALUES (0, 'Expense', $1, $2, 0, 0, $3, $4);
+    `, [transaction_description, rent + salaries + bills + other, UTC_TIME_EXPENSE_DATE, SHOP_ID])
 
     if (rent + salaries + bills + other !== 0) {
         const UTC_TIME_TODAY = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
         await pool.query(`
             UPDATE cash_register
             SET register_money = register_money - $1,
-                last_updated   = $2;
-        `, [rent + salaries + bills + other, UTC_TIME_TODAY])
+                last_updated   = $2
+            WHERE shop_id = $3;
+        `, [rent + salaries + bills + other, UTC_TIME_TODAY, SHOP_ID])
     }
 
 
@@ -964,11 +1007,13 @@ async function getAllTransactions(limit, offset, orderBy, orderDirection, search
           AND (
             $4 = ''
                 OR ($4 = 'Change' AND t.description ILIKE '%Промена%')
+                OR ($4 = 'Sale' AND (t.category = 'Sale' OR t.description = 'Transferred pawn to sale'))
                 OR ($4 <> 'Change' AND t.category = $4)
             )
+          AND t.shop_id = $5
         ORDER BY "${orderBy}" ${orderDirection}
         LIMIT ${limit} OFFSET ${offset};
-    `, [searchByName, searchByEmbg, searchByDate, searchByCategory])
+    `, [searchByName, searchByEmbg, searchByDate, searchByCategory, SHOP_ID])
 
     return rows;
 }
@@ -982,41 +1027,46 @@ async function getDailyReport(date) {
                SUM(money_given + money_got) AS "turnover"
         FROM transaction
         WHERE DATE(date) = $1
-          AND (category IN ('Electronics', 'Watch', 'Gold', 'Vehicle', 'Other', 'Sale'));
-    `, [date]);
+          AND (category IN ('Electronics', 'Watch', 'Gold', 'Vehicle', 'Other', 'Sale'))
+          AND shop_id = $2;
+    `, [date, SHOP_ID]);
 
     // Get the number of transactions from Pawn category
     const {rows: numPawnsRows} = await pool.query(`
         SELECT COUNT(*) AS "numTransactions"
         FROM transaction
         WHERE DATE(date) = $1
-          AND description = 'Added new pawn';
-    `, [date]);
+          AND description = 'Added new pawn'
+          AND shop_id = $2;
+    `, [date, SHOP_ID]);
 
     // Second query: Get the number of transactions from Sale category
     const {rows: numSaleRows} = await pool.query(`
         SELECT COUNT(*) AS "numTransactions"
         FROM transaction
         WHERE DATE(date) = $1
-          AND (description = 'Added new sale' OR description = 'Transferred pawn to sale');
-    `, [date]);
+          AND (description = 'Added new sale' OR description = 'Transferred pawn to sale')
+          AND shop_id = $2;
+    `, [date, SHOP_ID]);
 
     // Get count and sums grouped by category
     const {rows: categoryRows} = await pool.query(`
         SELECT category,
-               COUNT(*)                          AS "numTransactions",
-               SUM(money_given)                  AS "moneyGiven",
-               SUM(profit)                       AS "profit",
+               COUNT(*)                AS "numTransactions",
+               SUM(money_given)        AS "moneyGiven",
+               SUM(profit)             AS "profit",
                (SELECT COUNT(*)
                 FROM transaction t2
                 WHERE DATE(t2.date) = $1
                   AND t2.description = 'Added new pawn'
-                  AND t2.category = t1.category) AS "numNew"
+                  AND t2.category = t1.category
+                  AND t2.shop_id = $2) AS "numNew"
         FROM transaction t1
         WHERE DATE(t1.date) = $1
           AND t1.category IN ('Electronics', 'Watch', 'Gold', 'Vehicle', 'Other', 'Sale')
+          AND t1.shop_id = $2
         GROUP BY category;
-    `, [date]);
+    `, [date, SHOP_ID]);
 
     // Combine all the results into one object
     return {
@@ -1069,9 +1119,10 @@ async function getAllMonthlyReports(limit, offset, orderBy, orderDirection, sear
         FROM monthly_report m
         WHERE ($1 = '' OR m.year = $1::INT)
           AND ($2 = '' OR m.month = $2::INT)
+          AND m.shop_id = $3
         ORDER BY ${orderByClause} ${orderDirection}
         LIMIT ${limit} OFFSET ${offset};
-    `, [searchByYear, searchByMonth])
+    `, [searchByYear, searchByMonth, SHOP_ID])
 
     return rows;
 }
@@ -1082,7 +1133,8 @@ async function getMonthlyReport(year, month) {
         FROM monthly_report
         WHERE year = $1::INT
           AND month = $2::INT
-    `, [year, month])
+          AND shop_id = $3
+    `, [year, month, SHOP_ID])
 
     if (rows.length === 0)
         return null
@@ -1094,58 +1146,67 @@ async function generateNewMonthReport(year, month) {
     const {rows: hasReport} = await pool.query(`SELECT *
                                                 FROM monthly_report
                                                 WHERE year = $1::INT
-                                                  AND month = $2::INT`, [year, month])
+                                                  AND month = $2::INT
+                                                  AND shop_id = $3`, [year, month, SHOP_ID])
     if (hasReport.length > 0)
         return {passed: false, message: `Имаш веќе внесено извештај за месец: ${month}-${year}`}
 
     const {rows: hasExpense} = await pool.query(`SELECT *
                                                  FROM expense
                                                  WHERE year = $1::INT
-                                                   AND month = $2::INT`, [year, month])
+                                                   AND month = $2::INT
+                                                   AND shop_id = $3`, [year, month, SHOP_ID])
     if (hasExpense.length === 0)
         return {passed: false, message: `Внеси расходи за месец ${month}-${year}`}
 
     const {rows: money} = await pool.query(`
-        SELECT SUM(money_given) AS "moneyGiven",
-               SUM(money_got)   AS "moneyGot",
-               SUM(profit)      AS "grossProfit"
+        SELECT COALESCE(SUM(money_given), 0) AS "moneyGiven",
+               COALESCE(SUM(money_got), 0)   AS "moneyGot",
+               COALESCE(SUM(profit), 0)      AS "grossProfit"
         FROM transaction
         WHERE EXTRACT(YEAR FROM date) = $1
           AND EXTRACT(MONTH FROM date) = $2
-          AND (category != 'Remove' AND category != 'Insert' AND category != 'Expense');
-    `, [year, month])
+          AND (category != 'Remove' AND category != 'Insert' AND category != 'Expense')
+          AND shop_id = $3;
+    `, [year, month, SHOP_ID]);
 
     const {rows: numNewPawns} = await pool.query(`
         SELECT COUNT(*) AS "totalPawns"
         FROM transaction
         WHERE EXTRACT(YEAR FROM date) = $1
           AND EXTRACT(MONTH FROM date) = $2
-          AND description = 'Added new pawn';
-    `, [year, month]);
+          AND description = 'Added new pawn'
+          AND shop_id = $3;
+    `, [year, month, SHOP_ID]);
+
     const {rows: pawns} = await pool.query(`
-        SELECT SUM(money_got) + SUM(profit) AS "moneyPawns",
-               SUM(profit)                  AS "profitPawns"
+        SELECT COALESCE(SUM(money_got), 0) + COALESCE(SUM(profit), 0) AS "moneyPawns",
+               COALESCE(SUM(profit), 0)                               AS "profitPawns"
         FROM transaction
         WHERE EXTRACT(YEAR FROM date) = $1
           AND EXTRACT(MONTH FROM date) = $2
-          AND (category IN ('Electronics', 'Watch', 'Gold', 'Vehicle', 'Other'));
-    `, [year, month]);
+          AND category IN ('Electronics', 'Watch', 'Gold', 'Vehicle', 'Other')
+          AND shop_id = $3;
+    `, [year, month, SHOP_ID]);
 
     const {rows: numNewSales} = await pool.query(`
         SELECT COUNT(*) AS "totalSales"
         FROM transaction
         WHERE EXTRACT(YEAR FROM date) = $1
           AND EXTRACT(MONTH FROM date) = $2
-          AND (description = 'Added new sale' OR description = 'Transferred pawn to sale');
-    `, [year, month]);
+          AND (description = 'Added new sale' OR description = 'Transferred pawn to sale')
+          AND shop_id = $3;
+    `, [year, month, SHOP_ID]);
+
     const {rows: sales} = await pool.query(`
-        SELECT SUM(money_got) + SUM(profit) AS "moneySales",
-               SUM(profit)                  AS "profitSales"
+        SELECT COALESCE(SUM(money_got), 0) + COALESCE(SUM(profit), 0) AS "moneySales",
+               COALESCE(SUM(profit), 0)                               AS "profitSales"
         FROM transaction
         WHERE EXTRACT(YEAR FROM date) = $1
           AND EXTRACT(MONTH FROM date) = $2
-          AND category = 'Sale';
-    `, [year, month]);
+          AND category = 'Sale'
+          AND shop_id = $3;
+    `, [year, month, SHOP_ID]);
 
     const {rows: numElectronicsPawn} = await pool.query(`
         SELECT COUNT(*) AS "numElectronicsPawns"
@@ -1153,16 +1214,19 @@ async function generateNewMonthReport(year, month) {
         WHERE EXTRACT(YEAR FROM date) = $1
           AND EXTRACT(MONTH FROM date) = $2
           AND description = 'Added new pawn'
-          AND category = 'Electronics';
-    `, [year, month]);
+          AND category = 'Electronics'
+          AND shop_id = $3;
+    `, [year, month, SHOP_ID]);
+
     const {rows: electronicsPawn} = await pool.query(`
-        SELECT SUM(money_got) + SUM(profit) AS "moneyElectronicsPawns",
-               SUM(profit)                  AS "profitElectronicsPawns"
+        SELECT COALESCE(SUM(money_got), 0) + COALESCE(SUM(profit), 0) AS "moneyElectronicsPawns",
+               COALESCE(SUM(profit), 0)                               AS "profitElectronicsPawns"
         FROM transaction
         WHERE EXTRACT(YEAR FROM date) = $1
           AND EXTRACT(MONTH FROM date) = $2
-          AND category = 'Electronics';
-    `, [year, month]);
+          AND category = 'Electronics'
+          AND shop_id = $3;
+    `, [year, month, SHOP_ID]);
 
     const {rows: numGoldPawn} = await pool.query(`
         SELECT COUNT(*) AS "numGoldPawns"
@@ -1170,16 +1234,19 @@ async function generateNewMonthReport(year, month) {
         WHERE EXTRACT(YEAR FROM date) = $1
           AND EXTRACT(MONTH FROM date) = $2
           AND description = 'Added new pawn'
-          AND category = 'Gold';
-    `, [year, month]);
+          AND category = 'Gold'
+          AND shop_id = $3;
+    `, [year, month, SHOP_ID]);
+
     const {rows: goldPawn} = await pool.query(`
-        SELECT SUM(money_got) + SUM(profit) AS "moneyGoldPawns",
-               SUM(profit)                  AS "profitGoldPawns"
+        SELECT COALESCE(SUM(money_got), 0) + COALESCE(SUM(profit), 0) AS "moneyGoldPawns",
+               COALESCE(SUM(profit), 0)                               AS "profitGoldPawns"
         FROM transaction
         WHERE EXTRACT(YEAR FROM date) = $1
           AND EXTRACT(MONTH FROM date) = $2
-          AND category = 'Gold';
-    `, [year, month]);
+          AND category = 'Gold'
+          AND shop_id = $3;
+    `, [year, month, SHOP_ID]);
 
     const {rows: numVehiclePawn} = await pool.query(`
         SELECT COUNT(*) AS "numVehiclePawns"
@@ -1187,16 +1254,19 @@ async function generateNewMonthReport(year, month) {
         WHERE EXTRACT(YEAR FROM date) = $1
           AND EXTRACT(MONTH FROM date) = $2
           AND description = 'Added new pawn'
-          AND category = 'Vehicle';
-    `, [year, month]);
+          AND category = 'Vehicle'
+          AND shop_id = $3;
+    `, [year, month, SHOP_ID]);
+
     const {rows: vehiclePawn} = await pool.query(`
-        SELECT SUM(money_got) + SUM(profit) AS "moneyVehiclePawns",
-               SUM(profit)                  AS "profitVehiclePawns"
+        SELECT COALESCE(SUM(money_got), 0) + COALESCE(SUM(profit), 0) AS "moneyVehiclePawns",
+               COALESCE(SUM(profit), 0)                               AS "profitVehiclePawns"
         FROM transaction
         WHERE EXTRACT(YEAR FROM date) = $1
           AND EXTRACT(MONTH FROM date) = $2
-          AND category = 'Vehicle';
-    `, [year, month]);
+          AND category = 'Vehicle'
+          AND shop_id = $3;
+    `, [year, month, SHOP_ID]);
 
     const {rows: numWatchPawn} = await pool.query(`
         SELECT COUNT(*) AS "numWatchPawns"
@@ -1204,16 +1274,19 @@ async function generateNewMonthReport(year, month) {
         WHERE EXTRACT(YEAR FROM date) = $1
           AND EXTRACT(MONTH FROM date) = $2
           AND description = 'Added new pawn'
-          AND category = 'Watch';
-    `, [year, month]);
+          AND category = 'Watch'
+          AND shop_id = $3;
+    `, [year, month, SHOP_ID]);
+
     const {rows: watchPawn} = await pool.query(`
-        SELECT SUM(money_got) + SUM(profit) AS "moneyWatchPawns",
-               SUM(profit)                  AS "profitWatchPawns"
+        SELECT COALESCE(SUM(money_got), 0) + COALESCE(SUM(profit), 0) AS "moneyWatchPawns",
+               COALESCE(SUM(profit), 0)                               AS "profitWatchPawns"
         FROM transaction
         WHERE EXTRACT(YEAR FROM date) = $1
           AND EXTRACT(MONTH FROM date) = $2
-          AND category = 'Watch';
-    `, [year, month]);
+          AND category = 'Watch'
+          AND shop_id = $3;
+    `, [year, month, SHOP_ID]);
 
     const {rows: numOtherPawn} = await pool.query(`
         SELECT COUNT(*) AS "numOtherPawns"
@@ -1221,23 +1294,27 @@ async function generateNewMonthReport(year, month) {
         WHERE EXTRACT(YEAR FROM date) = $1
           AND EXTRACT(MONTH FROM date) = $2
           AND description = 'Added new pawn'
-          AND category = 'Other';
-    `, [year, month]);
+          AND category = 'Other'
+          AND shop_id = $3;
+    `, [year, month, SHOP_ID]);
+
     const {rows: otherPawn} = await pool.query(`
-        SELECT SUM(money_got) + SUM(profit) AS "moneyOtherPawns",
-               SUM(profit)                  AS "profitOtherPawns"
+        SELECT COALESCE(SUM(money_got), 0) + COALESCE(SUM(profit), 0) AS "moneyOtherPawns",
+               COALESCE(SUM(profit), 0)                               AS "profitOtherPawns"
         FROM transaction
         WHERE EXTRACT(YEAR FROM date) = $1
           AND EXTRACT(MONTH FROM date) = $2
-          AND category = 'Other';
-    `, [year, month]);
+          AND category = 'Other'
+          AND shop_id = $3;
+    `, [year, month, SHOP_ID]);
 
     const {rows: expenses} = await pool.query(`
-        SELECT rent + salaries + bills + other AS "expenses"
+        SELECT COALESCE(rent + salaries + bills + other, 0) AS "expenses"
         FROM expense
         WHERE year = $1
           AND month = $2
-    `, [year, month])
+          AND shop_id = $3;
+    `, [year, month, SHOP_ID])
 
     await pool.query(`
         INSERT INTO monthly_report (year, month, money_given, money_got, total_turnover,
@@ -1248,7 +1325,7 @@ async function generateNewMonthReport(year, month) {
                                     num_gold_pawns, money_gold_pawns, profit_gold_pawns,
                                     num_vehicle_pawns, money_vehicle_pawns, profit_vehicle_pawns,
                                     num_watch_pawns, money_watch_pawns, profit_watch_pawns,
-                                    num_other_pawns, money_other_pawns, profit_other_pawns)
+                                    num_other_pawns, money_other_pawns, profit_other_pawns, shop_id)
         VALUES ($1, $2, $3, $4, $5,
                 $6, $7,
                 $8, $9, $10,
@@ -1257,7 +1334,7 @@ async function generateNewMonthReport(year, month) {
                 $17, $18, $19,
                 $20, $21, $22,
                 $23, $24, $25,
-                $26, $27, $28)
+                $26, $27, $28, $29)
     `, [
         year, month, money[0].moneyGiven, money[0].moneyGot, (+money[0].moneyGiven + +money[0].moneyGot + +money[0].grossProfit),
         money[0].grossProfit, (+money[0].grossProfit - +expenses[0].expenses),
@@ -1267,7 +1344,7 @@ async function generateNewMonthReport(year, month) {
         numGoldPawn[0].numGoldPawns, goldPawn[0].moneyGoldPawns, goldPawn[0].profitGoldPawns,
         numVehiclePawn[0].numVehiclePawns, vehiclePawn[0].moneyVehiclePawns, vehiclePawn[0].profitVehiclePawns,
         numWatchPawn[0].numWatchPawns, watchPawn[0].moneyWatchPawns, watchPawn[0].profitWatchPawns,
-        numOtherPawn[0].numOtherPawns, otherPawn[0].moneyOtherPawns, otherPawn[0].profitOtherPawns
+        numOtherPawn[0].numOtherPawns, otherPawn[0].moneyOtherPawns, otherPawn[0].profitOtherPawns, SHOP_ID
     ])
 
     return {passed: true, message: 'Успешно внесен месечен извештај'}
