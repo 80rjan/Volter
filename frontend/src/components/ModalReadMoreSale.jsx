@@ -39,7 +39,7 @@ export default function ModalReadMoreSale({sale, closeModal, sellItem}) {
                     <button onClick={() => {
                         sellItem();
                         closeModal();
-                    }}><Euro size={32}/> Продади
+                    }}><Euro size={32}/> Продади Предмет
                     </button>
                 </ButtonWrapper>
 

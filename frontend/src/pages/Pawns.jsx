@@ -174,11 +174,11 @@ export default function Pawns() {
                     <TableFooter>
                         <div>
                             <X size={18} color="#000"/>
-                            <span> - Затвори Залог</span>
+                            <span> - Затвори залог</span>
                         </div>
                         <div>
                             <RotateCcw size={18} color="var(--cta-color)" />
-                            <span> - Продолжи Залог</span>
+                            <span> - Продолжи залог</span>
                         </div>
                         <div>
                             <Euro size={18} color="var(--green)" />

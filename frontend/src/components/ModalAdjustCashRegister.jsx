@@ -56,7 +56,7 @@ export default function ModalAdjustCashRegister({ closeModal, isInsert, refresh 
                     showAdjust && (
                         <>
                             <CircleHelp size={120} />
-                            <h1>Внеси сума за {isInsert ? 'влез во' : 'излез од'} каса?</h1>
+                            <h1>Внеси сума за {isInsert ? 'влез во' : 'излез од'} каса</h1>
                             <form onSubmit={e => {
                                 e.preventDefault()
                                 if (amount.length > 0) {
@@ -73,7 +73,7 @@ export default function ModalAdjustCashRegister({ closeModal, isInsert, refresh 
                                     <StyledInput onChange={e => setDescription(e.target.value)} placeholder="Внеси причина" required />
                                 </span>
                                 <Button type="submit">
-                                    <CheckCheck size={28} /> Confirm
+                                    <CheckCheck size={28} /> Потврди
                                 </Button>
                             </form>
                             {showError && <ErrorText>{error}</ErrorText>}

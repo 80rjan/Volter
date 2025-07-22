@@ -19,7 +19,7 @@ export default function Nav() {
         <NavWrapper >
             <Logo src={navImage} alt="Volter Zalozna Kukja"/>
             <StyledNavLink to="/"><Handshake size={28} /> Залози</StyledNavLink>
-            <StyledNavLink to="/sales" ><Tag size={28} /> Продажба</StyledNavLink>
+            <StyledNavLink to="/sales" ><Tag size={28} /> Продажби</StyledNavLink>
             <StyledNavLink to="/transactions" ><ArrowLeftRight size={28} /> Трансакции</StyledNavLink>
             <StyledNavLink to="/clients" ><UserRound size={28} /> Клиенти</StyledNavLink>
             <StyledNavLink to="/expenses" ><BanknoteArrowDown size={28} /> Расходи</StyledNavLink>

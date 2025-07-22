@@ -272,21 +272,27 @@ function ElectronicsInputs({ handleInputChange, formData, date }) {
             </div>
             <div>
                 <p>Валидност во денови</p>
-                <StyledInput name="total_days" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" required/>
+                <StyledSelect name="total_days" onChange={e => handleInputChange(e.target.name, e.target.value)} required>
+                    <option value=""></option>
+                    <option value="15">15</option>
+                    <option value="30">30</option>
+                </StyledSelect>
             </div>
             <div>
                 <p>Опис</p>
-                <StyledInput name="description" onChange={e => handleInputChange(e.target.name, e.target.value)} required/>
+                <StyledInput name="description" onChange={e => handleInputChange(e.target.name, e.target.value)}
+                             required/>
             </div>
             <div>
                 <p>Заложено на</p>
-                <StyledInput type="date" value={date} name="date" onChange={e => handleInputChange(e.target.name, e.target.value)} required/>
+                <StyledInput type="date" value={date} name="date"
+                             onChange={e => handleInputChange(e.target.name, e.target.value)} required/>
             </div>
         </>
     );
 }
 
-function GoldInputs({ handleInputChange, formData, date }) {
+function GoldInputs({handleInputChange, formData, date}) {
     return (
         <>
             <div>
@@ -323,8 +329,11 @@ function GoldInputs({ handleInputChange, formData, date }) {
             </div>
             <div>
                 <p>Валидност во денови</p>
-                <StyledInput name="total_days" onChange={e => handleInputChange(e.target.name, e.target.value)}
-                             type="number" required/>
+                <StyledSelect name="total_days" onChange={e => handleInputChange(e.target.name, e.target.value)} required>
+                    <option value=""></option>
+                    <option value="15">15</option>
+                    <option value="30">30</option>
+                </StyledSelect>
             </div>
             <div>
                 <p>Опис</p>
@@ -377,8 +386,11 @@ function VehicleInputs({handleInputChange, formData, date}) {
             </div>
             <div>
                 <p>Валидност во денови</p>
-                <StyledInput name="total_days" onChange={e => handleInputChange(e.target.name, e.target.value)}
-                             type="number" required/>
+                <StyledSelect name="total_days" onChange={e => handleInputChange(e.target.name, e.target.value)} required>
+                    <option value=""></option>
+                    <option value="15">15</option>
+                    <option value="30">30</option>
+                </StyledSelect>
             </div>
             <div>
                 <p>Опис</p>
@@ -427,8 +439,11 @@ function WatchInputs({handleInputChange, formData, date}) {
             </div>
             <div>
                 <p>Валидност во денови</p>
-                <StyledInput name="total_days" onChange={e => handleInputChange(e.target.name, e.target.value)}
-                             type="number" required/>
+                <StyledSelect name="total_days" onChange={e => handleInputChange(e.target.name, e.target.value)} required>
+                    <option value=""></option>
+                    <option value="15">15</option>
+                    <option value="30">30</option>
+                </StyledSelect>
             </div>
             <div>
                 <p>Опис</p>
@@ -469,8 +484,11 @@ function OtherInputs({handleInputChange, formData, date}) {
             </div>
             <div>
                 <p>Валидност во денови</p>
-                <StyledInput name="total_days" onChange={e => handleInputChange(e.target.name, e.target.value)}
-                             type="number" required/>
+                <StyledSelect name="total_days" onChange={e => handleInputChange(e.target.name, e.target.value)} required>
+                    <option value=""></option>
+                    <option value="15">15</option>
+                    <option value="30">30</option>
+                </StyledSelect>
             </div>
             <div>
                 <p>Опис</p>
@@ -578,6 +596,7 @@ const PawnInputs = styled.div`
     gap: .4rem 2rem;
 
     select {
+        height: 100%;
         padding: 0 .5rem;
         border-radius: .2rem;
         border: 2px solid rgba(0, 0, 0, 0.6);
@@ -602,6 +621,7 @@ const PawnInputs = styled.div`
             width: 100%;
             
             & > span {
+                margin: 0;
                 color: #666;
                 & > input {
                     width: 50%;
@@ -619,6 +639,12 @@ const StyledInput = styled.input`
     box-shadow: 0 0 4px rgba(0,0,0,0.2);
     height: fit-content;
 `;
+
+const StyledSelect = styled.select`
+    //border: 1px solid rgba(0, 0, 0, 0.6) !important;
+    border: none !important;
+    box-shadow: 0 0 4px rgba(0,0,0,0.2);
+`
 
 const Button = styled.button`
     display: flex;

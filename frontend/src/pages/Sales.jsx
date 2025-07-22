@@ -93,7 +93,7 @@ export default function Sales() {
             <Container >
 
                 <HeaderWrapper >
-                    <h1>Продажба</h1>
+                    <h1>Продажби</h1>
                     <ButtonAddNewSale
                         onClick={() => setModalAddNewSale(true)}
                     >

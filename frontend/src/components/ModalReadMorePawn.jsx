@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import ReactDom from "react-dom";
 import axios from "axios";
 import styled from "styled-components";
@@ -20,7 +20,6 @@ import jsPDF from "jspdf";
 import DogovorZaZaem from "../documents/DogovorZaZaem.jsx";
 import DogovorZaRacenZalog from "../documents/DogovorZaRacenZalog.jsx";
 import Loading from "./Loading.jsx";
-import {parse} from "dotenv";
 import AneksDogovorZaZaem from "../documents/AneksDogovorZaZaem.jsx";
 
 export default function ModalReadMorePawn({
@@ -48,7 +47,8 @@ export default function ModalReadMorePawn({
         pricePawned: pawn.price_pawned,
         provision: pawn.provision,
         description: pawn.description,
-        goldGramsDiff: 0
+        goldGramsDiff: 0,
+        totalDays: pawn.total_days
     });
     const [isLoading, setIsLoading] = React.useState(false);
     const [whichDocToPrint, setWhichDocToPrint] = React.useState("insert");
@@ -122,15 +122,25 @@ export default function ModalReadMorePawn({
             pricePawned: editPawn.current.pricePawned,
             provision: editPawn.current.provision,
             description: editPawn.current.description,
-            goldGramsDiff: editPawn.current.goldGramsDiff
+            goldGramsDiff: editPawn.current.goldGramsDiff,
+            totalDays: editPawn.current.totalDays
         })
             .then(res => {
                 const data = res.data.pawn
-                oldPawn.About = data.description
+
+                const newDateToStr = new Date(
+                    new Date(pawn.date_to).getTime() + (data.total_days - pawn.total_days) * 24 * 60 * 60 * 1000
+                ).toISOString();
+                const newDaysLeft = pawn["Days Left"] + (data.total_days - pawn.total_days)
+
+                oldPawn["About"] = data.description
                 oldPawn["Item Cost"] = data.price_pawned
-                oldPawn.Provision = data.provision
-                editPawn.current = {...editPawn.current, goldGramsDiff: 0}
-                setPawn({...data, "Days Left": pawn["Days Left"]});
+                oldPawn["Provision"] = data.provision
+                oldPawn["Total Days"] = data.total_days
+                oldPawn["Days Left"] = newDaysLeft
+                oldPawn["Valid Until"] = newDateToStr
+                editPawn.current = {...editPawn.current, totalDays: data.total_days, goldGramsDiff: 0}
+                setPawn({...data, "date_to": newDateToStr, "Days Left": newDaysLeft});
             })
             .catch(err => {
                 console.error("Error updating pawn " + err)
@@ -140,8 +150,6 @@ export default function ModalReadMorePawn({
                 refreshCashReg()
             });
     }
-
-    console.log(client)
 
     return ReactDom.createPortal(
         <>
@@ -172,11 +180,11 @@ export default function ModalReadMorePawn({
                                             <p>{client.telephone}</p>
                                         </span>
                                             {
-                                                client.telephone_2 && (
+                                                client.telephone_2 && client.telephone_2.trim() !== "" && (
                                                     <span>
-                                                        <p>Телефон 2:</p>
-                                                        <p>{client.telephone_2}</p>
-                                                    </span>
+                                                <p>Телефон 2:</p>
+                                                <p>{client.telephone_2}</p>
+                                            </span>
                                                 )
                                             }
                                             <span>
@@ -410,7 +418,16 @@ const renderElectronicsOrWatch = (pawn, isEditing, editPawn) => {
             </span>
             <span>
                 <p>Денови валидно:</p>
-                <p>{pawn.total_days}</p>
+                {
+                    isEditing ?
+                        <select defaultValue={pawn.total_days} onChange={e => editPawn.current.totalDays = e.target.value}>
+                            <option value={15}>15</option>
+                            <option value={30}>30</option>
+                        </select>
+                        :
+                        <p>{pawn.total_days}</p>
+
+                }
             </span>
             <span>
                 <p>Валидно од:</p>
@@ -500,7 +517,16 @@ const renderGold = (pawn, isEditing, editPawn) => {
             </span>
             <span>
                 <p>Денови валидно:</p>
-                <p>{pawn.total_days}</p>
+                {
+                    isEditing ?
+                        <select defaultValue={pawn.total_days} onChange={e => editPawn.current.totalDays = e.target.value}>
+                            <option value={15}>15</option>
+                            <option value={30}>30</option>
+                        </select>
+                        :
+                        <p>{pawn.total_days}</p>
+
+                }
             </span>
             <span>
                 <p>Валидно од:</p>
@@ -580,7 +606,16 @@ const renderVehicle = (pawn, isEditing, editPawn) => {
             </span>
             <span>
                 <p>Денови валидно:</p>
-                <p>{pawn.total_days}</p>
+                {
+                    isEditing ?
+                        <select defaultValue={pawn.total_days} onChange={e => editPawn.current.totalDays = e.target.value}>
+                            <option value={15}>15</option>
+                            <option value={30}>30</option>
+                        </select>
+                        :
+                        <p>{pawn.total_days}</p>
+
+                }
             </span>
             <span>
                 <p>Валидно од:</p>
@@ -648,7 +683,16 @@ const renderOther = (pawn, isEditing, editPawn) => {
             </span>
             <span>
                 <p>Денови валидно:</p>
-                <p>{pawn.total_days}</p>
+                {
+                    isEditing ?
+                        <select defaultValue={pawn.total_days} onChange={e => editPawn.current.totalDays = e.target.value}>
+                            <option value={15}>15</option>
+                            <option value={30}>30</option>
+                        </select>
+                        :
+                        <p>{pawn.total_days}</p>
+
+                }
             </span>
             <span>
                 <p>Валидно од:</p>
@@ -761,7 +805,7 @@ const InformationWrapper = styled.div`
     display: flex;
     width: 100%;
     justify-content: space-around;
-    align-items: center;
+    align-items: stretch;
 `
 
 const ClientWrapper = styled.div`
@@ -800,7 +844,6 @@ const ClientWrapper = styled.div`
 
 const Separator = styled.div`
     width: 2px;
-    height: 250px;
     background: rgba(0, 0, 0, 0.2);
     border-radius: 100px;
 `
@@ -845,6 +888,15 @@ const PawnDetailsWrapper = styled.div`
     }
 
     & input {
+        width: 100%;
+        font-size: 1rem;
+        padding: .2rem;
+        border: 2px solid var(--green);
+        border-radius: 4px;
+    }
+    
+    & select {
+        height: 100%;
         width: 100%;
         font-size: 1rem;
         padding: .2rem;

@@ -137,7 +137,7 @@ export default function Transactions() {
                         onChange={(e) => setSearchByCategory(e.target.value)} >
                         <option
                             style={{ color: "#888"}}
-                            value="">Сортирај по</option>
+                            value="">Пребарубај по</option>
                         {
                             filterSelectOptions.map((option, index) => (
                                 <option style={{ color: "#111"}} key={index} value={option.value}>{option.label}</option>

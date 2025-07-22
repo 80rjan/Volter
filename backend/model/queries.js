@@ -3,111 +3,116 @@ const pool = require('./pool');
 const SHOP_ID = process.env.VITE_DB_SHOP_ID;
 console.log("Shop id: ", SHOP_ID)
 
+function getUTCDateNow() {
+    return new Date(Date.now() - new Date().getTimezoneOffset() * 60000);
+}
+
 async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByTel = "") {
     const {rows} = await pool.query(`
-        SELECT c.id                                                AS "Client Id",
-               c.name                                              AS "Name",
-               'Electronics'                                       AS "Category",
-               ep.id                                               AS "Id",
-               ep.brand || ' ' || ep.year || ' ' || ep.description AS "About",
-               to_char(ep.date_to, 'YYYY-MM-DD')                   AS "Valid Until",
-               ep.date_to - CURRENT_DATE                           AS "Days Left",
-               ep.provision                                        AS "Provision",
-               ep.price_pawned                                     AS "Item Cost",
-               ep.total_days                                       AS "Total Days"
-        FROM client c
-                 INNER JOIN electronics_pawn ep
-                            ON c.id = ep.client_id
-        WHERE LOWER(c.name) LIKE $1 || '%'
-          AND c.embg LIKE $2 || '%'
-          AND (c.telephone LIKE $3 || '%'
-            OR c.telephone_2 LIKE $3 || '%')
-          AND ep.shop_id = $4
+        SELECT *
+        FROM (SELECT c.id                                                AS "Client Id",
+                     c.name                                              AS "Name",
+                     'Electronics'                                       AS "Category",
+                     ep.id                                               AS "Id",
+                     ep.brand || ' ' || ep.year || ' ' || ep.description AS "About",
+                     to_char(ep.date_to, 'YYYY-MM-DD')                   AS "Valid Until",
+                     ep.date_to - CURRENT_DATE                           AS "Days Left",
+                     ep.provision                                        AS "Provision",
+                     ep.price_pawned                                     AS "Item Cost",
+                     ep.total_days                                       AS "Total Days"
+              FROM client c
+                       INNER JOIN electronics_pawn ep
+                                  ON c.id = ep.client_id
+              WHERE LOWER(c.name) LIKE $1 || '%'
+                AND c.embg LIKE $2 || '%'
+                AND (c.telephone LIKE $3 || '%'
+                  OR c.telephone_2 LIKE $3 || '%')
+                AND ep.shop_id = $4
 
-        UNION ALL
+              UNION ALL
 
-        SELECT c.id                                                                                    AS "Client Id",
-               c.name                                                                                  AS "Name",
-               'Gold'                                                                                  AS "Category",
-               gp.id                                                                                   AS "Id",
-               gp.weight::FLOAT::TEXT || 'g ' || gp.carats || 'k ' || gp.type || ' ' || gp.description AS "About",
-               to_char(gp.date_to, 'YYYY-MM-DD')                                                       AS "Valid Until",
-               gp.date_to - CURRENT_DATE                                                               AS "Days Left",
-               gp.provision                                                                            AS "Provision",
-               gp.price_pawned                                                                         AS "Item Cost",
-               gp.total_days                                                                           AS "Total Days"
-        FROM client c
-                 INNER JOIN gold_pawn gp
-                            ON c.id = gp.client_id
-        WHERE LOWER(c.name) LIKE $1 || '%'
-          AND c.embg LIKE $2 || '%'
-          AND (c.telephone LIKE $3 || '%'
-            OR c.telephone_2 LIKE $3 || '%')
-          AND gp.shop_id = $4
+              SELECT c.id                                                                                    AS "Client Id",
+                     c.name                                                                                  AS "Name",
+                     'Gold'                                                                                  AS "Category",
+                     gp.id                                                                                   AS "Id",
+                     gp.weight::FLOAT::TEXT || 'g ' || gp.carats || 'k ' || gp.type || ' ' || gp.description AS "About",
+                     to_char(gp.date_to, 'YYYY-MM-DD')                                                       AS "Valid Until",
+                     gp.date_to - CURRENT_DATE                                                               AS "Days Left",
+                     gp.provision                                                                            AS "Provision",
+                     gp.price_pawned                                                                         AS "Item Cost",
+                     gp.total_days                                                                           AS "Total Days"
+              FROM client c
+                       INNER JOIN gold_pawn gp
+                                  ON c.id = gp.client_id
+              WHERE LOWER(c.name) LIKE $1 || '%'
+                AND c.embg LIKE $2 || '%'
+                AND (c.telephone LIKE $3 || '%'
+                  OR c.telephone_2 LIKE $3 || '%')
+                AND gp.shop_id = $4
 
-        UNION ALL
+              UNION ALL
 
-        SELECT c.id                              AS "Client Id",
-               c.name                            AS "Name",
-               'Other'                           AS "Category",
-               op.id                             AS "Id",
-               op.description                    AS "About",
-               to_char(op.date_to, 'YYYY-MM-DD') AS "Valid Until",
-               op.date_to - CURRENT_DATE         AS "Days Left",
-               op.provision                      AS "Provision",
-               op.price_pawned                   AS "Item Cost",
-               op.total_days                     AS "Total Days"
-        FROM client c
-                 INNER JOIN other_pawn op
-                            ON c.id = op.client_id
-        WHERE LOWER(c.name) LIKE $1 || '%'
-          AND c.embg LIKE $2 || '%'
-          AND (c.telephone LIKE $3 || '%'
-            OR c.telephone_2 LIKE $3 || '%')
-          AND op.shop_id = $4
+              SELECT c.id                              AS "Client Id",
+                     c.name                            AS "Name",
+                     'Other'                           AS "Category",
+                     op.id                             AS "Id",
+                     op.description                    AS "About",
+                     to_char(op.date_to, 'YYYY-MM-DD') AS "Valid Until",
+                     op.date_to - CURRENT_DATE         AS "Days Left",
+                     op.provision                      AS "Provision",
+                     op.price_pawned                   AS "Item Cost",
+                     op.total_days                     AS "Total Days"
+              FROM client c
+                       INNER JOIN other_pawn op
+                                  ON c.id = op.client_id
+              WHERE LOWER(c.name) LIKE $1 || '%'
+                AND c.embg LIKE $2 || '%'
+                AND (c.telephone LIKE $3 || '%'
+                  OR c.telephone_2 LIKE $3 || '%')
+                AND op.shop_id = $4
 
-        UNION ALL
+              UNION ALL
 
-        SELECT c.id                                                                   AS "Client Id",
-               c.name                                                                 AS "Name",
-               'Vehicle'                                                              AS "Category",
-               vp.id                                                                  AS "Id",
-               vp.brand || ' ' || vp.model || ' ' || vp.year || ' ' || vp.description AS "About",
-               to_char(vp.date_to, 'YYYY-MM-DD')                                      AS "Valid Until",
-               vp.date_to - CURRENT_DATE                                              AS "Days Left",
-               vp.provision                                                           AS "Provision",
-               vp.price_pawned                                                        AS "Item Cost",
-               vp.total_days                                                          AS "Total Days"
-        FROM client c
-                 INNER JOIN vehicle_pawn vp
-                            ON c.id = vp.client_id
-        WHERE LOWER(c.name) LIKE $1 || '%'
-          AND c.embg LIKE $2 || '%'
-          AND (c.telephone LIKE $3 || '%'
-            OR c.telephone_2 LIKE $3 || '%')
-          AND vp.shop_id = $4
+              SELECT c.id                                                                   AS "Client Id",
+                     c.name                                                                 AS "Name",
+                     'Vehicle'                                                              AS "Category",
+                     vp.id                                                                  AS "Id",
+                     vp.brand || ' ' || vp.model || ' ' || vp.year || ' ' || vp.description AS "About",
+                     to_char(vp.date_to, 'YYYY-MM-DD')                                      AS "Valid Until",
+                     vp.date_to - CURRENT_DATE                                              AS "Days Left",
+                     vp.provision                                                           AS "Provision",
+                     vp.price_pawned                                                        AS "Item Cost",
+                     vp.total_days                                                          AS "Total Days"
+              FROM client c
+                       INNER JOIN vehicle_pawn vp
+                                  ON c.id = vp.client_id
+              WHERE LOWER(c.name) LIKE $1 || '%'
+                AND c.embg LIKE $2 || '%'
+                AND (c.telephone LIKE $3 || '%'
+                  OR c.telephone_2 LIKE $3 || '%')
+                AND vp.shop_id = $4
 
-        UNION ALL
+              UNION ALL
 
-        SELECT c.id                                                 AS "Client Id",
-               c.name                                               AS "Name",
-               'Watch'                                              AS "Category",
-               wp.id                                                AS "Id",
-               wp.brand || ' ' || wp.year || ', ' || wp.description AS "About",
-               to_char(wp.date_to, 'YYYY-MM-DD')                    AS "Valid Until",
-               wp.date_to - CURRENT_DATE                            AS "Days Left",
-               wp.provision                                         AS "Provision",
-               wp.price_pawned                                      AS "Item Cost",
-               wp.total_days                                        AS "Total Days"
-        FROM client c
-                 INNER JOIN watch_pawn wp
-                            ON c.id = wp.client_id
-        WHERE LOWER(c.name) LIKE $1 || '%'
-          AND c.embg LIKE $2 || '%'
-          AND (c.telephone LIKE $3 || '%'
-            OR c.telephone_2 LIKE $3 || '%')
-          AND wp.shop_id = $4
-
+              SELECT c.id                                                 AS "Client Id",
+                     c.name                                               AS "Name",
+                     'Watch'                                              AS "Category",
+                     wp.id                                                AS "Id",
+                     wp.brand || ' ' || wp.year || ', ' || wp.description AS "About",
+                     to_char(wp.date_to, 'YYYY-MM-DD')                    AS "Valid Until",
+                     wp.date_to - CURRENT_DATE                            AS "Days Left",
+                     wp.provision                                         AS "Provision",
+                     wp.price_pawned                                      AS "Item Cost",
+                     wp.total_days                                        AS "Total Days"
+              FROM client c
+                       INNER JOIN watch_pawn wp
+                                  ON c.id = wp.client_id
+              WHERE LOWER(c.name) LIKE $1 || '%'
+                AND c.embg LIKE $2 || '%'
+                AND (c.telephone LIKE $3 || '%'
+                  OR c.telephone_2 LIKE $3 || '%')
+                AND wp.shop_id = $4)
+                 AS pawns
         ORDER BY "${orderBy}" ${orderDirection}
         LIMIT ${limit} OFFSET ${offset};
     `, [searchByName, searchByEmbg, searchByTel, SHOP_ID]);
@@ -148,443 +153,531 @@ async function getPawn(clientId, category, pawnId) {
 }
 
 async function closePawn(id, tableName, priceClosed, description) {
-    const validTables = ["electronics_pawn", "gold_pawn", "vehicle_pawn", "other_pawn", "watch_pawn"];
-    if (!validTables.includes(tableName)) {
-        throw new Error("Invalid table name in REMOVE PAWN");
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
+
+        const validTables = ["electronics_pawn", "gold_pawn", "vehicle_pawn", "other_pawn", "watch_pawn"];
+        if (!validTables.includes(tableName)) {
+            throw new Error("Invalid table name in REMOVE PAWN");
+        }
+
+        const query = await client.query(`SELECT provision, price_pawned, client_id, ${tableName === 'gold_pawn' ? 'weight' : 'NULL as weight'}
+                                          FROM ${tableName}
+                                          WHERE id = $1;`, [id])
+        let gold_grams = 0;
+        let provision = null;
+        let pawnMoney = null;
+        let clientId = null;
+        if (query.rows.length > 0) {
+            provision = query.rows[0].provision;
+            pawnMoney = query.rows[0].price_pawned;
+            clientId = query.rows[0].client_id;
+            gold_grams = query.rows[0]?.weight;
+        } else
+            throw new Error(`Pawn with id ${id} not found in table ${tableName} to REMOVE PAWN`);
+
+        //Delete pawn from pawn table
+        await client.query(`
+            DELETE
+            FROM ${tableName}
+            WHERE id = $1;
+        `, [id])
+
+
+        let transactionCategory = tableName === "electronics_pawn" ? "Electronics" :
+            tableName === "gold_pawn" ? "Gold" :
+                tableName === "vehicle_pawn" ? "Vehicle" :
+                    tableName === "watch_pawn" ? "Watch" : "Other";
+        let transactionDescription = `Затворен залог. ${description}`;
+
+        // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+        const UTC_TIME = getUTCDateNow();
+
+        //Insert a new transaction with cash inserted and profit made
+        await client.query(`
+            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
+            VALUES ($1, $2, $3, 0, $4, $5, $6, $7);
+        `, [clientId, transactionCategory, transactionDescription, pawnMoney, priceClosed - pawnMoney, UTC_TIME, SHOP_ID])
+
+
+        //Update cash register with money inserted, decrease numPawns, decrease moneyPawns, update quantity of gold in grams and update total provision for pawns
+        await client.query(`
+            UPDATE cash_register
+            SET total_provision = total_provision - $4,
+                num_pawns       = num_pawns - 1,
+                money_pawns     = money_pawns - $1,
+                register_money  = register_money + $2,
+                gold_grams      = gold_grams - $3,
+                last_updated    = $5
+            WHERE shop_id = $6;
+        `, [pawnMoney, priceClosed, gold_grams, provision, UTC_TIME, SHOP_ID])
+
+        await client.query("COMMIT");
+    } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+    } finally {
+        client.release();
     }
-
-    const query = await pool.query(`SELECT provision, price_pawned, client_id
-                                    FROM ${tableName}
-                                    WHERE id = $1;`, [id])
-    let gold_grams = 0;
-    if (tableName === "gold_pawn") {
-        const result = await pool.query(`SELECT weight
-                                         FROM gold_pawn
-                                         WHERE id = $1;`, [id]);
-        gold_grams = result.rows[0]?.weight;
-    }
-    let provision = null;
-    let pawnMoney = null;
-    let clientId = null;
-    if (query.rows.length > 0) {
-        provision = query.rows[0].provision;
-        pawnMoney = query.rows[0].price_pawned;
-        clientId = query.rows[0].client_id;
-    } else
-        throw new Error("Cant find information in pawn table to REMOVE PAWN");
-
-    await pool.query(`BEGIN;`)
-
-    //Delete pawn from pawn table
-    await pool.query(`
-        DELETE
-        FROM ${tableName}
-        WHERE id = $1;
-    `, [id])
-
-
-    let transactionCategory = tableName === "electronics_pawn" ? "Electronics" :
-        tableName === "gold_pawn" ? "Gold" :
-            tableName === "vehicle_pawn" ? "Vehicle" :
-                tableName === "watch_pawn" ? "Watch" : "Other";
-    let transactionDescription = `Затворен залог. ${description}`;
-
-    const now = new Date();
-// Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
-    const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
-    //Insert a new transaction with cash inserted and profit made
-    await pool.query(`
-        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
-        VALUES ($1, $2, $3, 0, $4, $5, $6, $7);
-    `, [clientId, transactionCategory, transactionDescription, pawnMoney, priceClosed - pawnMoney, UTC_TIME, SHOP_ID])
-
-
-    //Update cash register with money inserted, decrease numPawns, decrease moneyPawns, update quantity of gold in grams and update total provision for pawns
-    await pool.query(`
-        UPDATE cash_register
-        SET total_provision = total_provision - $4,
-            num_pawns       = num_pawns - 1,
-            money_pawns     = money_pawns - $1,
-            register_money  = register_money + $2,
-            gold_grams      = gold_grams - $3,
-            last_updated    = $5
-        WHERE shop_id = $6;
-    `, [pawnMoney, priceClosed, gold_grams, provision, UTC_TIME, SHOP_ID])
-
-    await pool.query(`COMMIT;`)
 }
 
 async function continuePawn(id, tableName, provision, description, carryOverDays) {
-    const validTables = ["electronics_pawn", "gold_pawn", "vehicle_pawn", "other_pawn", "watch_pawn"];
-    if (!validTables.includes(tableName)) {
-        throw new Error("Invalid table name in CONTINUE PAWN");
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
+
+        const validTables = ["electronics_pawn", "gold_pawn", "vehicle_pawn", "other_pawn", "watch_pawn"];
+        if (!validTables.includes(tableName)) {
+            throw new Error("Invalid table name in CONTINUE PAWN");
+        }
+
+        let query = await client.query(`SELECT (price_pawned * (provision / 100)) AS provision_money, client_id
+                                        FROM ${tableName}
+                                        WHERE id = $1;`, [id])
+        let clientId = null;
+        if (query.rows.length > 0) {
+            clientId = query.rows[0].client_id;
+        } else
+            throw new Error(`Pawn with id ${id} not found in ${tableName} to CONTINUE PAWN`);
+
+        //Update table with new date until pawn is valid
+        // total_days + daysleft
+        // SET date_to = date_to + total_days*INTERVAL '1 day'
+        await client.query(`
+            UPDATE ${tableName}
+            SET date_to =
+                    CASE
+                        WHEN date_to > CURRENT_DATE THEN date_to + (total_days + $2) * INTERVAL '1 day'
+                        ELSE CURRENT_DATE + (total_days + $2) * INTERVAL '1 day'
+                        END
+            WHERE id = $1;
+        `, [id, carryOverDays])
+
+
+        let transactionCategory = tableName === "electronics_pawn" ? "Electronics" :
+            tableName === "gold_pawn" ? "Gold" :
+                tableName === "vehicle_pawn" ? "Vehicle" :
+                    tableName === "watch_pawn" ? "Watch" : "Other";
+        let transactionDescription = `Продолжен залог. ${description}`;
+
+        // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+        const UTC_TIME = getUTCDateNow();
+
+        //Insert a new transaction with profit made
+        await client.query(`
+            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
+            VALUES ($1, $2, $3, 0, 0, $4, $5, $6);
+        `, [clientId, transactionCategory, transactionDescription, provision, UTC_TIME, SHOP_ID])
+
+        //Update cash register with money inserted
+        await client.query(`
+            UPDATE cash_register
+            SET register_money = register_money + $1,
+                last_updated   = $2
+            WHERE shop_id = $3;
+        `, [provision, UTC_TIME, SHOP_ID])
+
+        await client.query("COMMIT");
+    } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+    } finally {
+        client.release();
     }
-
-    let query = await pool.query(`SELECT (price_pawned * (provision / 100)) AS provision_money, client_id
-                                  FROM ${tableName}
-                                  WHERE id = $1;`, [id])
-    let clientId = null;
-    if (query.rows.length > 0) {
-        clientId = query.rows[0].client_id;
-    } else
-        throw new Error("Cant find information in pawn table to CONTINUE PAWN");
-
-    await pool.query(`BEGIN;`)
-
-    //Update table with new date until pawn is valid
-    // total_days + daysleft
-    // SET date_to = date_to + total_days*INTERVAL '1 day'
-    await pool.query(`
-        UPDATE ${tableName}
-        SET date_to =
-                CASE
-                    WHEN date_to > CURRENT_DATE THEN date_to + (total_days + $2) * INTERVAL '1 day'
-                    ELSE CURRENT_DATE + (total_days + $2) * INTERVAL '1 day'
-                    END
-        WHERE id = $1;
-    `, [id, carryOverDays])
-
-
-    let transactionCategory = tableName === "electronics_pawn" ? "Electronics" :
-        tableName === "gold_pawn" ? "Gold" :
-            tableName === "vehicle_pawn" ? "Vehicle" :
-                tableName === "watch_pawn" ? "Watch" : "Other";
-    let transactionDescription = `Продолжен залог. ${description}`;
-
-    const now = new Date();
-// Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
-    const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
-    //Insert a new transaction with profit made
-    await pool.query(`
-        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
-        VALUES ($1, $2, $3, 0, 0, $4, $5, $6);
-    `, [clientId, transactionCategory, transactionDescription, provision, UTC_TIME, SHOP_ID])
-
-    //Update cash register with money inserted
-    await pool.query(`
-        UPDATE cash_register
-        SET register_money = register_money + $1,
-            last_updated   = $2
-        WHERE shop_id = $3;
-    `, [provision, UTC_TIME, SHOP_ID])
-
-    await pool.query(`COMMIT;`)
 }
 
 async function addNewPawn(pawnCategory, pawnObj, clientObj) {
-    const validTables = ["electronics_pawn", "gold_pawn", "vehicle_pawn", "other_pawn", "watch_pawn"];
-    if (!validTables.includes(pawnCategory)) {
-        throw new Error("Invalid pawn category in ADD NEW PAWN");
-    }
-    let gold_grams = 0;
-    if (pawnCategory === "gold_pawn")
-        gold_grams = pawnObj.weight;
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
+
+        const validTables = ["electronics_pawn", "gold_pawn", "vehicle_pawn", "other_pawn", "watch_pawn"];
+        if (!validTables.includes(pawnCategory)) {
+            throw new Error("Invalid pawn category in ADD NEW PAWN");
+        }
+        let gold_grams = 0;
+        if (pawnCategory === "gold_pawn")
+            gold_grams = pawnObj.weight;
 
 
-    const clientCheck = await pool.query(
-        `SELECT id
-         FROM client
-         WHERE name = $1
-           AND embg = $2;`,
-        [clientObj.name, clientObj.embg]
-    );
-
-    let clientId;
-    if (clientCheck.rows.length > 0) {
-        // Client found → update telephones
-        clientId = clientCheck.rows[0].id;
-        await pool.query(
-            `UPDATE client
-             SET telephone   = $1,
-                 telephone_2 = $2
-             WHERE id = $3;`,
-            [clientObj.telephone, clientObj.telephone_2, clientId]
+        const clientCheck = await client.query(
+            `SELECT id
+             FROM client
+             WHERE name = $1
+               AND embg = $2;`,
+            [clientObj.name, clientObj.embg]
         );
-    } else {
-        // Insert new client since no match by name & embg
-        const insertRes = await pool.query(
-            `INSERT INTO client (name, embg, telephone, telephone_2, city)
-             VALUES ($1, $2, $3, $4, $5)
-             RETURNING id;`,
-            [clientObj.name, clientObj.embg, clientObj.telephone, clientObj.telephone_2, clientObj.city]
-        );
-        clientId = insertRes.rows[0].id;
-    }
 
-    //Insert pawn in pawn table
-    switch (pawnCategory) {
-        case 'electronics_pawn':
-            await pool.query(`
-                INSERT INTO electronics_pawn (client_id, brand, year, price_pawned, price_to_redeem, provision,
+        let clientId;
+        if (clientCheck.rows.length > 0) {
+            // Client found → update telephones
+            clientId = clientCheck.rows[0].id;
+            await client.query(
+                `UPDATE client
+                 SET telephone   = $1,
+                     telephone_2 = $2
+                 WHERE id = $3;`,
+                [clientObj.telephone, clientObj.telephone_2, clientId]
+            );
+        } else {
+            // Insert new client since no match by name & embg
+            const insertRes = await client.query(
+                `INSERT INTO client (name, embg, telephone, telephone_2, city)
+                 VALUES ($1, $2, $3, $4, $5)
+                 RETURNING id;`,
+                [clientObj.name, clientObj.embg, clientObj.telephone, clientObj.telephone_2, clientObj.city]
+            );
+            clientId = insertRes.rows[0].id;
+        }
+
+        //Insert pawn in pawn table
+        switch (pawnCategory) {
+            case 'electronics_pawn':
+                await client.query(`
+                    INSERT INTO electronics_pawn (client_id, brand, year, price_pawned, price_to_redeem, provision,
+                                                  date_from, date_to, total_days, description, shop_id)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7::DATE, $7::DATE + $8 * INTERVAL '1 day', $8, $9, $10);
+                `, [clientId, pawnObj.brand, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.date, pawnObj.total_days, pawnObj.description, SHOP_ID]);
+                break;
+            case 'gold_pawn':
+                await client.query(`
+                    INSERT INTO gold_pawn (client_id, weight, carats, price_pawned, price_to_redeem, provision,
+                                           date_from,
+                                           date_to, total_days, description, type, shop_id)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7::DATE, $7::DATE + $8 * INTERVAL '1 day', $8, $9, $10, $11);
+                `, [clientId, pawnObj.weight, pawnObj.carats, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.date, pawnObj.total_days, pawnObj.description, pawnObj.type, SHOP_ID]);
+                break;
+            case 'other_pawn':
+                await client.query(`
+                    INSERT INTO other_pawn (client_id, price_pawned, price_to_redeem, provision, date_from, date_to,
+                                            total_days, description, shop_id)
+                    VALUES ($1, $2, $3, $4, $5::DATE, $5::DATE + $6 * INTERVAL '1 day', $6, $7, $8);
+                `, [clientId, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.date, pawnObj.total_days, pawnObj.description, SHOP_ID]);
+                break;
+            case 'vehicle_pawn':
+                await client.query(`
+                    INSERT INTO vehicle_pawn (client_id, brand, model, year, price_pawned, price_to_redeem, provision,
                                               date_from, date_to, total_days, description, shop_id)
-                VALUES ($1, $2, $3, $4, $5, $6, $9::DATE, $9::DATE + $7 * INTERVAL '1 day', $7, $8, $10);
-            `, [clientId, pawnObj.brand, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description, pawnObj.date, SHOP_ID]);
-            break;
-        case 'gold_pawn':
-            await pool.query(`
-                INSERT INTO gold_pawn (client_id, weight, carats, price_pawned, price_to_redeem, provision, date_from,
-                                       date_to, total_days, description, type, shop_id)
-                VALUES ($1, $2, $3, $4, $5, $6, $10::DATE, $10::DATE + $7 * INTERVAL '1 day', $7, $8, $9, $11);
-            `, [clientId, pawnObj.weight, pawnObj.carats, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description, pawnObj.type, pawnObj.date, SHOP_ID]);
-            break;
-        case 'other_pawn':
-            await pool.query(`
-                INSERT INTO other_pawn (client_id, price_pawned, price_to_redeem, provision, date_from, date_to,
-                                        total_days, description, shop_id)
-                VALUES ($1, $2, $3, $4, $7::DATE, $7::DATE + $5 * INTERVAL '1 day', $5, $6, $8);
-            `, [clientId, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description, pawnObj.date, SHOP_ID]);
-            break;
-        case 'vehicle_pawn':
-            await pool.query(`
-                INSERT INTO vehicle_pawn (client_id, brand, model, year, price_pawned, price_to_redeem, provision,
-                                          date_from, date_to, total_days, description, shop_id)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $10::DATE, $10::DATE + $8 * INTERVAL '1 day', $8, $9, $11);
-            `, [clientId, pawnObj.brand, pawnObj.model, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description, pawnObj.date, SHOP_ID]);
-            break;
-        case 'watch_pawn':
-            await pool.query(`
-                INSERT INTO watch_pawn (client_id, brand, year, price_pawned, price_to_redeem, provision, date_from,
-                                        date_to, total_days, description, shop_id)
-                VALUES ($1, $2, $3, $4, $5, $6, $9::DATE, $9::DATE + $7 * INTERVAL '1 day', $7, $8, $10);
-            `, [clientId, pawnObj.brand, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.total_days, pawnObj.description, pawnObj.date, SHOP_ID]);
-            break;
-        default:
-            throw new Error("Invalid pawn table name to ADD PAWN");
-    }
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8::DATE, $8::DATE + $9 * INTERVAL '1 day', $9, $10, $11);
+                `, [clientId, pawnObj.brand, pawnObj.model, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.date, pawnObj.total_days, pawnObj.description, SHOP_ID]);
+                break;
+            case 'watch_pawn':
+                await client.query(`
+                    INSERT INTO watch_pawn (client_id, brand, year, price_pawned, price_to_redeem, provision, date_from,
+                                            date_to, total_days, description, shop_id)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7::DATE, $7::DATE + $8 * INTERVAL '1 day', $8, $9, $10);
+                `, [clientId, pawnObj.brand, pawnObj.year, pawnObj.price_pawned, pawnObj.price_to_redeem, pawnObj.provision, pawnObj.date, pawnObj.total_days, pawnObj.description, SHOP_ID]);
+                break;
+            default:
+                throw new Error("Invalid pawn table name to ADD PAWN");
+        }
 
-    let transactionCategory = pawnCategory === "electronics_pawn" ? "Electronics" :
-        pawnCategory === "gold_pawn" ? "Gold" :
-            pawnCategory === "vehicle_pawn" ? "Vehicle" :
-                pawnCategory === "watch_pawn" ? "Watch" : "Other";
-    let transactionDescription = "Added new pawn";
+        let transactionCategory = pawnCategory === "electronics_pawn" ? "Electronics" :
+            pawnCategory === "gold_pawn" ? "Gold" :
+                pawnCategory === "vehicle_pawn" ? "Vehicle" :
+                    pawnCategory === "watch_pawn" ? "Watch" : "Other";
+        let transactionDescription = "Added new pawn";
 
-    //Insert a new transaction where money is given to client for pawn
-    await pool.query(`
-        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
-        VALUES ($1, $2, $3, $4, 0, 0, $5::DATE, $6);
-    `, [clientId, transactionCategory, transactionDescription, pawnObj.price_pawned, pawnObj.date, SHOP_ID])
-
-    const now = new Date();
-// Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
-    const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
-    //Update cash register with money taken, increase numPawns, increase moneyPawns, update quantity of gold in grams and update total provision for pawns
-    await pool.query(`
-        UPDATE cash_register
-        SET total_provision = total_provision + $3,
-            num_pawns       = num_pawns + 1,
-            money_pawns     = money_pawns + $1,
-            register_money  = register_money - $1,
-            gold_grams      = gold_grams + $2,
-            last_updated    = $4
-        WHERE shop_id = $5;
-    `, [pawnObj.price_pawned, gold_grams, pawnObj.provision, UTC_TIME, SHOP_ID]);
-}
-
-async function updatePawn(pawnTable, pawnId, pricePawned, provision, description, goldGramsDiff) {
-    let oldPawn = null
-    try {
-        const {rows} = await pool.query(`SELECT price_pawned, client_id, provision
-                                         FROM ${pawnTable}
-                                         WHERE id = $1;`, [pawnId]);
-        oldPawn = rows
-    } catch (error) {
-        console.error("Error executing query old pawn: " + error)
-        throw new Error("Failed to fetch old pawn data")
-    }
-    const clientId = oldPawn[0].client_id;
-    const oldPrice = parseInt(oldPawn[0].price_pawned);
-    const oldProvision = parseInt(oldPawn[0].provision)
-    let category = ''
-    switch (pawnTable) {
-        case "electronics_pawn":
-            category = "Electronics";
-            break;
-        case "gold_pawn":
-            category = "Gold";
-            break;
-        case "vehicle_pawn":
-            category = "Vehicle";
-            break;
-        case "watch_pawn":
-            category = "Watch";
-            break;
-        case "other_pawn":
-            category = "Other";
-            break;
-    }
-
-
-    let s = `Промена! `
-    if (oldPrice !== pricePawned)
-        s += `Цена: ${oldPrice} во ${pricePawned}. `
-    if (oldProvision !== provision)
-        s += `Месечна провизија: ${oldProvision} во ${provision}. `
-    if (goldGramsDiff !== 0)
-        s += `Злато додадено: ${Number(goldGramsDiff).toLocaleString("de-DE")}гр. `
-
-    let query = `
-        UPDATE ${pawnTable}
-        SET price_pawned    = CAST($2 AS NUMERIC),
-            price_to_redeem = CAST($2 AS NUMERIC) + CAST($3 AS NUMERIC),
-            provision       = CAST($3 AS NUMERIC),
-            description     = $4
-    `;
-    const params = [pawnId, pricePawned, provision, description];
-
-    if (pawnTable === "gold_pawn") {
-        query += `, weight = weight + CAST($5 AS NUMERIC)`;
-        params.push(goldGramsDiff)
-    }
-
-    query += ` WHERE id = $1 RETURNING *;`;
-
-    let result = null
-    try {
-        const {rows} = await pool.query(query, params);
-        result = rows[0];
-    } catch (error) {
-        console.error("Error executing query: ", error);
-        throw error;
-    }
-
-    const now = new Date();
-// Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
-    const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
-    //Insert a new transaction with money given
-    try {
-        await pool.query(`
+        //Insert a new transaction where money is given to client for pawn
+        await client.query(`
             INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
-            VALUES ($1, $2, $3, $4, 0, 0, $5, $6);
-        `, [clientId, category, s, pricePawned - oldPrice, UTC_TIME, SHOP_ID])
-    } catch (error) {
-        console.error("Error executing query transaction: " + error)
-        throw new Error("Failed to modify transactions")
-    }
+            VALUES ($1, $2, $3, $4, 0, 0, $5::DATE, $6);
+        `, [clientId, transactionCategory, transactionDescription, pawnObj.price_pawned, pawnObj.date, SHOP_ID])
 
-    //Update cash register with balance of money in pawns, average percent, money removed
-    try {
-        await pool.query(`
+        // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+        const UTC_TIME = getUTCDateNow();
+
+        //Update cash register with money taken, increase numPawns, increase moneyPawns, update quantity of gold in grams and update total provision for pawns
+        await client.query(`
             UPDATE cash_register
-            SET register_money  = register_money - $1,
+            SET total_provision = total_provision + $3,
+                num_pawns       = num_pawns + 1,
                 money_pawns     = money_pawns + $1,
-                total_provision = total_provision + $2,
-                gold_grams      = gold_grams + $3,
+                register_money  = register_money - $1,
+                gold_grams      = gold_grams + $2,
                 last_updated    = $4
             WHERE shop_id = $5;
-        `, [pricePawned - oldPrice, provision - oldProvision, goldGramsDiff, UTC_TIME, SHOP_ID])
-    } catch (error) {
-        console.error("Error executing query cash reg: " + error)
-        throw new Error("Failed to modify cash reg")
-    }
+        `, [pawnObj.price_pawned, gold_grams, pawnObj.provision, UTC_TIME, SHOP_ID]);
 
-    return result;
+        await client.query("COMMIT");
+    } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+    } finally {
+        client.release();
+    }
+}
+
+async function updatePawn(pawnTable, pawnId, pricePawned, provision, description, goldGramsDiff, totalDays) {
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
+
+        let oldPawn = null
+        try {
+            const {rows} = await client.query(`SELECT price_pawned, client_id, provision, total_days
+                                               FROM ${pawnTable}
+                                               WHERE id = $1;`, [pawnId]);
+            oldPawn = rows
+        } catch (error) {
+            console.error("Error executing query old pawn: " + error)
+            throw new Error("Failed to fetch old pawn data")
+        }
+        const clientId = oldPawn[0].client_id;
+        const oldPrice = parseInt(oldPawn[0].price_pawned);
+        const oldProvision = parseInt(oldPawn[0].provision)
+        const oldTotalDays = parseInt(oldPawn[0].total_days)
+        let category = ''
+        switch (pawnTable) {
+            case "electronics_pawn":
+                category = "Electronics";
+                break;
+            case "gold_pawn":
+                category = "Gold";
+                break;
+            case "vehicle_pawn":
+                category = "Vehicle";
+                break;
+            case "watch_pawn":
+                category = "Watch";
+                break;
+            case "other_pawn":
+                category = "Other";
+                break;
+        }
+
+
+        let s = `Промена! `
+        if (oldPrice !== pricePawned)
+            s += `Цена: ${Number(oldPrice).toLocaleString("de-DE")} во ${Number(pricePawned).toLocaleString("de-DE")}. `
+        if (oldProvision !== provision)
+            s += `Месечна провизија: ${Number(oldProvision).toLocaleString("de-DE")} во ${Number(provision).toLocaleString("de-DE")}. `
+        if (oldTotalDays !== totalDays)
+            s += `Времетраење на залогот во денови: ${oldTotalDays} во ${totalDays}. `
+        if (goldGramsDiff !== 0)
+            s += `Злато додадено: ${Number(goldGramsDiff).toLocaleString("de-DE")}гр. `
+
+        let query = `
+            UPDATE ${pawnTable}
+            SET price_pawned    = CAST($2 AS NUMERIC),
+                price_to_redeem = CAST($2 AS NUMERIC) + CAST($3 AS NUMERIC),
+                provision       = CAST($3 AS NUMERIC),
+                description     = $4,
+                total_days      = $5,
+                date_to         = date_to + $6 * INTERVAL '1 day'
+        `;
+        const params = [pawnId, pricePawned, provision, description, totalDays, totalDays - oldTotalDays];
+
+        if (pawnTable === "gold_pawn") {
+            query += `, weight = weight + CAST($5 AS NUMERIC)`;
+            params.push(goldGramsDiff)
+        }
+
+        query += ` WHERE id = $1 RETURNING *;`;
+
+        let result = null
+        try {
+            const {rows} = await client.query(query, params);
+            result = rows[0];
+        } catch (error) {
+            console.error("Error executing query: ", error);
+            throw error;
+        }
+
+        // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+        const UTC_TIME = getUTCDateNow();
+
+        //Insert a new transaction with money given
+        try {
+            await client.query(`
+                INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date,
+                                         shop_id)
+                VALUES ($1, $2, $3, $4, 0, 0, $5, $6);
+            `, [clientId, category, s, pricePawned - oldPrice, UTC_TIME, SHOP_ID])
+        } catch (error) {
+            console.error("Error executing query transaction: " + error)
+            throw new Error("Failed to modify transactions")
+        }
+
+        //Update cash register with balance of money in pawns, average percent, money removed
+        try {
+            await client.query(`
+                UPDATE cash_register
+                SET register_money  = register_money - $1,
+                    money_pawns     = money_pawns + $1,
+                    total_provision = total_provision + $2,
+                    gold_grams      = gold_grams + $3,
+                    last_updated    = $4
+                WHERE shop_id = $5;
+            `, [pricePawned - oldPrice, provision - oldProvision, goldGramsDiff, UTC_TIME, SHOP_ID])
+        } catch (error) {
+            console.error("Error executing query cash reg: " + error)
+            throw new Error("Failed to modify cash reg")
+        }
+
+
+        await client.query("COMMIT");
+        return result;
+    } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+    } finally {
+        client.release();
+    }
 }
 
 
 async function changePawnToSale(id, pawnCategory) {
-    const validTables = ["electronics_pawn", "gold_pawn", "vehicle_pawn", "other_pawn", "watch_pawn"];
-    if (!validTables.includes(pawnCategory))
-        throw new Error("Invalid pawn category in CHANGE PAWN TO SALE");
+    const client = await pool.connect();
 
-    let query = await pool.query(`SELECT provision, client_id, price_pawned
-                                  FROM ${pawnCategory}
-                                  WHERE id = $1;`, [id])
-    let provision = null;
-    let clientId = null;
-    let priceBought = null;
-    if (query.rows.length > 0) {
-        provision = query.rows[0].provision;
-        clientId = query.rows[0].client_id;
-        priceBought = query.rows[0].price_pawned;
-    } else {
-        throw new Error("Cant find information in pawn table to CHANGE PAWN TO SALE");
-    }
+    try {
+        await client.query('BEGIN');
 
-    let gold_grams = 0;
+        const validTables = ["electronics_pawn", "gold_pawn", "vehicle_pawn", "other_pawn", "watch_pawn"];
+        if (!validTables.includes(pawnCategory))
+            throw new Error("Invalid pawn category in CHANGE PAWN TO SALE");
 
-    let description = null;
-    switch (pawnCategory) {
-        case "electronics_pawn":
-            query = await pool.query(`SELECT brand, year, description
-                                      FROM electronics_pawn
-                                      WHERE id = $1;`, [id])
-            if (query.rows.length > 0)
+        let gold_grams = 0;
+        let description = null;
+        let provision = null;
+        let clientId = null;
+        let priceBought = null;
+        let query;
+        switch (pawnCategory) {
+            case "electronics_pawn":
+                query = await client.query(`SELECT brand, year, description, provision, client_id, price_pawned
+                                            FROM electronics_pawn
+                                            WHERE id = $1;`, [id])
+
+                if (query.rows.length === 0) {
+                    throw new Error(`No pawn found in ${pawnCategory} with id ${id}`);
+                }
+
                 description = `${query.rows[0].brand}, ${query.rows[0].year}, ${query.rows[0].description}`;
-            break;
-        case "gold_pawn":
-            query = await pool.query(`SELECT price_pawned, weight, carats, description
-                                      FROM gold_pawn
-                                      WHERE id = $1;`, [id])
-            if (query.rows.length > 0) {
+                provision = query.rows[0].provision;
+                clientId = query.rows[0].client_id;
+                priceBought = query.rows[0].price_pawned;
+                break;
+            case "gold_pawn":
+                query = await client.query(`SELECT price_pawned,
+                                                   weight,
+                                                   carats,
+                                                   description,
+                                                   provision,
+                                                   client_id,
+                                                   price_pawned
+                                            FROM gold_pawn
+                                            WHERE id = $1;`, [id])
+
+                if (query.rows.length === 0) {
+                    throw new Error(`No pawn found in ${pawnCategory} with id ${id}`);
+                }
+
                 gold_grams = query.rows[0].weight;
                 description = `${Number.isInteger(Number(query.rows[0].weight)) ? Number(query.rows[0].weight).toFixed(0) : query.rows[0].weight}g, ${query.rows[0].carats}k, ${Math.round(Number(query.rows[0].price_pawned / query.rows[0].weight))} по грам, ${query.rows[0].description}`;
-            }
-            break;
-        case "other_pawn":
-            query = await pool.query(`SELECT description
-                                      FROM other_pawn
-                                      WHERE id = $1;`, [id])
-            if (query.rows.length > 0)
+                provision = query.rows[0].provision;
+                clientId = query.rows[0].client_id;
+                priceBought = query.rows[0].price_pawned;
+                break;
+            case "other_pawn":
+                query = await client.query(`SELECT description, provision, client_id, price_pawned
+                                            FROM other_pawn
+                                            WHERE id = $1;`, [id])
+
+                if (query.rows.length === 0) {
+                    throw new Error(`No pawn found in ${pawnCategory} with id ${id}`);
+                }
+
                 description = query.rows[0].description;
-            break;
-        case "vehicle_pawn":
-            query = await pool.query(`SELECT brand, model, year, description
-                                      FROM vehicle_pawn
-                                      WHERE id = $1;`, [id])
-            if (query.rows.length > 0)
+                provision = query.rows[0].provision;
+                clientId = query.rows[0].client_id;
+                priceBought = query.rows[0].price_pawned;
+                break;
+            case "vehicle_pawn":
+                query = await client.query(`SELECT brand, model, year, description, provision, client_id, price_pawned
+                                            FROM vehicle_pawn
+                                            WHERE id = $1;`, [id])
+
+                if (query.rows.length === 0) {
+                    throw new Error(`No pawn found in ${pawnCategory} with id ${id}`);
+                }
+
                 description = `${query.rows[0].brand} ${query.rows[0].model}, ${query.rows[0].year}, ${query.rows[0].description}`;
-            break;
-        case "watch_pawn":
-            query = await pool.query(`SELECT brand, year, description
-                                      FROM watch_pawn
-                                      WHERE id = $1;`, [id])
-            if (query.rows.length > 0)
+                provision = query.rows[0].provision;
+                clientId = query.rows[0].client_id;
+                priceBought = query.rows[0].price_pawned;
+                break;
+            case "watch_pawn":
+                query = await client.query(`SELECT brand, year, description, provision, client_id, price_pawned
+                                            FROM watch_pawn
+                                            WHERE id = $1;`, [id])
+
+                if (query.rows.length === 0) {
+                    throw new Error(`No pawn found in ${pawnCategory} with id ${id}`);
+                }
+
                 description = `${query.rows[0].brand}, ${query.rows[0].year}, ${query.rows[0].description}`;
-            break;
-        default:
-            throw new Error("Invalid pawn category in ADD SALE");
+                provision = query.rows[0].provision;
+                clientId = query.rows[0].client_id;
+                priceBought = query.rows[0].price_pawned;
+                break;
+            default:
+                throw new Error("Invalid pawn category in ADD SALE");
+        }
+
+        if (!provision || !clientId || !priceBought) {
+            throw new Error("Cant find information in pawn table to CHANGE PAWN TO SALE");
+        }
+
+        //Insert sale into sale table
+        await client.query(`
+            INSERT INTO sale (price_bought, date_from, description, shop_id)
+            VALUES ($1, CURRENT_DATE, $2, $3)
+        `, [priceBought, description, SHOP_ID])
+
+        //Delete pawn from pawn table
+        await client.query(`
+            DELETE
+            FROM ${pawnCategory}
+            WHERE id = $1;
+        `, [id])
+
+        let transactionCategory = pawnCategory === "electronics_pawn" ? "Electronics" :
+            pawnCategory === "gold_pawn" ? "Gold" :
+                pawnCategory === "vehicle_pawn" ? "Vehicle" :
+                    pawnCategory === "watch_pawn" ? "Watch" : "Other";
+        let transactionDescription = "Transferred pawn to sale";
+
+        // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+        const UTC_TIME = getUTCDateNow();
+
+        //Insert a new transaction with profit made
+        await client.query(`
+            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
+            VALUES ($1, $2, $3, 0, 0, 0, $4, $5);
+        `, [clientId, transactionCategory, transactionDescription, UTC_TIME, SHOP_ID])
+
+        //Update cash register with decrease numPawns, decrease moneyPawns, increase numSales, increase moneySales, update quantity of gold in grams and update total provision for pawns
+        await client.query(`
+            UPDATE cash_register
+            SET total_provision  = total_provision - $3,
+                num_pawns        = num_pawns - 1,
+                money_pawns      = money_pawns - $1,
+                num_sale_items   = num_sale_items + 1,
+                money_sale_items = money_sale_items + $1,
+                gold_grams       = gold_grams - $2,
+                last_updated     = $4
+            WHERE shop_id = $5;
+        `, [priceBought, gold_grams, provision, UTC_TIME, SHOP_ID])
+
+        await client.query("COMMIT");
+    } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+    } finally {
+        client.release();
     }
-
-    //Insert sale into sale table
-    await pool.query(`
-        INSERT INTO sale (price_bought, date_from, description, shop_id)
-        VALUES ($1, CURRENT_DATE, $2, $3)
-    `, [priceBought, description, SHOP_ID])
-
-    //Delete pawn from pawn table
-    await pool.query(`
-        DELETE
-        FROM ${pawnCategory}
-        WHERE id = $1;
-    `, [id])
-
-    let transactionCategory = pawnCategory === "electronics_pawn" ? "Electronics" :
-        pawnCategory === "gold_pawn" ? "Gold" :
-            pawnCategory === "vehicle_pawn" ? "Vehicle" :
-                pawnCategory === "watch_pawn" ? "Watch" : "Other";
-    let transactionDescription = "Transferred pawn to sale";
-
-    const now = new Date();
-    // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
-    const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
-    //Insert a new transaction with profit made
-    await pool.query(`
-        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
-        VALUES ($1, $2, $3, 0, 0, 0, $4, $5);
-    `, [clientId, transactionCategory, transactionDescription, UTC_TIME, SHOP_ID])
-
-    //Update cash register with decrease numPawns, decrease moneyPawns, increase numSales, increase moneySales, update quantity of gold in grams and update total provision for pawns
-    await pool.query(`
-        UPDATE cash_register
-        SET total_provision  = total_provision - $3,
-            num_pawns        = num_pawns - 1,
-            money_pawns      = money_pawns - $1,
-            num_sale_items   = num_sale_items + 1,
-            money_sale_items = money_sale_items + $1,
-            gold_grams       = gold_grams - $2,
-            last_updated     = $4
-        WHERE shop_id = $5;
-    `, [priceBought, gold_grams, provision, UTC_TIME, SHOP_ID])
 }
 
 async function getAllSales(limit, offset, orderBy, orderDirection) {
@@ -611,82 +704,99 @@ async function getSale(saleId) {
 }
 
 async function closeSale(id, priceSold, description) {
-    const query = await pool.query(`SELECT price_bought
-                                    FROM sale
-                                    WHERE id = $1;`, [id]);
-    let priceBought = null;
-    if (query.rows.length > 0) {
-        priceBought = query.rows[0].price_bought;
-    } else
-        throw new Error("Cant find information in sale table to REMOVE SALE");
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
+
+        const query = await client.query(`SELECT price_bought
+                                          FROM sale
+                                          WHERE id = $1;`, [id]);
+        let priceBought = null;
+        if (query.rows.length > 0) {
+            priceBought = query.rows[0].price_bought;
+        } else
+            throw new Error(`Sale with id ${id} not found in sale table to CLOSE SALE`);
 
 
-    await pool.query(`BEGIN;`)
+        //Delete sale from sale table
+        await client.query(`
+            DELETE
+            FROM sale
+            WHERE id = $1;
+        `, [id])
 
-    //Delete sale from sale table
-    await pool.query(`
-        DELETE
-        FROM sale
-        WHERE id = $1;
-    `, [id])
+        let transactionCategory = "Sale";
+        let transactionDescription = `Затворена продажба. ${description}`;
 
-    let transactionCategory = "Sale";
-    let transactionDescription = `Затворена продажба. ${description}`;
+        // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+        const UTC_TIME = getUTCDateNow();
 
-    const now = new Date();
-// Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
-    const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
-    //Insert a new transaction with cash inserted and profit made
-    await pool.query(`
-        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
-        VALUES (0, $1, $2, 0, $3, $4, $5, $6);
-    `, [transactionCategory, transactionDescription, priceBought, priceSold - priceBought, UTC_TIME, SHOP_ID])
+        //Insert a new transaction with cash inserted and profit made
+        await client.query(`
+            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
+            VALUES (0, $1, $2, 0, $3, $4, $5, $6);
+        `, [transactionCategory, transactionDescription, priceBought, priceSold - priceBought, UTC_TIME, SHOP_ID])
 
-    //Update cash register with money inserted, decrease numSales and decrease moneySales
-    await pool.query(`
-        UPDATE cash_register
-        SET num_sale_items   = num_sale_items - 1,
-            money_sale_items = money_sale_items - $1,
-            register_money   = register_money + $2,
-            last_updated     = $3
-        WHERE shop_id = $4;
-    `, [priceBought, priceSold, UTC_TIME, SHOP_ID])
+        //Update cash register with money inserted, decrease numSales and decrease moneySales
+        await client.query(`
+            UPDATE cash_register
+            SET num_sale_items   = num_sale_items - 1,
+                money_sale_items = money_sale_items - $1,
+                register_money   = register_money + $2,
+                last_updated     = $3
+            WHERE shop_id = $4;
+        `, [priceBought, priceSold, UTC_TIME, SHOP_ID])
 
-    await pool.query(`COMMIT;`)
-
-    return priceSold;
+        await client.query("COMMIT");
+        return priceSold;
+    } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+    } finally {
+        client.release();
+    }
 }
 
 async function addNewSale(priceBought, description) {
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
 
-    //Insert a new sale into sale table
-    await pool.query(`
-        INSERT INTO sale (price_bought, date_from, description, shop_id)
-        VALUES ($1, CURRENT_DATE, $2, $3)
-    `, [priceBought, description, SHOP_ID])
+        //Insert a new sale into sale table
+        await client.query(`
+            INSERT INTO sale (price_bought, date_from, description, shop_id)
+            VALUES ($1, CURRENT_DATE, $2, $3)
+        `, [priceBought, description, SHOP_ID])
 
-    let transactionCategory = "Sale";
-    let transactionDescription = "Added new sale";
+        let transactionCategory = "Sale";
+        let transactionDescription = "Added new sale";
 
-    const now = new Date();
-    // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
-    const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
+        // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+        const UTC_TIME = getUTCDateNow();
 
-    //Insert a new transaction with money given
-    await pool.query(`
-        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
-        VALUES (0, $1, $2, $3, 0, 0, $4, $5);
-    `, [transactionCategory, transactionDescription, priceBought, UTC_TIME, SHOP_ID])
+        //Insert a new transaction with money given
+        await client.query(`
+            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
+            VALUES (0, $1, $2, $3, 0, 0, $4, $5);
+        `, [transactionCategory, transactionDescription, priceBought, UTC_TIME, SHOP_ID])
 
-    //Update cash register with money given, increase numSales and increase moneySales
-    await pool.query(`
-        UPDATE cash_register
-        SET num_sale_items   = num_sale_items + 1,
-            money_sale_items = money_sale_items + $1,
-            register_money   = register_money - $1,
-            last_updated     = $2
-        WHERE shop_id = $3;
-    `, [priceBought, UTC_TIME, SHOP_ID])
+        //Update cash register with money given, increase numSales and increase moneySales
+        await client.query(`
+            UPDATE cash_register
+            SET num_sale_items   = num_sale_items + 1,
+                money_sale_items = money_sale_items + $1,
+                register_money   = register_money - $1,
+                last_updated     = $2
+            WHERE shop_id = $3;
+        `, [priceBought, UTC_TIME, SHOP_ID])
+
+        await client.query("COMMIT");
+    } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+    } finally {
+        client.release();
+    }
 }
 
 
@@ -814,39 +924,61 @@ async function getCashRegister() {
 }
 
 async function insertIntoCashRegister(amount, description) {
-    const now = new Date();
-// Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
-    const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
 
-    await pool.query(`
-        UPDATE cash_register
-        SET register_money = register_money + $1,
-            last_updated   = $2
-        WHERE shop_id = $3;
-    `, [amount, UTC_TIME, SHOP_ID])
+        // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+        const UTC_TIME = getUTCDateNow();
 
-    await pool.query(`
-        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
-        VALUES (0, 'Insert', $1, 0, $2, 0, $3, $4);
-    `, [description, amount, UTC_TIME, SHOP_ID])
+        await client.query(`
+            UPDATE cash_register
+            SET register_money = register_money + $1,
+                last_updated   = $2
+            WHERE shop_id = $3;
+        `, [amount, UTC_TIME, SHOP_ID])
+
+        await client.query(`
+            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
+            VALUES (0, 'Insert', $1, 0, $2, 0, $3, $4);
+        `, [description, amount, UTC_TIME, SHOP_ID])
+
+        await client.query("COMMIT");
+    } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+    } finally {
+        client.release();
+    }
 }
 
 async function removeFromCashRegister(amount, description) {
-    const now = new Date();
-// Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
-    const UTC_TIME = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
 
-    await pool.query(`
-        UPDATE cash_register
-        SET register_money = register_money - $1,
-            last_updated   = $2
-        WHERE shop_id = $3;
-    `, [amount, UTC_TIME, SHOP_ID])
+        // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+        const UTC_TIME = getUTCDateNow();
 
-    await pool.query(`
-        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
-        VALUES (0, 'Remove', $1, $2, 0, 0, $3, $4);
-    `, [description, amount, UTC_TIME, SHOP_ID])
+        await client.query(`
+            UPDATE cash_register
+            SET register_money = register_money - $1,
+                last_updated   = $2
+            WHERE shop_id = $3;
+        `, [amount, UTC_TIME, SHOP_ID])
+
+        await client.query(`
+            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
+            VALUES (0, 'Remove', $1, $2, 0, 0, $3, $4);
+        `, [description, amount, UTC_TIME, SHOP_ID])
+
+        await client.query("COMMIT");
+    } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+    } finally {
+        client.release();
+    }
 }
 
 
@@ -911,77 +1043,88 @@ async function getExpense(month, year) {
 }
 
 async function insertExpense(year, month, rent, salaries, bills, other, description) {
-    let transaction_description = `${month}/${year}. `;
-    if (rent !== 0) transaction_description += 'Кирија: ' + rent + '. '
-    if (salaries !== 0) transaction_description += 'Плати: ' + salaries + '. '
-    if (bills !== 0) transaction_description += 'Сметки: ' + bills + '. '
-    if (other !== 0) transaction_description += 'Останато: ' + other + '. '
-    if (description !== '' && transaction_description.length + description.length + "Опис: .".length < 200) transaction_description += 'Опис: ' + description + '.';
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
 
-    const {rows: hasReport} = await pool.query(`SELECT *
-                                                FROM monthly_report
-                                                WHERE year = $1::INT
-                                                  AND month = $2::INT
-                                                  AND shop_id = $3`, [year, month, SHOP_ID])
+        let transaction_description = `${month}/${year}. `;
+        if (rent !== 0) transaction_description += 'Кирија: ' + rent + '. '
+        if (salaries !== 0) transaction_description += 'Плати: ' + salaries + '. '
+        if (bills !== 0) transaction_description += 'Сметки: ' + bills + '. '
+        if (other !== 0) transaction_description += 'Останато: ' + other + '. '
+        if (description !== '' && transaction_description.length + description.length + "Опис: .".length < 200) transaction_description += 'Опис: ' + description + '.';
 
-    if (hasReport.length > 0) {
-        return `Не може да се внесе расход, бидејќи веќе е внесен месечен извештај за ${month}/${year}. За внес контактирајте со одржувачот на системот.`
+        const {rows: hasReport} = await client.query(`SELECT *
+                                                      FROM monthly_report
+                                                      WHERE year = $1::INT
+                                                        AND month = $2::INT
+                                                        AND shop_id = $3`, [year, month, SHOP_ID])
+
+        if (hasReport.length > 0) {
+            return `Не може да се внесе расход, бидејќи веќе е внесен месечен извештај за ${month}/${year}. За внес контактирајте со одржувачот на системот.`
+        }
+
+        const {rows: hasExpense} = await client.query(`SELECT *
+                                                       FROM expense
+                                                       WHERE year = $1::INT
+                                                         AND month = $2::INT
+                                                         AND shop_id = $3`, [year, month, SHOP_ID])
+        if (hasExpense.length > 0)
+            await client.query(`
+                UPDATE expense
+                SET rent        = rent + $3,
+                    salaries    = salaries + $4,
+                    bills       = bills + $5,
+                    other       = other + $6,
+                    description = $7
+                WHERE year = $1::INT
+                  AND month = $2::INT
+                  AND shop_id = $8;
+            `, [year, month, rent, salaries, bills, other, '', SHOP_ID]) // no description in expense, descriptions are kept in transactions
+        else {
+            await client.query(`
+                INSERT INTO expense (year, month, rent, salaries, bills, other, description, shop_id)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            `, [year, month, rent, salaries, bills, other, '', SHOP_ID]) // no description in expense, descriptions are kept in transactions
+        }
+
+        const today = new Date();
+        let expenseDate;
+        if (today.getFullYear() === year && (today.getMonth() + 1) === month) {
+            // Same year and month as today → use full today’s date (including day & time)
+            expenseDate = today;
+        } else {
+            // Different month/year → use the 1st day of that month/year
+            expenseDate = new Date(year, month, 0);
+        }
+        // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+        const UTC_TIME_EXPENSE_DATE = new Date(expenseDate.getTime() - (expenseDate.getTimezoneOffset() * 60000));
+        //Insert a new transaction with cash inserted and profit made
+
+        await client.query(`
+            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
+            VALUES (0, 'Expense', $1, $2, 0, 0, $3, $4);
+        `, [transaction_description, rent + salaries + bills + other, UTC_TIME_EXPENSE_DATE, SHOP_ID])
+
+        if (rent + salaries + bills + other !== 0) {
+            const UTC_TIME_TODAY = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
+            await client.query(`
+                UPDATE cash_register
+                SET register_money = register_money - $1,
+                    last_updated   = $2
+                WHERE shop_id = $3;
+            `, [rent + salaries + bills + other, UTC_TIME_TODAY, SHOP_ID])
+        }
+
+
+        await client.query("COMMIT");
+        return 'Успешно внесен расход';
+    } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+    } finally {
+        client.release();
     }
-
-    const {rows: hasExpense} = await pool.query(`SELECT *
-                                                 FROM expense
-                                                 WHERE year = $1::INT
-                                                   AND month = $2::INT
-                                                   AND shop_id = $3`, [year, month, SHOP_ID])
-    if (hasExpense.length > 0)
-        await pool.query(`
-            UPDATE expense
-            SET rent        = rent + $3,
-                salaries    = salaries + $4,
-                bills       = bills + $5,
-                other       = other + $6,
-                description = $7
-            WHERE year = $1::INT
-              AND month = $2::INT
-              AND shop_id = $8;
-        `, [year, month, rent, salaries, bills, other, '', SHOP_ID]) // no description in expense, descriptions are kept in transactions
-    else {
-        await pool.query(`
-            INSERT INTO expense (year, month, rent, salaries, bills, other, description, shop_id)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        `, [year, month, rent, salaries, bills, other, '', SHOP_ID]) // no description in expense, descriptions are kept in transactions
-    }
-
-    const today = new Date();
-    let expenseDate;
-    if (today.getFullYear() === year && (today.getMonth() + 1) === month) {
-        // Same year and month as today → use full today’s date (including day & time)
-        expenseDate = today;
-    } else {
-        // Different month/year → use the 1st day of that month/year
-        expenseDate = new Date(year, month, 0);
-    }
-    // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
-    const UTC_TIME_EXPENSE_DATE = new Date(expenseDate.getTime() - (expenseDate.getTimezoneOffset() * 60000));
-    //Insert a new transaction with cash inserted and profit made
-
-    await pool.query(`
-        INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, date, shop_id)
-        VALUES (0, 'Expense', $1, $2, 0, 0, $3, $4);
-    `, [transaction_description, rent + salaries + bills + other, UTC_TIME_EXPENSE_DATE, SHOP_ID])
-
-    if (rent + salaries + bills + other !== 0) {
-        const UTC_TIME_TODAY = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
-        await pool.query(`
-            UPDATE cash_register
-            SET register_money = register_money - $1,
-                last_updated   = $2
-            WHERE shop_id = $3;
-        `, [rent + salaries + bills + other, UTC_TIME_TODAY, SHOP_ID])
-    }
-
-
-    return 'Успешно внесен расход'
 }
 
 
