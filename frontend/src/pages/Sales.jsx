@@ -18,7 +18,6 @@ export default function Sales() {
     const offset = useRef(0);
     const limit = 20;
     const [isLastPage, setIsLastPage] = useState(false);
-    const prevSales = useRef([]);
     const scrollableSalesRef = useRef(null);
     const [loading, setLoading] = useState(false);
     const isFetchingRef = useRef(false);
@@ -31,11 +30,13 @@ export default function Sales() {
         isFetchingRef.current = true;
         axios.get(`http://localhost:3000/sales?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}`)
             .then(res => {
-                if (JSON.stringify(prevSales.current) !== JSON.stringify(res.data)) {
-                    setAllSales(prev => [...prev, ...res.data]);
-                    prevSales.current = [...prevSales.current, ...res.data];
-                    setIsLastPage(res.data.length < limit);
-                }
+                setAllSales(prev => {
+                    const ids = new Set(prev.map(s => `${s.Id}`));
+                    const newUnique = res.data.filter(s => !ids.has(`${s.Id}`));
+                    return [...prev, ...newUnique];
+                });
+
+                setIsLastPage(res.data.length < limit);
             })
             .catch(error => {
                 console.error('Error fetching all pawns:', error)
@@ -71,7 +72,6 @@ export default function Sales() {
 
     useEffect(() => {
         setAllSales([]);
-        prevSales.current = [];
         offset.current = 0;
         fetchSales(limit, offset.current, orderBy, orderDirection, true);
     }, [refresh, orderBy, orderDirection])

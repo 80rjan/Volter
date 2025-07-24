@@ -19,7 +19,6 @@ export default function Transactions() {
     const offset = useRef(0);
     const limit = 20;
     const [isLastPage, setIsLastPage] = useState(false);
-    const prevTransactions = useRef([]);
     const scrollableTransactionsRef = useRef(null);
     const [loading, setLoading] = useState(false);
     const isFetchingRef = useRef(false);
@@ -67,11 +66,13 @@ export default function Transactions() {
 
         axios.get(`http://localhost:3000/transactions?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByDate=${searchByDate}&searchByCategory=${searchByCategory}`)
             .then(res => {
-                if (JSON.stringify(prevTransactions.current) !== JSON.stringify(res.data)) {
-                    setAllTransactions(prev => [...prev, ...res.data]);
-                    prevTransactions.current = [...prevTransactions.current, ...res.data];
-                    setIsLastPage(res.data.length < limit);
-                }
+                setAllTransactions(prev => {
+                    const ids = new Set(prev.map(t => `${t.Id}`));
+                    const newUnique = res.data.filter(t => !ids.has(`${t.Id}`));
+                    return [...prev, ...newUnique];
+                })
+
+                setIsLastPage(res.data.length < limit);
             })
             .catch(error => {
                 console.error('Error fetching all transactions:', error);
@@ -92,7 +93,7 @@ export default function Transactions() {
 
             if (scrollHeight - scrollTop - clientHeight <= scrollHeight * 0.3 && !isLastPage && !isFetchingRef.current) {
                 offset.current += limit;
-                fetchTransactions(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByDate, false);
+                fetchTransactions(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByDate, searchByCategory, false);
             }
         };
 
@@ -102,13 +103,12 @@ export default function Transactions() {
         return () => {
             scrollableDiv.removeEventListener("scroll", handleScroll);
         };
-    }, [isLastPage, orderBy, orderDirection, searchByName, searchByEmbg, searchByDate]);
+    }, [isLastPage, orderBy, orderDirection, searchByName, searchByEmbg, searchByDate, searchByCategory]);
 
     useEffect(() => {
         if (searchByDate && searchByDate.length > 0 && searchByDate.length < 10)
             return;
         setAllTransactions([]);
-        prevTransactions.current = [];
         offset.current = 0;
         fetchTransactions(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByDate, searchByCategory, true);
     }, [refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByDate, searchByCategory]);

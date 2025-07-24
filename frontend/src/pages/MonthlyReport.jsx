@@ -18,7 +18,6 @@ export default function MonthlyReport() {
     const offset = useRef(0);
     const limit = 20;
     const [isLastPage, setIsLastPage] = useState(false);
-    const prevReports = useRef([]);
     const scrollableReportsRef = useRef(null);
     const [loading, setLoading] = useState(false);
     const isFetchingRef = useRef(false);
@@ -38,11 +37,13 @@ export default function MonthlyReport() {
         isFetchingRef.current = true;
         axios.get(`http://localhost:3000/monthlyReport?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByMonth=${searchByMonth}&searchByYear=${searchByYear}`)
             .then(res => {
-                if (JSON.stringify(prevReports.current) !== JSON.stringify(res.data)) {
-                    setAllReports(prev => [...prev, ...res.data]);
-                    prevReports.current = [...prevReports.current, ...res.data];
-                    setIsLastPage(res.data.length < limit);
-                }
+                setAllReports(prev => {
+                    const ids = new Set(prev.map(r => `${r.Id}`));
+                    const newUnique = res.data.filter(r => !ids.has(`${r.Id}`));
+                    return [...prev, ...newUnique];
+                });
+
+                setIsLastPage(res.data.length < limit);
             })
             .catch(error => {
                 console.error('Error fetching all monthly reports:', error)
@@ -101,7 +102,6 @@ export default function MonthlyReport() {
 
     useEffect(() => {
         setAllReports([]);
-        prevReports.current = [];
         offset.current = 0;
         fetchReports(limit, offset.current, orderBy, orderDirection, searchByMonth, searchByYear, true);
     }, [refresh, orderBy, orderDirection, searchByMonth, searchByYear])

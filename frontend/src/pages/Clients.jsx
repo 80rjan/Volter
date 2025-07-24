@@ -21,7 +21,6 @@ export default function Clients() {
     const offset = useRef(0);
     const limit = 20;
     const [isLastPage, setIsLastPage] = useState(false);
-    const prevClients = useRef([]);
     const scrollableClientsRef = useRef(null);
     const [loading, setLoading] = useState(false);
     const isFetchingRef = useRef(false);
@@ -35,11 +34,13 @@ export default function Clients() {
         isFetchingRef.current = true;
         axios.get(`http://localhost:3000/clients?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByTel=${searchByTel}`)
             .then(res => {
-                if (JSON.stringify(prevClients.current) !== JSON.stringify(res.data)) {
-                    setAllClients(prev => [...prev, ...res.data]);
-                    prevClients.current = [...prevClients.current, ...res.data];
-                    setIsLastPage(res.data.length < limit);
-                }
+                setAllClients(prev => {
+                    const ids = new Set(prev.map(c => `${c.Id}`));
+                    const newUnique = res.data.filter(c => !ids.has(`${c.Id}`));
+                    return [...prev, ...newUnique];
+                });
+
+                setIsLastPage(res.data.length < limit);
             })
             .catch(error => {
                 console.error('Error fetching all clients:', error)
@@ -75,7 +76,6 @@ export default function Clients() {
 
     useEffect(() => {
         setAllClients([]);
-        prevClients.current = [];
         offset.current = 0;
         fetchClients(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, true);
     }, [refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel])

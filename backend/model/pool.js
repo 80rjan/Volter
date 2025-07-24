@@ -16,11 +16,6 @@ console.log(process.env.VITE_DB_NAME);
 console.log(process.env.VITE_DB_PASSWORD);
 console.log(process.env.VITE_DB_PORT);
 
-// console.log(process.env.VOLTER_CENTAR_DB_HOST);
-// console.log(process.env.VOLTER_CENTAR_DB_NAME);
-// console.log(process.env.VOLTER_CENTAR_DB_PASS);
-// console.log(process.env.VOLTER_CENTAR_DB_PORT);
-
 const pool = new Pool({
     user: process.env.VITE_DB_USER,
     host: process.env.VITE_DB_HOST,
@@ -42,25 +37,6 @@ pool.connect()
 
 module.exports = pool;
 
-
-
-// const pool = new Pool({
-//     host: 'nozomi.proxy.rlwy.net',  // Railway host URL
-//     port: 38325,                    // Railway PostgreSQL port (or default 5432)
-//     user: 'postgres',                // Your PostgreSQL user
-//     password: 'exBIWlMralbTVhwSiIrHRusVKDndKqRZ',  // Your password
-//     database: 'railway',             // Your database name (on Railway)
-//     ssl: {
-//         rejectUnauthorized: false    // Required for cloud database connections
-//     }
-// });
-
-// module.exports = new Pool({
-//     connectionString: 'postgresql://postgres:exBIWlMralbTVhwSiIrHRusVKDndKqRZ@nozomi.proxy.rlwy.net:38325/railway',
-//     ssl: {
-//         rejectUnauthorized: false
-//     }
-// });
 
 // module.exports = new Pool({
 //     host: 'localhost',

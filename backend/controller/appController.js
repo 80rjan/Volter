@@ -5,11 +5,12 @@ const getAllPawns = asyncHandler(async (req, res) => {
     let searchByName = req.query.searchByName !== 'undefined' ? req.query.searchByName.toLowerCase() : '';
     let searchByEmbg = req.query.searchByEmbg !== 'undefined' ? req.query.searchByEmbg : '';
     let searchByTel = req.query.searchByTel !== 'undefined' ? req.query.searchByTel : '';
+    let searchByCategory = req.query.searchByCategory !== 'undefined' ? req.query.searchByCategory : '';
     const limit = req.query.limit;
     const offset = req.query.offset;
 
     try {
-        const pawns = await db.getAllPawns(limit, offset, req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, searchByTel);
+        const pawns = await db.getAllPawns(limit, offset, req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, searchByTel, searchByCategory);
         res.send(pawns);
     } catch (error) {
         res.status(500).send({ message: `Error query get all pawns ${error}` });
@@ -226,7 +227,6 @@ const getAllClientsAutocomplete = asyncHandler(async (req, res) => {
 })
 
 const getAllClients = asyncHandler(async (req, res) => {
-    console.log("getAllClients called");
     let searchByName = req.query.searchByName !== 'undefined' ? req.query.searchByName.toLowerCase() : '';
     let searchByEmbg = req.query.searchByEmbg !== 'undefined' ? req.query.searchByEmbg : '';
     let searchByTel = req.query.searchByTel !== 'undefined' ? req.query.searchByTel : '';

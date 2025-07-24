@@ -21,7 +21,6 @@ export default function Expenses() {
     const offset = useRef(0);
     const limit = 20;
     const [isLastPage, setIsLastPage] = useState(false);
-    const prevExpenses = useRef([]);
     const scrollableExpensesRef = useRef(null);
     const [loading, setLoading] = useState(false);
     const isFetchingRef = useRef(false);
@@ -35,11 +34,13 @@ export default function Expenses() {
         isFetchingRef.current = true;
         axios.get(`http://localhost:3000/expenses?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByMonth=${searchByMonth}&searchByYear=${searchByYear}`)
             .then(res => {
-                if (JSON.stringify(prevExpenses.current) !== JSON.stringify(res.data)) {
-                    setAllExpenses(prev => [...prev, ...res.data]);
-                    prevExpenses.current = [...prevExpenses.current, ...res.data];
-                    setIsLastPage(res.data.length < limit);
-                }
+                setAllExpenses(prev => {
+                    const ids = new Set(prev.map(e => `${e.Id}`));
+                    const newUnique = res.data.filter(e => !ids.has(`${e.Id}`));
+                    return [...prev, ...newUnique];
+                });
+
+                setIsLastPage(res.data.length < limit);
             })
             .catch(error => {
                 console.error('Error fetching all expenses:', error)
@@ -75,7 +76,6 @@ export default function Expenses() {
 
     useEffect(() => {
         setAllExpenses([]);
-        prevExpenses.current = [];
         offset.current = 0;
         fetchExpenses(limit, offset.current, orderBy, orderDirection, searchByMonth, searchByYear, true);
     }, [refresh, orderBy, orderDirection, searchByMonth, searchByYear])

@@ -7,7 +7,7 @@ function getUTCDateNow() {
     return new Date(Date.now() - new Date().getTimezoneOffset() * 60000);
 }
 
-async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByTel = "") {
+async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByTel = "", searchByCategory = "") {
     const {rows} = await pool.query(`
         SELECT *
         FROM (SELECT c.id                                                AS "Client Id",
@@ -27,7 +27,8 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
                 AND c.embg LIKE $2 || '%'
                 AND (c.telephone LIKE $3 || '%'
                   OR c.telephone_2 LIKE $3 || '%')
-                AND ep.shop_id = $4
+                AND ($4 = '' OR $4 = 'Electronics')
+                AND ep.shop_id = $5
 
               UNION ALL
 
@@ -48,7 +49,8 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
                 AND c.embg LIKE $2 || '%'
                 AND (c.telephone LIKE $3 || '%'
                   OR c.telephone_2 LIKE $3 || '%')
-                AND gp.shop_id = $4
+                AND ($4 = '' OR $4 = 'Gold')
+                AND gp.shop_id = $5
 
               UNION ALL
 
@@ -69,7 +71,8 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
                 AND c.embg LIKE $2 || '%'
                 AND (c.telephone LIKE $3 || '%'
                   OR c.telephone_2 LIKE $3 || '%')
-                AND op.shop_id = $4
+                AND ($4 = '' OR $4 = 'Other')
+                AND op.shop_id = $5
 
               UNION ALL
 
@@ -90,7 +93,8 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
                 AND c.embg LIKE $2 || '%'
                 AND (c.telephone LIKE $3 || '%'
                   OR c.telephone_2 LIKE $3 || '%')
-                AND vp.shop_id = $4
+                AND ($4 = '' OR $4 = 'Vehicle')
+                AND vp.shop_id = $5
 
               UNION ALL
 
@@ -111,11 +115,13 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
                 AND c.embg LIKE $2 || '%'
                 AND (c.telephone LIKE $3 || '%'
                   OR c.telephone_2 LIKE $3 || '%')
-                AND wp.shop_id = $4)
+                AND ($4 = '' OR $4 = 'Watch')
+                AND wp.shop_id = $5
+              )
                  AS pawns
         ORDER BY "${orderBy}" ${orderDirection}
         LIMIT ${limit} OFFSET ${offset};
-    `, [searchByName, searchByEmbg, searchByTel, SHOP_ID]);
+    `, [searchByName, searchByEmbg, searchByTel, searchByCategory, SHOP_ID]);
     return rows;
 }
 
@@ -817,90 +823,91 @@ async function getAllClients(limit, offset, orderBy, orderDirection, searchByNam
     // Active pawns, money pawns, money provision are calculated for users with shop_id = SHOP_ID (which is the current shop)
     // everything else is calculated for all users
     const {rows} = await pool.query(`
-        SELECT c.id                                     AS "Id",
-               c.name                                   AS "Name",
-               c.telephone                              AS "Telephone 1",
-               c.telephone_2                            AS "Telephone 2",
-               c.city                                   AS "City",
-               (SELECT COUNT(*)
-                FROM transaction t
-                WHERE t.client_id = c.id
-                  AND t.description = 'Added new pawn') AS "Total Pawns",
-               (SELECT COUNT(*)
-                FROM (SELECT id
-                      FROM gold_pawn
-                      WHERE client_id = c.id
-                        AND shop_id = $4
-                      UNION ALL
-                      SELECT id
-                      FROM electronics_pawn
-                      WHERE client_id = c.id
-                        AND shop_id = $4
-                      UNION ALL
-                      SELECT id
-                      FROM watch_pawn
-                      WHERE client_id = c.id
-                        AND shop_id = $4
-                      UNION ALL
-                      SELECT id
-                      FROM vehicle_pawn
-                      WHERE client_id = c.id
-                        AND shop_id = $4
-                      UNION ALL
-                      SELECT id
-                      FROM other_pawn
-                      WHERE client_id = c.id
-                        AND shop_id = $4) AS all_pawns) AS "Active Pawns",
-               (SELECT SUM(price_pawned)
-                FROM (SELECT price_pawned
-                      FROM gold_pawn
-                      WHERE client_id = c.id
-                        AND shop_id = $4
-                      UNION ALL
-                      SELECT price_pawned
-                      FROM electronics_pawn
-                      WHERE client_id = c.id
-                        AND shop_id = $4
-                      UNION ALL
-                      SELECT price_pawned
-                      FROM watch_pawn
-                      WHERE client_id = c.id
-                        AND shop_id = $4
-                      UNION ALL
-                      SELECT price_pawned
-                      FROM vehicle_pawn
-                      WHERE client_id = c.id
-                        AND shop_id = $4
-                      UNION ALL
-                      SELECT price_pawned
-                      FROM other_pawn
-                      WHERE client_id = c.id
-                        AND shop_id = $4) AS all_pawns) AS "Money Pawns",
-               (SELECT SUM(provision)
-                FROM (SELECT provision
-                      FROM gold_pawn
-                      WHERE client_id = c.id
-                        AND shop_id = $4
-                      UNION ALL
-                      SELECT provision
-                      FROM electronics_pawn
-                      WHERE client_id = c.id
-                        AND shop_id = $4
-                      UNION ALL
-                      SELECT provision
-                      FROM watch_pawn
-                      WHERE client_id = c.id
-                        AND shop_id = $4
-                      UNION ALL
-                      SELECT provision
-                      FROM vehicle_pawn
-                      WHERE client_id = c.id
-                        AND shop_id = $4
-                      UNION ALL
-                      SELECT provision
-                      FROM other_pawn
-                      WHERE client_id = c.id
-                        AND shop_id = $4) AS all_pawns) AS "Money Provision"
+        SELECT c.id                                                  AS "Id",
+               c.name                                                AS "Name",
+               c.telephone                                           AS "Telephone 1",
+               c.telephone_2                                         AS "Telephone 2",
+               c.city                                                AS "City",
+               COALESCE((SELECT COUNT(*)
+                         FROM transaction t
+                         WHERE t.client_id = c.id
+                           AND t.description = 'Added new pawn'), 0) AS "Total Pawns",
+               COALESCE((SELECT COUNT(*)
+                         FROM (SELECT id
+                               FROM gold_pawn
+                               WHERE client_id = c.id
+                                 AND shop_id = $4
+                               UNION ALL
+                               SELECT id
+                               FROM electronics_pawn
+                               WHERE client_id = c.id
+                                 AND shop_id = $4
+                               UNION ALL
+                               SELECT id
+                               FROM watch_pawn
+                               WHERE client_id = c.id
+                                 AND shop_id = $4
+                               UNION ALL
+                               SELECT id
+                               FROM vehicle_pawn
+                               WHERE client_id = c.id
+                                 AND shop_id = $4
+                               UNION ALL
+                               SELECT id
+                               FROM other_pawn
+                               WHERE client_id = c.id
+                                 AND shop_id = $4) AS all_pawns), 0) AS "Active Pawns",
+               COALESCE((SELECT SUM(price_pawned)
+                         FROM (SELECT price_pawned
+                               FROM gold_pawn
+                               WHERE client_id = c.id
+                                 AND shop_id = $4
+                               UNION ALL
+                               SELECT price_pawned
+                               FROM electronics_pawn
+                               WHERE client_id = c.id
+                                 AND shop_id = $4
+                               UNION ALL
+                               SELECT price_pawned
+                               FROM watch_pawn
+                               WHERE client_id = c.id
+                                 AND shop_id = $4
+                               UNION ALL
+                               SELECT price_pawned
+                               FROM vehicle_pawn
+                               WHERE client_id = c.id
+                                 AND shop_id = $4
+                               UNION ALL
+                               SELECT price_pawned
+                               FROM other_pawn
+                               WHERE client_id = c.id
+                                 AND shop_id = $4) AS all_pawns), 0) AS "Money Pawns",
+               COALESCE((SELECT SUM(provision)
+                         FROM (SELECT provision
+                               FROM gold_pawn
+                               WHERE client_id = c.id
+                                 AND shop_id = $4
+                               UNION ALL
+                               SELECT provision
+                               FROM electronics_pawn
+                               WHERE client_id = c.id
+                                 AND shop_id = $4
+                               UNION ALL
+                               SELECT provision
+                               FROM watch_pawn
+                               WHERE client_id = c.id
+                                 AND shop_id = $4
+                               UNION ALL
+                               SELECT provision
+                               FROM vehicle_pawn
+                               WHERE client_id = c.id
+                                 AND shop_id = $4
+                               UNION ALL
+                               SELECT provision
+                               FROM other_pawn
+                               WHERE client_id = c.id
+                                 AND shop_id = $4) AS all_pawns),
+                        0)                                           AS "Money Provision"
         FROM client c
         WHERE c.name <> 'Admin'
           AND LOWER(c.name) LIKE $1 || '%'
@@ -1172,6 +1179,7 @@ async function getAllTransactions(limit, offset, orderBy, orderDirection, search
     return rows;
 }
 
+
 async function getDailyReport(date) {
     // Get total money given, total profit, and total turnover
     const {rows: totalRows} = await pool.query(`
@@ -1224,7 +1232,8 @@ async function getDailyReport(date) {
 
     const {rows: cashFlowRows} = await pool.query(`
         SELECT category,
-               SUM(money_given)        AS "moneyGiven"
+               SUM(money_given)        AS "moneyGiven",
+               SUM(money_got)          AS "moneyGot"
         FROM transaction t1
         WHERE DATE(t1.date) = $1
           AND t1.category IN ('Remove', 'Insert', 'Expense')
@@ -1246,6 +1255,7 @@ async function getDailyReport(date) {
                             ON c.id = t.client_id
         WHERE DATE(date) = $1
           AND t.shop_id = $2
+        ORDER BY t.date DESC;
     `, [date, SHOP_ID])
 
     // Combine all the results into one object

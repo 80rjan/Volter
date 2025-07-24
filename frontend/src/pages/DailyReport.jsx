@@ -139,7 +139,7 @@ export default function DailyReport() {
                                             <CashFlowReport>
                                                 <div>
                                                     <span>{getCat[item.category]}:</span>
-                                                    {Number(item.moneyGiven).toLocaleString("de-DE")}
+                                                    {Number(item.category === "Insert" ? item.moneyGot : item.moneyGiven).toLocaleString("de-DE")}
                                                 </div>
                                             </CashFlowReport>
                                         ))
@@ -409,7 +409,7 @@ const TableHeader = styled.div`
     display: grid;
     place-items: center;
     grid-template-columns: 2fr 1.5fr repeat(4, 1.5fr);
-    column-gap: 4rem;
+    column-gap: 1rem;
     padding: 1rem .5rem;
     border-bottom: rgba(0, 0, 0, 0.2) 2px solid;
     color: #eee;
