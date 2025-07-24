@@ -112,11 +112,17 @@ export default function ModalActions({ id, category, clientName, successMsg, act
                                 <div>
                                     <p>Исплатени пари: <span
                                         style={{fontWeight: 600}}>{priceBought.toLocaleString("de-DE")}</span></p>
-                                    {category === "sale" ? undefined : <p>Провизија: <span
-                                        style={{fontWeight: 600}}>{provision.toLocaleString("de-DE")}</span></p>}
-                                    {category === "sale" ? undefined : <p>Казна: <span
-                                        style={{fontWeight: 600}}>{Math.round(penaltyPrice).toLocaleString("de-DE")}</span></p>}
-                                    {successMsg !== "Успешно продолжен залог!" ? undefined : <p>Префрлени денови: <span style={{fontWeight: 600}}>{carryOverDays.toLocaleString("de-DE")}</span></p>}
+                                    {
+                                        category === "sale" ? undefined : <p>Провизија: <span
+                                            style={{fontWeight: 600}}>{provision.toLocaleString("de-DE")}</span></p>
+                                    }
+                                    {
+                                        category === "sale" ? undefined : <p>Казна: <span
+                                            style={{fontWeight: 600}}>{Math.round(penaltyPrice).toLocaleString("de-DE")}</span></p>
+                                    }
+                                    {
+                                        successMsg !== "Успешно продолжен залог!" ? undefined : <p>Префрлени денови: <span style={{fontWeight: 600}}>{carryOverDays.toLocaleString("de-DE")}</span></p>
+                                    }
                                     <div>
                                         <StyledInput onChange={e => {
                                             setPrice(e.target.value)

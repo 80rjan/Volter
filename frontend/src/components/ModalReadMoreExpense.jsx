@@ -21,16 +21,13 @@ export default function ModalReadMoreExpense({expenseInfo, closeModal}) {
 
         for (const tx of transactions) {
             let description = '';
-            const descriptionMatch = tx.Description.match(/Опис:\s*([^.]*)/);
+            const descriptionMatch = tx.Description.match(/Опис:\s*(.*)/);
             if (descriptionMatch) {
                 description = descriptionMatch[1].trim();
             }
             for (const type of types) {
-                const regex = new RegExp(`${type}:\\s*(\\d+)`, 'i');
-                const match = tx.Description.match(regex);
-
-                if (match) {
-                    const expenseAmount = parseFloat(match[1]);
+                if (tx.Description.includes(type)) {
+                    const expenseAmount = tx["Money Given"];
                     const dateOnly = new Date(tx.Date).toISOString().split('T')[0];
                     allExpenses.push({
                         date: dateOnly,
@@ -102,7 +99,7 @@ export default function ModalReadMoreExpense({expenseInfo, closeModal}) {
                                     <ExpenseShort style={index % 2 === 1 ? { background: "#f0f0f0" } : { background: "#ffffff" }}>
                                         <span>{expense.date}</span>
                                         <span>{expense.typeOfExpense}</span>
-                                        <span>{expense.expenseMoney.toLocaleString("de-DE")}</span>
+                                        <span>{Number(expense.expenseMoney).toLocaleString("de-DE")}</span>
                                         <span>{expense.description || "/"}</span>
                                     </ExpenseShort>
                                 ))

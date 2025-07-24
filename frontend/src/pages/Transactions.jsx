@@ -9,7 +9,7 @@ import Loading from "../components/Loading.jsx";
 export default function Transactions() {
     const [allTransactions, setAllTransactions] = useState([]);
     const [orderBy, setOrderBy] = useState("Date");
-    const orderDirectionArr = useRef([0, 0, 0, 0, 0, 0, 0, -1]);
+    const orderDirectionArr = useRef([0, 0, 0, 0, 0, 0, 0, 0, -1]);
     const [orderDirection, setOrderDirection] = useState("DESC");
     const [searchByName, setSearchByName] = useState("");
     const [searchByEmbg, setSearchByEmbg] = useState("");
@@ -172,8 +172,11 @@ export default function Transactions() {
                         <Text onClick={() => handleOrder("Profit", 6)}>
                             Профит {orderDirectionArr.current[6] === 0 ? <Minus size={14} /> : orderDirectionArr.current[6] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
-                        <Text onClick={() => handleOrder("Date", 7)}>
-                            Датум {orderDirectionArr.current[7] === 0 ? <Minus size={14} /> : orderDirectionArr.current[7] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        <Text onClick={() => handleOrder("Diff", 7)}>
+                            Отстапување {orderDirectionArr.current[7] === 0 ? <Minus size={14} /> : orderDirectionArr.current[7] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        </Text>
+                        <Text onClick={() => handleOrder("Date", 8)}>
+                            Датум {orderDirectionArr.current[8] === 0 ? <Minus size={14} /> : orderDirectionArr.current[8] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
                     </TableHeader>
                     <ScrollableTransactions ref={scrollableTransactionsRef}>
@@ -190,6 +193,7 @@ export default function Transactions() {
                                     <TextTransaction className="bold color">{Number(transaction.Given).toLocaleString("de-DE")}</TextTransaction>
                                     <TextTransaction className="bold color">{Number(transaction.Got).toLocaleString("de-DE")}</TextTransaction>
                                     <TextTransaction className="bold color">{Number(transaction.Profit).toLocaleString("de-DE")}</TextTransaction>
+                                    <TextTransaction className={`bold color ${Number(transaction.Diff) === 0 ? "" : Number(transaction.Diff) < 0 ? "red" : "green"}`}>{Number(transaction.Diff).toLocaleString("de-DE")}</TextTransaction>
                                     <TextTransaction>{transaction.Date.substring(0, 10)}</TextTransaction>
                                 </Transaction>
                             ))
@@ -261,7 +265,7 @@ const TransactionsWrapper = styled.div`
 const TableHeader = styled.div`
     display: grid;
     place-items: center;
-    grid-template-columns: 2rem 1fr 1.5fr 1.5fr 2.5fr repeat(3, 1.5fr) 1fr;
+    grid-template-columns: 2rem 1fr 1.5fr 1fr 2fr repeat(4, 1fr) 1fr;
     gap: 1rem;
     padding: 1rem .5rem;
     border-bottom: rgba(0, 0, 0, 0.2) 2px solid;
@@ -301,7 +305,7 @@ const ScrollableTransactions = styled.div`
 const Transaction = styled.div`
     display: grid;
     place-items: center;
-    grid-template-columns: 2rem 1fr 1.5fr 1.5fr 2.5fr repeat(3, 1.5fr) 1fr;
+    grid-template-columns: 2rem 1fr 1.5fr 1fr 2fr repeat(4, 1fr) 1fr;
     gap: .4rem;
     padding: .8rem;
     border-bottom: rgba(0,0,0,0.2) 2px solid;
@@ -326,5 +330,11 @@ const TextTransaction = styled.p`
     }
     &.color {
         font-style: italic;
+    }
+    &.red {
+        color: red;
+    }
+    &.green {
+        color: green;
     }
 `;
