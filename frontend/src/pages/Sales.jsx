@@ -23,6 +23,8 @@ export default function Sales() {
     const isFetchingRef = useRef(false);
     const [isFetching, setIsFetching] = useState(false);
 
+    const fetchedSaleIds = useRef(new Set());
+
     const fetchSales = (limit, offset, order, direction, isLoading) => {
         if (isFetching) return;
         setIsFetching(true);
@@ -30,12 +32,10 @@ export default function Sales() {
         isFetchingRef.current = true;
         axios.get(`http://localhost:3000/sales?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}`)
             .then(res => {
-                setAllSales(prev => {
-                    const ids = new Set(prev.map(s => `${s.Id}`));
-                    const newUnique = res.data.filter(s => !ids.has(`${s.Id}`));
-                    return [...prev, ...newUnique];
-                });
+                const newUnique = res.data.filter(s => !fetchedSaleIds.current.has(s.Id));
+                newUnique.forEach(s => fetchedSaleIds.current.add(s.Id));
 
+                setAllSales(prev => [...prev, ...newUnique]);
                 setIsLastPage(res.data.length < limit);
             })
             .catch(error => {
@@ -71,6 +71,7 @@ export default function Sales() {
     }, [isLastPage, refresh])
 
     useEffect(() => {
+        fetchedSaleIds.current.clear();
         setAllSales([]);
         offset.current = 0;
         fetchSales(limit, offset.current, orderBy, orderDirection, true);

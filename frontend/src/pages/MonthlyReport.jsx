@@ -30,6 +30,8 @@ export default function MonthlyReport() {
         month: 0,
     });
 
+    const fetchedReportIds = useRef(new Set());
+
     const fetchReports = (limit, offset, order, direction, searchByMonth, searchByYear, isLoading) => {
         if (isFetching) return;
         setIsFetching(true);
@@ -37,12 +39,10 @@ export default function MonthlyReport() {
         isFetchingRef.current = true;
         axios.get(`http://localhost:3000/monthlyReport?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByMonth=${searchByMonth}&searchByYear=${searchByYear}`)
             .then(res => {
-                setAllReports(prev => {
-                    const ids = new Set(prev.map(r => `${r.Id}`));
-                    const newUnique = res.data.filter(r => !ids.has(`${r.Id}`));
-                    return [...prev, ...newUnique];
-                });
+                const newUnique = res.data.filter(r => !fetchedReportIds.current.has(r.Id));
+                newUnique.forEach(r => fetchedReportIds.current.add(r.Id));
 
+                setAllReports(prev => [...prev, ...newUnique]);
                 setIsLastPage(res.data.length < limit);
             })
             .catch(error => {
@@ -101,6 +101,7 @@ export default function MonthlyReport() {
     }, [isLastPage, refresh, orderBy, orderDirection, searchByMonth, searchByYear])
 
     useEffect(() => {
+        fetchedReportIds.current.clear();
         setAllReports([]);
         offset.current = 0;
         fetchReports(limit, offset.current, orderBy, orderDirection, searchByMonth, searchByYear, true);

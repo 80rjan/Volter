@@ -27,6 +27,8 @@ export default function Expenses() {
     const [isFetching, setIsFetching] = useState(false);
     const [modalReadMore, setModalReadMore] = useState(false);
 
+    const fetchedExpenseIds = useRef(new Set());
+
     const fetchExpenses = (limit, offset, order, direction, searchByMonth, searchByYear, isLoading) => {
         if (isFetching) return;
         setIsFetching(true);
@@ -34,12 +36,10 @@ export default function Expenses() {
         isFetchingRef.current = true;
         axios.get(`http://localhost:3000/expenses?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByMonth=${searchByMonth}&searchByYear=${searchByYear}`)
             .then(res => {
-                setAllExpenses(prev => {
-                    const ids = new Set(prev.map(e => `${e.Id}`));
-                    const newUnique = res.data.filter(e => !ids.has(`${e.Id}`));
-                    return [...prev, ...newUnique];
-                });
+                const newUnique = res.data.filter(e => !fetchedExpenseIds.current.has(e.Id));
+                newUnique.forEach(e => fetchedExpenseIds.current.add(e.Id));
 
+                setAllExpenses(prev => [...prev, ...newUnique]);
                 setIsLastPage(res.data.length < limit);
             })
             .catch(error => {
@@ -75,6 +75,7 @@ export default function Expenses() {
     }, [isLastPage, refresh, orderBy, orderDirection, searchByMonth, searchByYear])
 
     useEffect(() => {
+        fetchedExpenseIds.current.clear();
         setAllExpenses([]);
         offset.current = 0;
         fetchExpenses(limit, offset.current, orderBy, orderDirection, searchByMonth, searchByYear, true);

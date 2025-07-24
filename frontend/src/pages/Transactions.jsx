@@ -58,6 +58,8 @@ export default function Transactions() {
         { value: "Expense", label: "Расходи" },
     ]
 
+    const fetchedTransactionIds = useRef(new Set());
+
     const fetchTransactions = (limit, offset, order, direction, searchByName, searchByEmbg, searchByDate, searchByCategory, isLoading) => {
         if (isFetching) return;
         setIsFetching(true);
@@ -66,12 +68,10 @@ export default function Transactions() {
 
         axios.get(`http://localhost:3000/transactions?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByDate=${searchByDate}&searchByCategory=${searchByCategory}`)
             .then(res => {
-                setAllTransactions(prev => {
-                    const ids = new Set(prev.map(t => `${t.Id}`));
-                    const newUnique = res.data.filter(t => !ids.has(`${t.Id}`));
-                    return [...prev, ...newUnique];
-                })
+                const newUnique = res.data.filter(t => !fetchedTransactionIds.current.has(t.Id));
+                newUnique.forEach(t => fetchedTransactionIds.current.add(t.Id));
 
+                setAllTransactions(prev => [...prev, ...newUnique]);
                 setIsLastPage(res.data.length < limit);
             })
             .catch(error => {
@@ -108,6 +108,7 @@ export default function Transactions() {
     useEffect(() => {
         if (searchByDate && searchByDate.length > 0 && searchByDate.length < 10)
             return;
+        fetchedTransactionIds.current.clear();
         setAllTransactions([]);
         offset.current = 0;
         fetchTransactions(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByDate, searchByCategory, true);

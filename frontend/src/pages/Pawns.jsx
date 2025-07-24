@@ -36,6 +36,7 @@ export default function Pawns() {
         { value: "Other", label: "Залог останато" }
     ]
 
+    const fetchedPawnIds = useRef(new Set());
 
     const fetchPawns = (limit, offset, order, direction, searchByName, searchByEmbg, searchByTel, searchByCategory, isLoading) => {
         if (isFetching) return;
@@ -44,12 +45,10 @@ export default function Pawns() {
         isFetchingRef.current = true;
         axios.get(`http://localhost:3000?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByTel=${searchByTel}&searchByCategory=${searchByCategory}`)
             .then(res => {
-                setAllPawns(prev => {
-                    const ids = new Set(prev.map(p => `${p.Category}_${p.Id}`));
-                    const newUnique = res.data.filter(p => !ids.has(`${p.Category}_${p.Id}`));
-                    return [...prev, ...newUnique];
-                });
+                const newUnique = res.data.filter(p => !fetchedPawnIds.current.has(`${p.Category}_${p.Id}`));
+                newUnique.forEach(p => fetchedPawnIds.current.add(`${p.Category}_${p.Id}`));
 
+                setAllPawns(prev => [...prev, ...newUnique]);
                 setIsLastPage(res.data.length < limit);
             })
             .catch(error => {
@@ -85,6 +84,7 @@ export default function Pawns() {
     }, [isLastPage, refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, searchByCategory])
 
     useEffect(() => {
+        fetchedPawnIds.current.clear();
         setAllPawns([]);
         offset.current = 0;
         fetchPawns(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, searchByCategory, true);

@@ -27,6 +27,8 @@ export default function Clients() {
     const [isFetching, setIsFetching] = useState(false);
     const [refreshCashReg, setRefreshCashReg] = useState(false);
 
+    const fetchedClientIds = useRef(new Set());
+
     const fetchClients = (limit, offset, order, direction, searchByName, searchByEmbg, searchByTel, isLoading) => {
         if (isFetching) return;
         setIsFetching(true);
@@ -34,12 +36,10 @@ export default function Clients() {
         isFetchingRef.current = true;
         axios.get(`http://localhost:3000/clients?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByTel=${searchByTel}`)
             .then(res => {
-                setAllClients(prev => {
-                    const ids = new Set(prev.map(c => `${c.Id}`));
-                    const newUnique = res.data.filter(c => !ids.has(`${c.Id}`));
-                    return [...prev, ...newUnique];
-                });
+                const newUnique = res.data.filter(c => !fetchedClientIds.current.has(c.Id));
+                newUnique.forEach(c => fetchedClientIds.current.add(c.Id));
 
+                setAllClients(prev => [...prev, ...newUnique]);
                 setIsLastPage(res.data.length < limit);
             })
             .catch(error => {
@@ -75,6 +75,7 @@ export default function Clients() {
     }, [isLastPage, refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel])
 
     useEffect(() => {
+        fetchedClientIds.current.clear();
         setAllClients([]);
         offset.current = 0;
         fetchClients(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, true);
