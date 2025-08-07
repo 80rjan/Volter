@@ -5,7 +5,7 @@ import styled from "styled-components";
 import ModalAdjustCashRegister from "../components/ModalAdjustCashRegister.jsx";
 import Loading from "../components/Loading.jsx";
 
-export default function CashRegister({ refreshDependancy, refreshDependancyAdjustPawn, refreshTransactions }) {
+export default function CashRegister({ refreshDependency, refreshDependencyAdjustPawn, refreshTransactions }) {
     const [cashReg, setCashReg] = useState({});
     const [showModalInsert, setShowModalInsert] = useState(false);
     const [showModalRemove, setShowModalRemove] = useState(false);
@@ -23,7 +23,7 @@ export default function CashRegister({ refreshDependancy, refreshDependancyAdjus
 
     useEffect(() => {
         fetchCashRegister();
-    }, [refreshDependancy, refreshDependancyAdjustPawn]);
+    }, [refreshDependency, refreshDependencyAdjustPawn]);
 
     return (
         <Wrapper>

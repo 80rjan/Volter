@@ -158,7 +158,7 @@ export default function Clients() {
 
                 </ClientsWrapper>
 
-                <CashRegister refreshDependancy={refresh} refreshDependancyAdjustPawn={refreshCashReg} />
+                <CashRegister refreshDependency={refresh} refreshDependencyAdjustPawn={refreshCashReg} />
             </Container>
         </ClientsPage>
     )

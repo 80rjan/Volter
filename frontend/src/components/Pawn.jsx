@@ -143,6 +143,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
 
             {modalClosePawn &&
                 <ModalActions
+                    pawnAction={"close"}
                     action={closePawn}
                     id={pawn.Id}
                     category={pawn.Category}
@@ -161,6 +162,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
 
             {modalContinuePawn &&
                 <ModalActions
+                    pawnAction={"continue"}
                     action={continuePawn}
                     id={pawn.Id}
                     category={pawn.Category}

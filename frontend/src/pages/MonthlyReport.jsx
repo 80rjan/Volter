@@ -218,7 +218,7 @@ export default function MonthlyReport() {
                     />
                 }
 
-                <CashRegister refreshDependancy={true}/>
+                <CashRegister refreshDependency={true}/>
             </Container>
         </ReportPage>
     )

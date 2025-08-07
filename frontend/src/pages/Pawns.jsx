@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import axios from "axios";
 import styled from "styled-components";
 import Pawn from "../components/Pawn.jsx";
@@ -10,6 +10,7 @@ import Loading from "../components/Loading.jsx";
 
 export default function Pawns() {
     const [allPawns, setAllPawns] = useState([]);
+    const [summary, setSummary] = useState({});
     const [orderBy, setOrderBy] = useState("Valid Until");
     const orderDirectionArr = useRef([0, 0, 0, 0, 0, 0, 1]); // -1=desc 0=normal 1=asc
     const [orderDirection, setOrderDirection] = useState("ASC");
@@ -29,11 +30,11 @@ export default function Pawns() {
     const [refreshCashReg, setRefreshCashReg] = useState(false);
 
     const filterSelectOptions = [
-        { value: "Gold", label: "Залог злато" },
-        { value: "Electronics", label: "Залог електроника" },
-        { value: "Watch", label: "Залог часовници" },
-        { value: "Vehicle", label: "Залог возила" },
-        { value: "Other", label: "Залог останато" }
+        {value: "Gold", label: "Залог злато"},
+        {value: "Electronics", label: "Залог електроника"},
+        {value: "Watch", label: "Залог часовници"},
+        {value: "Vehicle", label: "Залог возила"},
+        {value: "Other", label: "Залог останато"}
     ]
 
     const fetchedPawnIds = useRef(new Set());
@@ -45,11 +46,15 @@ export default function Pawns() {
         isFetchingRef.current = true;
         axios.get(`http://localhost:3000?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByTel=${searchByTel}&searchByCategory=${searchByCategory}`)
             .then(res => {
-                const newUnique = res.data.filter(p => !fetchedPawnIds.current.has(`${p.Category}_${p.Id}`));
+                console.log(res)
+                setSummary(res.data.summary);
+
+                const pawns = res.data.pawns
+                const newUnique = pawns.filter(p => !fetchedPawnIds.current.has(`${p.Category}_${p.Id}`));
                 newUnique.forEach(p => fetchedPawnIds.current.add(`${p.Category}_${p.Id}`));
 
                 setAllPawns(prev => [...prev, ...newUnique]);
-                setIsLastPage(res.data.length < limit);
+                setIsLastPage(pawns.length < limit);
             })
             .catch(error => {
                 console.error('Error fetching all pawns:', error)
@@ -211,22 +216,56 @@ export default function Pawns() {
                     </ScrollablePawns>
 
                     <TableFooter>
-                        <div>
-                            <X size={18} color="#000"/>
-                            <span> - Затвори залог</span>
-                        </div>
-                        <div>
-                            <RotateCcw size={18} color="var(--cta-color)"/>
-                            <span> - Продолжи залог</span>
-                        </div>
-                        <div>
-                            <Euro size={18} color="var(--green)"/>
-                            <span> - Премести залог во продажба</span>
-                        </div>
+                        {
+                            searchByTel.length > 0 || searchByEmbg.length > 0 || searchByName.length > 0 || searchByCategory.length > 0 ?
+                                (
+                                    <>
+                                        <div>
+                                            <span>Бр. залози:</span>
+                                            {loading ?
+                                                <Loading width={20} height={20}/> :
+                                                Number(summary["Num Pawns"]).toLocaleString("de-DE")}
+                                        </div>
+                                        <div>
+                                            <span>Исплатени средства:</span>
+                                            {loading ?
+                                                <Loading width={20} height={20}/> :
+                                                Number(summary["Money Pawns"]).toLocaleString("de-DE")}
+                                        </div>
+                                        <div>
+                                            <span>Очекуван приход:</span>
+                                            {loading ? (
+                                                <Loading width={20} height={20}/>
+                                            ) : Number(summary["Provision"]).toLocaleString("de-DE")}
+                                            <span>/</span>
+                                            <span>
+                                                {loading ? (
+                                                    <Loading width={20} height={20}/>
+                                                ) : ((summary["Provision"] / summary["Money Pawns"] * 100) || 0).toFixed(2).toLocaleString("de-DE") + '%'}
+                                            </span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div>
+                                            <X size={18} color="#000"/>
+                                            <span> - Затвори залог</span>
+                                        </div>
+                                        <div>
+                                            <RotateCcw size={18} color="var(--cta-color)"/>
+                                            <span> - Продолжи залог</span>
+                                        </div>
+                                        <div>
+                                            <Euro size={18} color="var(--green)"/>
+                                            <span> - Премести залог во продажба</span>
+                                        </div>
+                                    </>
+                                )
+                        }
                     </TableFooter>
                 </PawnsWrapper>
 
-                <CashRegister refreshDependancy={refresh} refreshDependancyAdjustPawn={refreshCashReg}/>
+                <CashRegister refreshDependency={refresh} refreshDependencyAdjustPawn={refreshCashReg}/>
             </Container>
         </PawnsPage>
     )
@@ -359,18 +398,20 @@ const TableFooter = styled.div`
     display: flex;
     justify-content: space-between;
     padding: 1rem;
-    color: #444;
-    font-weight: 400;
     margin-top: auto;
     box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.2);
-    //background: #ccc;
+    font-size: .8rem;
+    font-weight: 600;
 
     div {
         display: flex;
-        gap: .4rem
+        gap: .4rem;
+        align-items: center;
     }
 
     span {
-        font-size: .8rem;
+        white-space: nowrap;
+        color: #444;
+        font-weight: 400;
     }
 `

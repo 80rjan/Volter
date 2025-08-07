@@ -8,7 +8,75 @@ function getUTCDateNow() {
 }
 
 async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByTel = "", searchByCategory = "") {
-    const {rows} = await pool.query(`
+    const {rows: summaryRows} = await pool.query(`
+        SELECT COUNT(*)         AS "Num Pawns",
+               COALESCE(SUM("Item Cost"), 0) AS "Money Pawns",
+               COALESCE(SUM("Provision"), 0) AS "Provision"
+        FROM (SELECT ep.price_pawned AS "Item Cost", ep.provision AS "Provision"
+              FROM client c
+                       INNER JOIN electronics_pawn ep ON c.id = ep.client_id
+              WHERE LOWER(c.name) LIKE $1 || '%'
+                AND c.embg LIKE $2 || '%'
+                AND (c.telephone LIKE $3 || '%'
+                  OR c.telephone_2 LIKE $3 || '%')
+                AND ($4 = '' OR $4 = 'Electronics')
+                AND ep.shop_id = $5
+
+              UNION ALL
+
+              SELECT gp.price_pawned AS "Item Cost", gp.provision AS "Provision"
+              FROM client c
+                       INNER JOIN gold_pawn gp
+                                  ON c.id = gp.client_id
+              WHERE LOWER(c.name) LIKE $1 || '%'
+                AND c.embg LIKE $2 || '%'
+                AND (c.telephone LIKE $3 || '%'
+                  OR c.telephone_2 LIKE $3 || '%')
+                AND ($4 = '' OR $4 = 'Gold')
+                AND gp.shop_id = $5
+
+              UNION ALL
+
+              SELECT op.price_pawned AS "Item Cost", op.provision AS "Provision"
+              FROM client c
+                       INNER JOIN other_pawn op
+                                  ON c.id = op.client_id
+              WHERE LOWER(c.name) LIKE $1 || '%'
+                AND c.embg LIKE $2 || '%'
+                AND (c.telephone LIKE $3 || '%'
+                  OR c.telephone_2 LIKE $3 || '%')
+                AND ($4 = '' OR $4 = 'Other')
+                AND op.shop_id = $5
+
+              UNION ALL
+
+              SELECT vp.price_pawned AS "Item Cost", vp.provision AS "Provision"
+              FROM client c
+                       INNER JOIN vehicle_pawn vp
+                                  ON c.id = vp.client_id
+              WHERE LOWER(c.name) LIKE $1 || '%'
+                AND c.embg LIKE $2 || '%'
+                AND (c.telephone LIKE $3 || '%'
+                  OR c.telephone_2 LIKE $3 || '%')
+                AND ($4 = '' OR $4 = 'Vehicle')
+                AND vp.shop_id = $5
+
+              UNION ALL
+
+              SELECT wp.price_pawned AS "Item Cost", wp.provision AS "Provision"
+              FROM client c
+                       INNER JOIN watch_pawn wp
+                                  ON c.id = wp.client_id
+              WHERE LOWER(c.name) LIKE $1 || '%'
+                AND c.embg LIKE $2 || '%'
+                AND (c.telephone LIKE $3 || '%'
+                  OR c.telephone_2 LIKE $3 || '%')
+                AND ($4 = '' OR $4 = 'Watch')
+                AND wp.shop_id = $5) as allPawns;
+    `, [searchByName, searchByEmbg, searchByTel, searchByCategory, SHOP_ID]);
+
+
+    const {rows: pawnRows} = await pool.query(`
         SELECT *
         FROM (SELECT c.id                                                AS "Client Id",
                      c.name                                              AS "Name",
@@ -119,10 +187,12 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
                 AND wp.shop_id = $5
               )
                  AS pawns
-        ORDER BY "${orderBy}" ${orderDirection}
+        ORDER BY "${orderBy}" ${orderDirection}, "Category" ${orderDirection}, "Id" ${orderDirection}
         LIMIT ${limit} OFFSET ${offset};
     `, [searchByName, searchByEmbg, searchByTel, searchByCategory, SHOP_ID]);
-    return rows;
+
+
+    return {pawns: pawnRows, summary: summaryRows[0]};
 }
 
 async function getPawn(clientId, category, pawnId) {
@@ -693,7 +763,7 @@ async function getAllSales(limit, offset, orderBy, orderDirection) {
                s.price_bought                     AS "Item Cost"
         FROM sale s
         WHERE s.shop_id = $1
-        ORDER BY "${orderBy}" ${orderDirection}
+        ORDER BY "${orderBy}" ${orderDirection}, "Id" ${orderDirection}
         LIMIT ${limit} OFFSET ${offset};
     `, [SHOP_ID])
 
@@ -814,6 +884,7 @@ async function getAllClientsAutocomplete(limit, offset, search) {
            OR embg LIKE $1
            OR telephone LIKE $1
            OR telephone_2 LIKE $1
+        ORDER BY id
         LIMIT ${limit} OFFSET ${offset};
     `, [`${search}%`]);
     return rows;
@@ -914,7 +985,7 @@ async function getAllClients(limit, offset, orderBy, orderDirection, searchByNam
           AND c.embg LIKE $2 || '%'
           AND (c.telephone LIKE $3 || '%'
             OR c.telephone_2 LIKE $3 || '%')
-        ORDER BY "${orderBy}" ${orderDirection}
+        ORDER BY "${orderBy}" ${orderDirection}, "Id" ${orderDirection}
         LIMIT ${limit} OFFSET ${offset};
     `, [searchByName, searchByEmbg, searchByTel, SHOP_ID]);
     return rows;
@@ -1001,7 +1072,7 @@ async function getAllExpenses(limit, offset, orderBy, orderDirection, searchByMo
         WHERE ($1 = '' OR e.year = $1::INT)
           AND ($2 = '' OR e.month = $2::INT)
           AND e.shop_id = $3
-        ORDER BY ${orderBy} ${orderDirection}
+        ORDER BY ${orderBy} ${orderDirection}, "Year" ${orderDirection}, "Month" ${orderDirection}
         LIMIT ${limit} OFFSET ${offset};
     `, [searchByYear, searchByMonth, SHOP_ID])
 
@@ -1172,7 +1243,7 @@ async function getAllTransactions(limit, offset, orderBy, orderDirection, search
                 OR ($4 <> 'Change' AND t.category = $4)
             )
           AND t.shop_id = $5
-        ORDER BY "${orderBy}" ${orderDirection}
+        ORDER BY "${orderBy}" ${orderDirection}, "Id" ${orderDirection}
         LIMIT ${limit} OFFSET ${offset};
     `, [searchByName, searchByEmbg, searchByDate, searchByCategory, SHOP_ID])
 
@@ -1312,7 +1383,7 @@ async function getAllMonthlyReports(limit, offset, orderBy, orderDirection, sear
         WHERE ($1 = '' OR m.year = $1::INT)
           AND ($2 = '' OR m.month = $2::INT)
           AND m.shop_id = $3
-        ORDER BY ${orderByClause} ${orderDirection}
+        ORDER BY ${orderByClause} ${orderDirection}, "Year" ${orderDirection}, "Month" ${orderDirection}
         LIMIT ${limit} OFFSET ${offset};
     `, [searchByYear, searchByMonth, SHOP_ID])
 

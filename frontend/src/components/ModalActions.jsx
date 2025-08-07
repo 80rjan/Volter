@@ -8,12 +8,12 @@ import html2canvas from "html2canvas";
 import PotvrdaZaVratenPredmet from "../documents/PotvrdaZaVratenPredmet.jsx";
 
 //This modal is for closing, continuing or moving a pawn to sale and for selling items
-export default function ModalActions({ id, category, clientName, successMsg, action, priceBought, provision, dailyProvision, suggestedPrice, daysLeft, closeModal, title, refresh}) {
+export default function ModalActions({ pawnAction, id, category, clientName, successMsg, action, priceBought, provision, dailyProvision, suggestedPrice, daysLeft, closeModal, title, refresh}) {
     const [showSuccMsg, setShowSuccMsg] = useState(false);
     const [showEnterPrice, setShowEnterPrice] = useState(true);
     const [infoMsg, setInfoMsg] = useState("");
-    const penaltyPrice= daysLeft < 0 ? Math.abs(daysLeft) * dailyProvision : 0;
-    const [price, setPrice] = useState(category === "sale" ? suggestedPrice : suggestedPrice + penaltyPrice);
+    const penaltyPrice= daysLeft < 0 ? (pawnAction === "continue" ? Math.abs(daysLeft) * dailyProvision : provision) : 0;
+    const [price, setPrice] = useState(Math.round(category === "sale" ? suggestedPrice : suggestedPrice + penaltyPrice));
     const [carryOverDays, setCarryOverDays] = useState(Math.round((price - (suggestedPrice + penaltyPrice)) / dailyProvision));
     const [description, setDescription] = useState("");
     const [error, setError] = useState("");
@@ -22,11 +22,13 @@ export default function ModalActions({ id, category, clientName, successMsg, act
 
     const useActionFunc = () => {
         try {
-            category === "sale" ?
-                action(id, price, description) :
-                successMsg === "Успешно продолжен залог!" ?
-                    action(id, category, price, description, carryOverDays ) :
+            if (category === "sale")
+                action(id, price, description)
+            else
+                pawnAction === "continue" ?
+                    action(id, category, price, description, carryOverDays) :
                     action(id, category, price, description);
+
             setInfoMsg(`Успешно внесени ${Number(price).toLocaleString("de-DE")} во каса!`)
             setShowSuccMsg(true);
         } catch (error) {

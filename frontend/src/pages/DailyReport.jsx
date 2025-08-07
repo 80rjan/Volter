@@ -192,7 +192,7 @@ export default function DailyReport() {
                     </ContentWrapper>
                 }
 
-                <CashRegister refreshDependancy={true}/>
+                <CashRegister refreshDependency={true}/>
             </Container>
         </ReportPage>
     )

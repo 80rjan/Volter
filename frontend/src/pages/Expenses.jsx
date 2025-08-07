@@ -158,7 +158,7 @@ export default function Expenses() {
                     </ScrollableExpenses>
                 </ExpensesWrapper>
 
-                <CashRegister refreshDependancy={refresh}/>
+                <CashRegister refreshDependency={refresh}/>
             </Container>
 
             {modalReadMore &&

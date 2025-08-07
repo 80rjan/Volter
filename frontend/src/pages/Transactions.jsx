@@ -201,7 +201,7 @@ export default function Transactions() {
                         )}
                     </ScrollableTransactions>
                 </TransactionsWrapper>
-                <CashRegister refreshDependancy={refresh} refreshTransactions={() => setRefresh((prev) => !prev)} />
+                <CashRegister refreshDependency={refresh} refreshTransactions={() => setRefresh((prev) => !prev)} />
             </Container>
         </TransactionsPage>
     );

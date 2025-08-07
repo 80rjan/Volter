@@ -16,7 +16,7 @@ export default function YearlyReport() {
 
                 <div style={{height:'100%'}}/>
 
-                <CashRegister refreshDependancy={true} />
+                <CashRegister refreshDependency={true} />
             </Container>
         </ReportPage>
     )

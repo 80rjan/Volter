@@ -144,7 +144,7 @@ export default function Sales() {
                     </TableFooter>
                 </SalesWrapper>
 
-                <CashRegister refreshDependancy={refresh}/>
+                <CashRegister refreshDependency={refresh}/>
             </Container>
         </SalesPage>
     )

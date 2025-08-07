@@ -40,6 +40,7 @@ export default function Sale({ sale, refresh, isOdd }) {
 
             {modalSellItem &&
                 <ModalActions
+                    pawnAction={null}
                     action={sellItem}
                     id={sale.Id}
                     category={"sale"}
