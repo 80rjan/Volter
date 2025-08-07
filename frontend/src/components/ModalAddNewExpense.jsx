@@ -31,6 +31,12 @@ export default function ModalAddNewExpense({ closeModal, refresh }) {
         e.preventDefault();
         setLoading(true);
 
+        if (formData.year < 2000 || formData.month < 1 || formData.month > 12) {
+            setError("Внеси валидна година и месец");
+            setLoading(false);
+            return;
+        }
+
         axios.post('http://localhost:3000/expenses/insert', formData)
             .then(res => {
                 if (res.data.message !== 'Успешно внесен расход')

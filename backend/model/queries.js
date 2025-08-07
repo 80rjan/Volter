@@ -168,7 +168,7 @@ async function closePawn(id, tableName, priceClosed, description) {
             throw new Error("Invalid table name in REMOVE PAWN");
         }
 
-        const query = await client.query(`SELECT provision, price_pawned, client_id, ${tableName === 'gold_pawn' ? 'weight' : 'NULL as weight'}
+        const query = await client.query(`SELECT provision, price_pawned, client_id, ${tableName === 'gold_pawn' ? 'weight' : '0 as weight'}
                                           FROM ${tableName}
                                           WHERE id = $1;`, [id])
         let gold_grams = 0;
@@ -179,7 +179,7 @@ async function closePawn(id, tableName, priceClosed, description) {
             provision = query.rows[0].provision;
             pawnMoney = query.rows[0].price_pawned;
             clientId = query.rows[0].client_id;
-            gold_grams = query.rows[0]?.weight;
+            gold_grams = Number(query.rows[0]?.weight);
         } else
             throw new Error(`Pawn with id ${id} not found in table ${tableName} to REMOVE PAWN`);
 
