@@ -190,7 +190,7 @@ export default function Transactions() {
                             allTransactions.map((transaction, index) => (
                                 <Transaction key={index} style={index % 2 === 1 ? { background: "#f0f0f0" } : { background: "#ffffff" }}>
                                     <TextTransaction>{transaction["Client Id"]}</TextTransaction>
-                                    <TextTransaction>{transaction.Name}</TextTransaction>
+                                    <TextTransaction className="bold">{transaction.Name}</TextTransaction>
                                     <TextTransaction>{transaction.Embg}</TextTransaction>
                                     <TextTransaction>{getCat[transaction.Category] || transaction.Category}</TextTransaction>
                                     <TextTransaction>{getDesc[transaction.Description] || transaction.Description}</TextTransaction>
@@ -220,7 +220,7 @@ const Container = styled.div`
     display: flex;
     flex-direction: column;
     padding: 2rem 2rem 0 2rem;
-    gap: 1rem;
+    gap: .8rem;
     flex-grow: 1;
     overflow: hidden;
 `;
@@ -229,6 +229,10 @@ const HeaderWrapper = styled.div`
     display: flex;
     justify-content: space-between;
     width: 100%;
+
+    & > h1 {
+        font-size: 1.8rem;
+    }
 `;
 
 const FilterWrapper = styled.div`
@@ -240,18 +244,18 @@ const FilterWrapper = styled.div`
 const StyledSelect = styled.select`
     border: none;
     border-radius: .2rem;
-    font-size: 1rem;
+    font-size: .8rem;
     width: 20%;
-    padding: .5rem;
+    padding: .4rem;
     box-shadow: 0 0 8px rgba(0,0,0,0.2);
 `;
 
 const StyledInput = styled.input`
     border: none;
     border-radius: .2rem;
-    font-size: 1rem;
+    font-size: .8rem;
     width: 20%;
-    padding: .5rem;
+    padding: .4rem;
     box-shadow: 0 0 8px rgba(0,0,0,0.2);
 `;
 
@@ -269,17 +273,17 @@ const TransactionsWrapper = styled.div`
 const TableHeader = styled.div`
     display: grid;
     place-items: center;
-    grid-template-columns: 2rem 1fr 1.5fr 1fr 2fr repeat(4, 1fr) 1fr;
+    grid-template-columns: 3rem 1.5fr 1.5fr 1fr 2fr repeat(4, 1fr) 1fr;
     gap: 1rem;
-    padding: 1rem .5rem;
+    padding: .6rem .5rem;
     border-bottom: rgba(0, 0, 0, 0.2) 2px solid;
     color: #eee;
     background: #666;
 `;
 
 const Text = styled.div`
-    font-weight: 600;
-    font-size: .8rem;
+    font-weight: 500;
+    font-size: .7rem;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -309,9 +313,9 @@ const ScrollableTransactions = styled.div`
 const Transaction = styled.div`
     display: grid;
     place-items: center;
-    grid-template-columns: 2rem 1fr 1.5fr 1fr 2fr repeat(4, 1fr) 1fr;
+    grid-template-columns: 3rem 1.5fr 1.5fr 1fr 2fr repeat(4, 1fr) 1fr;
     gap: .4rem;
-    padding: .8rem;
+    padding: .2rem;
     border-bottom: rgba(0,0,0,0.2) 2px solid;
     transition: all 200ms ease-in-out;
     z-index: 1;
@@ -326,8 +330,8 @@ const Transaction = styled.div`
 `;
 
 const TextTransaction = styled.p`
+    font-size: .7rem;
     font-weight: 500;
-    font-size: .8rem;
 
     &.bold {
         font-weight: bold;

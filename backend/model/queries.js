@@ -1375,6 +1375,95 @@ async function getDailyReport(date) {
     };
 }
 
+async function getPeriodReport(dateFrom, dateTo) {
+    // Get total money given, total profit, and total turnover
+    const {rows: totalRows} = await pool.query(`
+        SELECT COUNT(*)                     AS "numTransactions",
+               SUM(money_given)             AS "moneyGiven",
+               SUM(profit)                  AS "profit",
+               SUM(money_given + money_got) AS "turnover"
+        FROM transaction
+        WHERE DATE(date) BETWEEN $1 AND $2
+          AND (category IN ('Electronics', 'Watch', 'Gold', 'Vehicle', 'Other', 'Sale'))
+          AND shop_id = $3;
+    `, [dateFrom, dateTo, SHOP_ID]);
+
+    // Get the number of transactions from Pawn category
+    const {rows: numPawnsRows} = await pool.query(`
+        SELECT COUNT(*) AS "numTransactions"
+        FROM transaction
+        WHERE DATE(date) BETWEEN $1 AND $2
+          AND description = 'Added new pawn'
+          AND shop_id = $3;
+    `, [dateFrom, dateTo, SHOP_ID]);
+
+    // Second query: Get the number of transactions from Sale category
+    const {rows: numSaleRows} = await pool.query(`
+        SELECT COUNT(*) AS "numTransactions"
+        FROM transaction
+        WHERE DATE(date) BETWEEN $1 AND $2
+          AND (description = 'Added new sale' OR description = 'Transferred pawn to sale')
+          AND shop_id = $3;
+    `, [dateFrom, dateTo, SHOP_ID]);
+
+    // Get count and sums grouped by category
+    const {rows: categoryRows} = await pool.query(`
+        SELECT category,
+               COUNT(*)                AS "numTransactions",
+               SUM(money_given)        AS "moneyGiven",
+               SUM(profit)             AS "profit",
+               (SELECT COUNT(*)
+                FROM transaction t2
+                WHERE DATE(t2.date) BETWEEN $1 AND $2
+                  AND t2.description LIKE 'Added new%'
+                  AND t2.category = t1.category
+                  AND t2.shop_id = $3) AS "numNew"
+        FROM transaction t1
+        WHERE DATE(date) BETWEEN $1 AND $2
+          AND t1.category IN ('Electronics', 'Watch', 'Gold', 'Vehicle', 'Other', 'Sale')
+          AND t1.shop_id = $3
+        GROUP BY category;
+    `, [dateFrom, dateTo, SHOP_ID]);
+
+    const {rows: cashFlowRows} = await pool.query(`
+        SELECT category,
+               SUM(money_given) AS "moneyGiven",
+               SUM(money_got)   AS "moneyGot"
+        FROM transaction t1
+        WHERE DATE(date) BETWEEN $1 AND $2
+          AND t1.category IN ('Remove', 'Insert', 'Expense')
+          AND t1.shop_id = $3
+        GROUP BY category;
+    `, [dateFrom, dateTo, SHOP_ID]);
+
+    const {rows: transactionRows} = await pool.query(`
+        SELECT c.name        AS "Name",
+               c.embg        AS "Embg",
+               t.money_given AS "Given",
+               t.money_got   AS "Got",
+               t.profit      AS "Profit",
+               t.money_diff  AS "Diff",
+               t.category    AS "Category",
+               t.description AS "Description"
+        FROM client c
+                 INNER JOIN transaction t
+                            ON c.id = t.client_id
+        WHERE DATE(date) BETWEEN $1 AND $2
+          AND t.shop_id = $3
+        ORDER BY t.date DESC;
+    `, [dateFrom, dateTo, SHOP_ID])
+
+    // Combine all the results into one object
+    return {
+        total: totalRows[0],
+        numPawns: numPawnsRows[0],
+        numSales: numSaleRows[0],
+        categories: categoryRows,
+        cashFlow: cashFlowRows,
+        transactions: transactionRows
+    };
+}
+
 async function getAllMonthlyReports(limit, offset, orderBy, orderDirection, searchByMonth = "", searchByYear = "") {
     const decodedOrderBy = decodeURIComponent(orderBy);
     let orderByClause;
@@ -1671,6 +1760,7 @@ module.exports = {
     insertExpense,
     getAllTransactions,
     getDailyReport,
+    getPeriodReport,
     getAllMonthlyReports,
     getMonthlyReport,
     generateNewMonthReport

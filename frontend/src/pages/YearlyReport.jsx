@@ -41,6 +41,10 @@ const HeaderWrapper = styled.div`
     display: flex;
     justify-content: space-between;
     width: 100%;
+
+    & > h1 {
+        font-size: 1.8rem;
+    }
 `
 
 const ButtonAddNewPawn = styled.button`

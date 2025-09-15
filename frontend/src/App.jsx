@@ -9,7 +9,7 @@ import Sales from "./pages/Sales.jsx";
 import Transactions from "./pages/Transactions.jsx";
 import MonthlyReport from "./pages/MonthlyReport.jsx";
 import YearlyReport from "./pages/YearlyReport.jsx";
-import DailyReport from "./pages/DailyReport.jsx";
+import PeriodReport from "./pages/PeriodReport.jsx";
 import LoanAgreementDocument from "./documents/LoanAgreementDocument.jsx";
 import Expenses from "./pages/Expenses.jsx";
 import Clients from "./pages/Clients.jsx";
@@ -23,7 +23,7 @@ function App() {
                 <Route path="/transactions" element={<Transactions />} />
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/expenses" element={<Expenses />} />
-                <Route path="/dailyReport" element={<DailyReport />} />
+                <Route path="/report" element={<PeriodReport />} />
                 <Route path="/monthlyReport" element={<MonthlyReport />} />
                 <Route path="/yearlyReport" element={<YearlyReport />} />
                 <Route path="/document" element={<LoanAgreementDocument />} />

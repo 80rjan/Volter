@@ -23,7 +23,7 @@ export default function Nav() {
             <StyledNavLink to="/transactions" ><ArrowLeftRight size={28} /> Трансакции</StyledNavLink>
             <StyledNavLink to="/clients" ><UserRound size={28} /> Клиенти</StyledNavLink>
             <StyledNavLink to="/expenses" ><BanknoteArrowDown size={28} /> Расходи</StyledNavLink>
-            <StyledNavLink to="/dailyReport" ><CalendarFold size={28} /> Дневен Извештај</StyledNavLink>
+            <StyledNavLink to="/report" ><CalendarFold size={28} /> Извештај</StyledNavLink>
             <StyledNavLink to="/monthlyReport" ><Calendar1 size={28} /> Месечен Извештај</StyledNavLink>
             <StyledNavLink to="/yearlyReport" ><CalendarDays size={28} /> Годишен Извештај</StyledNavLink>
         </NavWrapper>

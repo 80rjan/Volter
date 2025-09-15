@@ -35,6 +35,7 @@ app.get('/clientsAutocomplete', appController.getAllClientsAutocomplete)
 app.get('/clients', appController.getAllClients)
 
 app.get('/dailyReport', appController.getDailyReport)
+app.get('/periodReport', appController.getPeriodReport)
 
 app.get('/monthlyReport', appController.getAllMonthlyReports)
 app.get('/monthlyReport/getReport', appController.getMonthlyReport)

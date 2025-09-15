@@ -326,6 +326,15 @@ const getDailyReport = asyncHandler(async (req, res) => {
     }
 })
 
+const getPeriodReport = asyncHandler(async (req, res) => {
+    try {
+        const report = await db.getPeriodReport(req.query.dateFrom, req.query.dateTo)
+        res.status(200).send(report).end();
+    } catch (error) {
+        res.status(500).json({ message: "Error query get period report" }).end();
+    }
+})
+
 const getAllMonthlyReports = asyncHandler(async (req, res) => {
     let searchByMonth = req.query.searchByMonth;
     let searchByYear = req.query.searchByYear;
@@ -377,6 +386,7 @@ module.exports = {
     insertExpense,
     getAllTransactions,
     getDailyReport,
+    getPeriodReport,
     getAllMonthlyReports,
     getMonthlyReport,
     generateNewMonthReport,

@@ -123,7 +123,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
     return (
         <Wrapper style={isOdd ? {background: "#f0f0f0"} : {background: "#ffffff"}}>
             <Text>{pawn["Client Id"]}</Text>
-            <Text>{pawn.Name}</Text>
+            <Text className="bold">{pawn.Name}</Text>
             <Text>{getCat[pawn.Category]}</Text>
             <Text>{pawn.About}</Text>
             <Text>{Number(pawn["Item Cost"]).toLocaleString("de-DE")}</Text>
@@ -214,8 +214,8 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
 const Wrapper = styled.div`
     display: grid;
     place-items: center;
-    grid-template-columns: 2rem 1fr 1fr 2fr repeat(4, 1fr) 1.5fr .5fr;
-    padding: .5rem;
+    grid-template-columns: 3rem 1.5fr 1fr 2fr repeat(4, 1fr) 1.5fr .5fr;
+    padding: .2rem;
     border-bottom: rgba(0,0,0,0.2) 2px solid;
     //transition: all 200ms ease-in-out;
     //z-index: 1;
@@ -238,7 +238,7 @@ const Wrapper = styled.div`
 
 const Text = styled.p`
     font-weight: 500;
-    font-size: .8rem;
+    font-size: .7rem;
     
     &.bold {
         font-weight: bold;

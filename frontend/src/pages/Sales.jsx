@@ -160,7 +160,7 @@ const Container = styled.div`
     display: flex;
     flex-direction: column;
     padding: 2rem 2rem 0 2rem;
-    gap: 1rem;
+    gap: .8rem;
     flex-grow: 1;
     overflow: hidden;
 `
@@ -169,6 +169,10 @@ const HeaderWrapper = styled.div`
     display: flex;
     justify-content: space-between;
     width: 100%;
+
+    & > h1 {
+        font-size: 1.8rem;
+    }
 `
 
 const ButtonAddNewSale = styled.button`
@@ -179,7 +183,7 @@ const ButtonAddNewSale = styled.button`
     display: flex;
     align-items: center;
     padding: .6rem 1.6rem;
-    font-size: 1.2rem;
+    font-size: 1rem;
     box-shadow: 4px 2px 6px rgba(0,0,0,0.2);
     gap: .5rem;
     transition: all 250ms ease-in-out;
@@ -212,15 +216,15 @@ const TableHeader = styled.div`
     display: grid;
     place-items: center;
     grid-template-columns: 3fr 1fr 1fr 1.5fr .5fr;
-    padding: 1rem .5rem;
+    padding: .6rem .5rem;
     border-bottom: rgba(0, 0, 0, 0.2) 2px solid;
     color: #eee;
     background: #666;
 `
 
 const Text = styled.div`
-    font-weight: 600;
-    font-size: .8rem;
+    font-weight: 500;
+    font-size: .7rem;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -250,18 +254,20 @@ const ScrollableSales = styled.div`
 const TableFooter = styled.div`
     display: flex;
     justify-content: space-between;
-    padding: 1rem;
+    padding: .6rem 1rem;
     color: #444;
-    font-weight: 400;
     margin-top: auto;
     box-shadow: 0 -2px 6px rgba(0,0,0,0.2);
-    //background: #ccc;
+    font-size: .7rem;
     
     div {
         display: flex;
         gap: .4rem
     }
+
     span {
-        font-size: .8rem;
+        white-space: nowrap;
+        color: #444;
+        font-weight: 400;
     }
 `

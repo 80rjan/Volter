@@ -6,8 +6,9 @@ import React, {useState} from "react";
 import axios from "axios";
 import Loading from "../components/Loading.jsx";
 
-export default function DailyReport() {
-    const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+export default function PeriodReport() {
+    const [dateFrom, setDateFrom] = useState(new Date().toISOString().split("T")[0]);
+    const [dateTo, setDateTo] = useState(new Date().toISOString().split("T")[0]);
     const [showDate, setShowDate] = useState(null);
     const [report, setReport] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -25,16 +26,16 @@ export default function DailyReport() {
     }
 
 
-    const getReport = (date) => {
-        setShowDate(date)
+    const getReport = (dateFrom, dateTo) => {
+        setShowDate(dateFrom + " / " + dateTo)
         setLoading(true)
-        axios.get(`http://localhost:3000/dailyReport?date=${date}`)
+        axios.get(`http://localhost:3000/periodReport?dateFrom=${dateFrom}&dateTo=${dateTo}`)
             .then(res => {
                 setReport(res.data)
                 console.log(res.data)
             })
             .catch(error => {
-                console.error('Error fetching daily report:', error)
+                console.error('Error fetching period report:', error)
             })
             .finally(() => setLoading(false))
     }
@@ -45,15 +46,20 @@ export default function DailyReport() {
             <Container>
 
                 <HeaderWrapper>
-                    <h1>Дневен Извештај <span>{showDate}</span></h1>
+                    <h1>Периодичен Извештај <span>{showDate}</span></h1>
                     <div>
                         <DateInput
                             type="date"
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
+                            value={dateFrom}
+                            onChange={(e) => setDateFrom(e.target.value)}
+                        />
+                        <DateInput
+                            type="date"
+                            value={dateTo}
+                            onChange={(e) => setDateTo(e.target.value)}
                         />
                         <ButtonGetReport
-                            onClick={() => getReport(date)}
+                            onClick={() => getReport(dateFrom, dateTo)}
                         >
                             <Plus size={22} color="white" strokeWidth={3}/>
                             Генерирај Извештај
@@ -68,7 +74,21 @@ export default function DailyReport() {
                                 <DollarSign color="var(--grey)" size={40}/>
                                 <div>
                                     <h1>{Number(report.total.profit).toLocaleString("de-DE")}</h1>
-                                    <p>Профит</p>
+                                    <p>Бруто профит</p>
+                                </div>
+                            </MainReport>
+                            <MainReport>
+                                <DollarSign color="var(--green)" size={40}/>
+                                <div>
+                                    <h1>
+                                        {(
+                                            Number(report?.total?.profit || 0) -
+                                            Number(
+                                                report?.cashFlow?.find(c => c.category === "Expense")?.moneyGiven || 0
+                                            )
+                                        ).toLocaleString("de-DE")}
+                                    </h1>
+                                    <p>Нето профит</p>
                                 </div>
                             </MainReport>
                             <MainReport>
@@ -76,13 +96,6 @@ export default function DailyReport() {
                                 <div>
                                     <h1>{Number(report.total.moneyGiven).toLocaleString("de-DE")}</h1>
                                     <p>Исплатени средства</p>
-                                </div>
-                            </MainReport>
-                            <MainReport>
-                                <Repeat color="var(--grey)" size={40}/>
-                                <div>
-                                    <h1>{Number(report.total.turnover).toLocaleString("de-DE")}</h1>
-                                    <p>Обрт</p>
                                 </div>
                             </MainReport>
                             <MainReport>
@@ -218,10 +231,14 @@ const HeaderWrapper = styled.div`
     justify-content: space-between;
     width: 100%;
 
-    & span {
-        margin-left: 2rem;
-        font-weight: 400;
+    & > h1 {
         font-size: 1.8rem;
+    }
+
+    & span {
+        margin-left: 1rem;
+        font-weight: 400;
+        font-size: 1rem;
     }
 
     & > div {
@@ -253,7 +270,7 @@ const ButtonGetReport = styled.button`
     display: flex;
     align-items: center;
     padding: .6rem 1.6rem;
-    font-size: 1.2rem;
+    font-size: 1rem;
     box-shadow: 4px 2px 6px rgba(0, 0, 0, 0.2);
     gap: .5rem;
     transition: all 250ms ease-in-out;

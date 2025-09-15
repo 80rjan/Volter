@@ -177,7 +177,7 @@ const Container = styled.div`
     display: flex;
     flex-direction: column;
     padding: 2rem 2rem 0 2rem;
-    gap: 1rem;
+    gap: .8rem;
     flex-grow: 1;
     overflow: hidden;
 `
@@ -186,6 +186,10 @@ const HeaderWrapper = styled.div`
     display: flex;
     justify-content: space-between;
     width: 100%;
+
+    & > h1 {
+        font-size: 1.8rem;
+    }
 `
 
 const FilterWrapper = styled.div`
@@ -197,9 +201,10 @@ const FilterWrapper = styled.div`
 const StyledInput = styled.input`
     border: none;
     border-radius: .2rem;
-    font-size: 1rem;
+    font-size: .8rem;
+    font-weight: 500;
     width: 25%;
-    padding: .5rem;
+    padding: .4rem;
     box-shadow: 0 0 8px rgba(0,0,0,0.2);
 `
 
@@ -217,16 +222,16 @@ const ClientsWrapper = styled.div`
 const TableHeader = styled.div`
     display: grid;
     place-items: center;
-    grid-template-columns: 2rem repeat(7, 1fr);
-    padding: 1rem .5rem;
+    grid-template-columns: 3rem repeat(7, 1fr);
+    padding: .6rem .5rem;
     border-bottom: rgba(0, 0, 0, 0.2) 2px solid;
     color: #eee;
     background: #666;
 `
 
 const Text = styled.div`
-    font-weight: 600;
-    font-size: .8rem;
+    font-weight: 500;
+    font-size: .7rem;
     cursor: pointer;
     display: flex;
     align-items: center;

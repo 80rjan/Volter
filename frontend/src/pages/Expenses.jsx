@@ -98,12 +98,12 @@ export default function Expenses() {
 
                 <HeaderWrapper >
                     <h1>Расходи</h1>
-                    <ButtonAddNewSale
+                    <ButtonAddNewExpense
                         onClick={() => setModalAddNewExpense(true)}
                     >
                         <Plus size={22} color="white" strokeWidth={3} />
                         Внеси Нов Расход
-                    </ButtonAddNewSale>
+                    </ButtonAddNewExpense>
 
                     {modalAddNewExpense && <ModalAddNewExpense
                         closeModal={() => setModalAddNewExpense(false)}
@@ -191,9 +191,13 @@ const HeaderWrapper = styled.div`
     display: flex;
     justify-content: space-between;
     width: 100%;
+
+    & > h1 {
+        font-size: 1.8rem;
+    }
 `
 
-const ButtonAddNewSale = styled.button`
+const ButtonAddNewExpense = styled.button`
     background: var(--green);
     height: fit-content;
     color: white;
@@ -201,7 +205,7 @@ const ButtonAddNewSale = styled.button`
     display: flex;
     align-items: center;
     padding: .6rem 1.6rem;
-    font-size: 1.2rem;
+    font-size: 1rem;
     box-shadow: 4px 2px 6px rgba(0,0,0,0.2);
     gap: .5rem;
     transition: all 250ms ease-in-out;

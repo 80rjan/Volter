@@ -6,7 +6,7 @@ export default function Client({ client, index }) {
         <Wrapper style={index % 2 === 1 ? {background: "#f0f0f0"} : {background: "#ffffff"}}>
 
             <Text>{client.Id}</Text>
-            <Text>{client.Name}</Text>
+            <Text className="bold">{client.Name}</Text>
             <Text>
                 {client["Telephone 1"]}
                 {client["Telephone 2"].trim() !== "" ? ` / ${client["Telephone 2"]}` : ""}
@@ -15,7 +15,7 @@ export default function Client({ client, index }) {
             <Text>{Number(client["Total Pawns"]).toLocaleString("de-DE")}</Text>
             <Text>{Number(client["Active Pawns"]).toLocaleString("de-DE")}</Text>
             <Text>{Number(client["Money Pawns"]).toLocaleString("de-DE")}</Text>
-            <Text>{Number(client["Money Provision"]).toLocaleString("de-DE")}</Text>
+            <Text className="bold color">{Number(client["Money Provision"]).toLocaleString("de-DE")}</Text>
 
         </Wrapper>
     )
@@ -25,8 +25,8 @@ export default function Client({ client, index }) {
 const Wrapper = styled.div`
     display: grid;
     place-items: center;
-    grid-template-columns: 2rem repeat(7, 1fr);
-    padding: .5rem;
+    grid-template-columns: 3rem repeat(7, 1fr);
+    padding: .2rem;
     border-bottom: rgba(0,0,0,0.2) 2px solid;
     svg {
         cursor: pointer;
@@ -39,7 +39,7 @@ const Wrapper = styled.div`
 
 const Text = styled.p`
     font-weight: 500;
-    font-size: .8rem;
+    font-size: .7rem;
     
     &.bold {
         font-weight: bold;

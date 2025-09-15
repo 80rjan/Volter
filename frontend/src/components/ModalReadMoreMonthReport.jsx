@@ -40,28 +40,21 @@ export default function ModalReadMoreMonthReport({report, closeModal}) {
                             <Handshake color="var(--grey)" size={36} />
                             <div>
                                 <h1>{Number(report["Money Given"]).toLocaleString("de-DE")}</h1>
-                                <p>Исплатено</p>
+                                <p>Нови Договори</p>
                             </div>
                         </Report>
                         <Report>
                             <Landmark color="var(--grey)" size={36} />
                             <div>
                                 <h1>{Number(report["Money Got"]).toLocaleString("de-DE")}</h1>
-                                <p>Примено</p>
-                            </div>
-                        </Report>
-                        <Report>
-                            <Repeat color="var(--grey)" size={36} />
-                            <div>
-                                <h1>{Number(report["Total Turnover"]).toLocaleString("de-DE")}</h1>
-                                <p>Обрт</p>
+                                <p>Затворени договори</p>
                             </div>
                         </Report>
                         <Report>
                             <Sigma color="var(--grey)" size={36} />
                             <div>
                                 <h1>{(Number(report["Money Got"]) + Number(report["Gross Profit"])).toLocaleString("de-DE")}</h1>
-                                <p>Промет</p>
+                                <p>Приход</p>
                             </div>
                         </Report>
                         <Report>

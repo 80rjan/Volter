@@ -132,7 +132,7 @@ const Wrapper = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 1rem;
+    padding: .6rem 1rem;
     border-radius: 8px 8px 0 0;
     box-shadow: 0 0 8px rgba(0,0,0,0.2);
     background: #fff;
@@ -164,6 +164,6 @@ const ActionsWrapper = styled.div`
     }
 `;
 const Value = styled.p`
-    font-size: .8rem;
+    font-size: .7rem;
     font-style: italic;
 `;

@@ -244,6 +244,10 @@ const HeaderWrapper = styled.div`
     justify-content: space-between;
     width: 100%;
 
+    & > h1 {
+        font-size: 1.8rem;
+    }
+
     & > div {
         display: flex;
         flex-direction: row;
@@ -296,7 +300,7 @@ const ButtonGetReport = styled.button`
     display: flex;
     align-items: center;
     padding: .6rem 1.6rem;
-    font-size: 1.2rem;
+    font-size: 1rem;
     box-shadow: 4px 2px 6px rgba(0,0,0,0.2);
     gap: .5rem;
     transition: all 250ms ease-in-out;
