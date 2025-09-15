@@ -19,7 +19,7 @@ export default function Expenses() {
     const [modalAddNewExpense, setModalAddNewExpense] = useState(false);
     const [refresh, setRefresh] = useState(false);
     const offset = useRef(0);
-    const limit = 20;
+    const limit = 40;
     const [isLastPage, setIsLastPage] = useState(false);
     const scrollableExpensesRef = useRef(null);
     const [loading, setLoading] = useState(false);

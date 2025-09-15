@@ -146,6 +146,7 @@ export default function ModalReadMorePawn({
                 console.error("Error updating pawn " + err)
             })
             .finally(() => {
+                setIsEditing(false);
                 setIsLoading(false)
                 refreshCashReg()
             });
@@ -158,59 +159,60 @@ export default function ModalReadMorePawn({
                 <X size={32} onClick={closeModal}/>
                 {
                     !modalPrintDocument ?
-                        isLoading ? <Loading/> :
-                            <>
-                                <InformationWrapper style={{gap: isEditing ? "4rem" : "0"}}>
-                                    <ClientWrapper>
-                                        <div>
-                                            <UserRound size={32}/>
-                                            {client.name}
-                                        </div>
-                                        <div>
+                        <>
+                            <InformationWrapper style={{gap: isEditing ? "4rem" : "0"}}>
+                                <ClientWrapper>
+                                    <div>
+                                        <UserRound size={32}/>
+                                        {client.name}
+                                    </div>
+                                    <div>
                                         <span>
                                             <p>Шифра на клиент:</p>
                                             <p>{client.id}</p>
                                         </span>
-                                            <span>
+                                        <span>
                                             <p>Ембг:</p>
                                             <p>{client.embg}</p>
                                         </span>
-                                            <span>
+                                        <span>
                                             <p>Телефон 1:</p>
                                             <p>{client.telephone}</p>
                                         </span>
-                                            {
-                                                client.telephone_2 && client.telephone_2.trim() !== "" && (
-                                                    <span>
+                                        {
+                                            client.telephone_2 && client.telephone_2.trim() !== "" && (
+                                                <span>
                                                 <p>Телефон 2:</p>
                                                 <p>{client.telephone_2}</p>
                                             </span>
-                                                )
-                                            }
-                                            <span>
+                                            )
+                                        }
+                                        <span>
                                             <p>Град:</p>
                                             <p>{client.city}</p>
                                         </span>
-                                        </div>
-                                    </ClientWrapper>
-                                    <Separator/>
-                                    <PawnWrapper>
-                                        <div>
-                                            {getCatIcon[category]}
-                                            {getCat[category]}
-                                        </div>
-                                        {category === 'Electronics' && renderElectronicsOrWatch(pawn, isEditing, editPawn)}
-                                        {category === 'Watch' && renderElectronicsOrWatch(pawn, isEditing, editPawn)}
-                                        {category === 'Vehicle' && renderVehicle(pawn, isEditing, editPawn)}
-                                        {category === 'Gold' && renderGold(pawn, isEditing, editPawn)}
-                                        {category === 'Other' && renderOther(pawn, isEditing, editPawn)}
-                                    </PawnWrapper>
-                                </InformationWrapper>
-                                <ButtonWrapper>
-                                    {
-                                        isEditing ?
-                                            <>
-                                                <button onClick={() => {
+                                    </div>
+                                </ClientWrapper>
+                                <Separator/>
+                                <PawnWrapper>
+                                    <div>
+                                        {getCatIcon[category]}
+                                        {getCat[category]}
+                                    </div>
+                                    {category === 'Electronics' && renderElectronicsOrWatch(pawn, isEditing, editPawn)}
+                                    {category === 'Watch' && renderElectronicsOrWatch(pawn, isEditing, editPawn)}
+                                    {category === 'Vehicle' && renderVehicle(pawn, isEditing, editPawn)}
+                                    {category === 'Gold' && renderGold(pawn, isEditing, editPawn)}
+                                    {category === 'Other' && renderOther(pawn, isEditing, editPawn)}
+                                </PawnWrapper>
+                            </InformationWrapper>
+                            <ButtonWrapper>
+                                {
+                                    isEditing ?
+                                        <div style={{display: "flex", gap: "1rem", alignItems: "center"}}>
+                                            <button
+                                                disabled={isLoading}
+                                                onClick={() => {
                                                     editPawn.current = {
                                                         pricePawned: pawn.price_pawned,
                                                         provision: pawn.provision,
@@ -219,43 +221,49 @@ export default function ModalReadMorePawn({
                                                     };
                                                     setIsEditing(false);
                                                 }}>
-                                                    <ArrowLeft size={32}/> Врати се назад
-                                                </button>
-                                                <button style={{background: "var(--green)"}} onClick={() => {
-                                                    handleUpdatePawn();
-                                                    setIsEditing(false)
-                                                }}><Check size={32}/> Потврди промени
-                                                </button>
-                                            </> :
-                                            <>
-                                                <button onClick={() => {
-                                                    closePawn();
-                                                    closeModal();
-                                                }}><X size={32}/> Затвори Залог
-                                                </button>
-                                                <button onClick={() => {
-                                                    continuePawn();
-                                                    closeModal();
-                                                }}><RotateCcw size={32}/> Продолжи Залог
-                                                </button>
-                                                <button onClick={() => {
-                                                    movePawnToSale();
-                                                    closeModal();
-                                                }}><Euro size={32}/> Премести Залог во Продажба
-                                                </button>
-                                                <UserPen size={40} color="#444"
-                                                         onClick={() => {
-                                                             setIsEditing(true)
-                                                         }}/>
-                                                <Printer
-                                                    size={40}
-                                                    color="#444"
-                                                    onClick={() => setModalPrintDocument(true)}
-                                                />
-                                            </>
-                                    }
-                                </ButtonWrapper>
-                            </> :
+                                                <ArrowLeft size={32}/> Врати се назад
+                                            </button>
+                                            <button style={{background: "var(--green)"}}
+                                                    disabled={isLoading}
+                                                    onClick={() => {
+                                                        handleUpdatePawn();
+                                                    }}><Check size={32}/> Потврди промени
+                                            </button>
+                                            <div>
+                                                {
+                                                    isLoading && <Loading width={40} height={40}/>
+                                                }
+                                            </div>
+                                        </div> :
+                                        <>
+                                            <button onClick={() => {
+                                                closePawn();
+                                                closeModal();
+                                            }}><X size={32}/> Затвори Залог
+                                            </button>
+                                            <button onClick={() => {
+                                                continuePawn();
+                                                closeModal();
+                                            }}><RotateCcw size={32}/> Продолжи Залог
+                                            </button>
+                                            <button onClick={() => {
+                                                movePawnToSale();
+                                                closeModal();
+                                            }}><Euro size={32}/> Премести Залог во Продажба
+                                            </button>
+                                            <UserPen size={40} color="#444"
+                                                     onClick={() => {
+                                                         setIsEditing(true)
+                                                     }}/>
+                                            <Printer
+                                                size={40}
+                                                color="#444"
+                                                onClick={() => setModalPrintDocument(true)}
+                                            />
+                                        </>
+                                }
+                            </ButtonWrapper>
+                        </> :
                         <>
                             <div style={{height: "0px", overflowY: "clip"}}>
                                 <DogovorZaZaem
@@ -420,7 +428,8 @@ const renderElectronicsOrWatch = (pawn, isEditing, editPawn) => {
                 <p>Денови валидно:</p>
                 {
                     isEditing ?
-                        <select defaultValue={pawn.total_days} onChange={e => editPawn.current.totalDays = e.target.value}>
+                        <select defaultValue={pawn.total_days}
+                                onChange={e => editPawn.current.totalDays = e.target.value}>
                             <option value={15}>15</option>
                             <option value={30}>30</option>
                         </select>
@@ -519,7 +528,8 @@ const renderGold = (pawn, isEditing, editPawn) => {
                 <p>Денови валидно:</p>
                 {
                     isEditing ?
-                        <select defaultValue={pawn.total_days} onChange={e => editPawn.current.totalDays = e.target.value}>
+                        <select defaultValue={pawn.total_days}
+                                onChange={e => editPawn.current.totalDays = e.target.value}>
                             <option value={15}>15</option>
                             <option value={30}>30</option>
                         </select>
@@ -608,7 +618,8 @@ const renderVehicle = (pawn, isEditing, editPawn) => {
                 <p>Денови валидно:</p>
                 {
                     isEditing ?
-                        <select defaultValue={pawn.total_days} onChange={e => editPawn.current.totalDays = e.target.value}>
+                        <select defaultValue={pawn.total_days}
+                                onChange={e => editPawn.current.totalDays = e.target.value}>
                             <option value={15}>15</option>
                             <option value={30}>30</option>
                         </select>
@@ -685,7 +696,8 @@ const renderOther = (pawn, isEditing, editPawn) => {
                 <p>Денови валидно:</p>
                 {
                     isEditing ?
-                        <select defaultValue={pawn.total_days} onChange={e => editPawn.current.totalDays = e.target.value}>
+                        <select defaultValue={pawn.total_days}
+                                onChange={e => editPawn.current.totalDays = e.target.value}>
                             <option value={15}>15</option>
                             <option value={30}>30</option>
                         </select>
@@ -894,7 +906,7 @@ const PawnDetailsWrapper = styled.div`
         border: 2px solid var(--green);
         border-radius: 4px;
     }
-    
+
     & select {
         height: 100%;
         width: 100%;
@@ -923,25 +935,34 @@ const ButtonWrapper = styled.div`
         width: max-content;
         transition: scale 400ms ease-in-out;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
+
+            &:hover {
+                scale: 1;
+            }
+        }
     }
 
     button:hover {
         scale: 1.05;
     }
 
-    & > button:first-child {
+    & button:first-child {
         background: #444;
     }
 
-    & > button:nth-child(2) {
+    & button:nth-child(2) {
         background: var(--cta-color);
     }
 
-    & > button:nth-child(3) {
+    & button:nth-child(3) {
         background: var(--green);
     }
 
-    & > button:nth-child(4) {
+    & button:nth-child(4) {
         background: var(--dark-blue);
         //border: 2px solid var(--green);
         //color: var(--green);

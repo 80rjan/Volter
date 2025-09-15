@@ -112,127 +112,128 @@ export default function ModalAddNewPawn({ closeModal, refresh }) {
         <>
             <Overlay />
             <Wrapper>
-                {loading ? <Loading /> :
-                    <>
-                        <Header>
-                            <div>
-                                <CopyPlus size={32} />
-                                <h1>Внеси Нов Залог</h1>
-                            </div>
-                            <ButtonClose onClick={closeModal}>
-                                <X size={32} />
-                            </ButtonClose>
-                        </Header>
-                        <Form onSubmit={handleSubmit}>
-                            <div>
-                                <ClientInputs>
+                <Header>
+                    <div>
+                        <CopyPlus size={32} />
+                        <h1>Внеси Нов Залог</h1>
+                    </div>
+                    <ButtonClose onClick={closeModal}>
+                        <X size={32} />
+                    </ButtonClose>
+                </Header>
+                <Form onSubmit={handleSubmit}>
+                    <div>
+                        <ClientInputs>
                                     <span style={{width: "max-content", marginBottom: ".8rem"}}><User
                                         size={20}/> Внеси Податоци за Клиентот</span>
-                                    <Autocomplete
-                                        ref={scrollableClientsRef}
-                                        options={clients}
-                                        getOptionLabel={(option) => option.name}
-                                        onChange={handleObjectSelect}
-                                        onInputChange={(event, value) => {
-                                            offset.current = 0;
-                                            setAutocompleteValue(value);
-                                            fetchClients(limit, offset.current, value);
-                                        }}
-                                        ListboxProps={{onScroll: handleScroll}}
-                                        renderInput={(params) => <TextField {...params} label="Постоечки клиенти"/>}
-                                        isOptionEqualToValue={(option, value) => option.id === value.id}
-                                        renderOption={(props, option) => (
-                                            <li {...props} key={option.id} style={{
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                gap: '.1rem',
-                                                alignItems: 'flex-start'
-                                            }}>
-                                                <strong>{option.name}</strong>
-                                                <span>{option.embg}</span>
-                                                <span>{option.telephone}</span>
-                                                {option.telephone_2 && (<span>{option.telephone_2}</span>)}
-                                            </li>
-                                        )}
-                                        filterOptions={(options, state) =>
-                                            options.filter(option =>
-                                                option.name.toLowerCase().includes(state.inputValue.toLowerCase()) ||
-                                                (option.embg && option.embg.includes(state.inputValue)) ||
-                                                ( option.telephone && option.telephone.includes(state.inputValue)) ||
-                                                (option.telephone_2 && option.telephone_2.includes(state.inputValue))
-                                            )
-                                        }
-                                        sx={{
-                                            background: "white",
-                                            borderRadius: ".3rem",
-                                            fontSize: "1rem",
-                                            boxShadow: "0 0 4px rgba(0,0,0,0.2)",
-                                        }}
-                                    />
-                                    <div>
-                                        <p>Име</p>
-                                        <StyledInput
-                                            name="name"
-                                            value={formData.name}
-                                            onChange={e => handleInputChange(e.target.name, e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <p>Ембг</p>
-                                        <StyledInput
-                                            name="embg"
-                                            value={formData.embg}
-                                            onChange={e => handleInputChange(e.target.name, e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <p>Телефон 1</p>
-                                        <StyledInput
-                                            name="telephone"
-                                            value={formData.telephone}
-                                            onChange={e => handleInputChange(e.target.name, e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <p>Телефон 2</p>
-                                        <StyledInput
-                                            name="telephone_2"
-                                            value={formData.telephone_2}
-                                            onChange={e => handleInputChange(e.target.name, e.target.value)}
-                                        />
-                                    </div>
-                                    <div>
-                                        <p>Град</p>
-                                        <StyledInput
-                                            name="city"
-                                            value={formData.city}
-                                            onChange={e => handleInputChange(e.target.name, e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                </ClientInputs>
-                                <PawnInputs>
-                                    <span style={{width: "max-content"}}><Database size={20}/> Внеси Податоци за Предметот</span>
-                                    <select name="category" value={formData.category}
-                                            onChange={e => handleInputChange(e.target.name, e.target.value)}>
-                                        <option value="electronics_pawn">Електроника</option>
-                                        <option value="gold_pawn">Злато</option>
-                                        <option value="vehicle_pawn">Возила</option>
-                                        <option value="watch_pawn">Часовници</option>
-                                        <option value="other_pawn">Останато</option>
-                                    </select>
-                                    {renderCategoryInputs()}
-                                </PawnInputs>
+                            <Autocomplete
+                                ref={scrollableClientsRef}
+                                options={clients}
+                                getOptionLabel={(option) => option.name}
+                                onChange={handleObjectSelect}
+                                onInputChange={(event, value) => {
+                                    offset.current = 0;
+                                    setAutocompleteValue(value);
+                                    fetchClients(limit, offset.current, value);
+                                }}
+                                ListboxProps={{onScroll: handleScroll}}
+                                renderInput={(params) => <TextField {...params} label="Постоечки клиенти"/>}
+                                isOptionEqualToValue={(option, value) => option.id === value.id}
+                                renderOption={(props, option) => (
+                                    <li {...props} key={option.id} style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '.1rem',
+                                        alignItems: 'flex-start'
+                                    }}>
+                                        <strong>{option.name}</strong>
+                                        <span>{option.embg}</span>
+                                        <span>{option.telephone}</span>
+                                        {option.telephone_2 && (<span>{option.telephone_2}</span>)}
+                                    </li>
+                                )}
+                                filterOptions={(options, state) =>
+                                    options.filter(option =>
+                                        option.name.toLowerCase().includes(state.inputValue.toLowerCase()) ||
+                                        (option.embg && option.embg.includes(state.inputValue)) ||
+                                        ( option.telephone && option.telephone.includes(state.inputValue)) ||
+                                        (option.telephone_2 && option.telephone_2.includes(state.inputValue))
+                                    )
+                                }
+                                sx={{
+                                    background: "white",
+                                    borderRadius: ".3rem",
+                                    fontSize: "1rem",
+                                    boxShadow: "0 0 4px rgba(0,0,0,0.2)",
+                                }}
+                            />
+                            <div>
+                                <p>Име</p>
+                                <StyledInput
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={e => handleInputChange(e.target.name, e.target.value)}
+                                    required
+                                />
                             </div>
-                            <Button type="submit">
-                                <CheckCheck size={28} /> Потврди
-                            </Button>
-                        </Form>
-                    </>
-                }
+                            <div>
+                                <p>Ембг</p>
+                                <StyledInput
+                                    name="embg"
+                                    value={formData.embg}
+                                    onChange={e => handleInputChange(e.target.name, e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <p>Телефон 1</p>
+                                <StyledInput
+                                    name="telephone"
+                                    value={formData.telephone}
+                                    onChange={e => handleInputChange(e.target.name, e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <p>Телефон 2</p>
+                                <StyledInput
+                                    name="telephone_2"
+                                    value={formData.telephone_2}
+                                    onChange={e => handleInputChange(e.target.name, e.target.value)}
+                                />
+                            </div>
+                            <div>
+                                <p>Град</p>
+                                <StyledInput
+                                    name="city"
+                                    value={formData.city}
+                                    onChange={e => handleInputChange(e.target.name, e.target.value)}
+                                    required
+                                />
+                            </div>
+                        </ClientInputs>
+                        <PawnInputs>
+                            <span style={{width: "max-content"}}><Database size={20}/> Внеси Податоци за Предметот</span>
+                            <select name="category" value={formData.category}
+                                    onChange={e => handleInputChange(e.target.name, e.target.value)}>
+                                <option value="electronics_pawn">Електроника</option>
+                                <option value="gold_pawn">Злато</option>
+                                <option value="vehicle_pawn">Возила</option>
+                                <option value="watch_pawn">Часовници</option>
+                                <option value="other_pawn">Останато</option>
+                            </select>
+                            {renderCategoryInputs()}
+                        </PawnInputs>
+                    </div>
+                    <div style={{display: "flex", gap: "1rem", alignItems: "center"}}>
+                        <Button type="submit" disabled={loading}>
+                            <CheckCheck size={28}/> Потврди
+                        </Button>
+                        {
+                            loading && <Loading width={40} height={40} />
+                        }
+                    </div>
+                </Form>
             </Wrapper>
         </>,
         document.getElementById("portal")
@@ -659,6 +660,15 @@ const Button = styled.button`
     box-shadow: 0 0 8px rgba(0,0,0,0.2);
     transition: scale 400ms ease-in-out;
 
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.4;
+
+        &:hover {
+            scale: 1;
+        }
+    }
+    
     &:hover {
         scale: 1.05;
     }

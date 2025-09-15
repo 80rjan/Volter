@@ -21,7 +21,7 @@ export default function Pawns() {
     const [modalAddNewPawn, setModalAddNewPawn] = useState(false);
     const [refresh, setRefresh] = useState(false);
     const offset = useRef(0);
-    const limit = 20;
+    const limit = 40;
     const [isLastPage, setIsLastPage] = useState(false);
     const scrollablePawnsRef = useRef(null);
     const [loading, setLoading] = useState(false);
@@ -46,7 +46,6 @@ export default function Pawns() {
         isFetchingRef.current = true;
         axios.get(`http://localhost:3000?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByTel=${searchByTel}&searchByCategory=${searchByCategory}`)
             .then(res => {
-                console.log(res)
                 setSummary(res.data.summary);
 
                 const pawns = res.data.pawns
@@ -142,20 +141,26 @@ export default function Pawns() {
                             ))
                         }
                     </StyledSelect>
-                    <StyledInput placeholder="Пребарувај по име"
-                                 onKeyUp={(e) => {
-                                     setSearchByName(e.target.value)
-                                 }}
+                    <StyledInput
+                        type={"search"}
+                        placeholder="Пребарувај по име"
+                        onChange={(e) => {
+                            setSearchByName(e.target.value)
+                        }}
                     />
-                    <StyledInput placeholder="Пребарувај по ембг"
-                                 onKeyUp={(e) => {
-                                     setSearchByEmbg(e.target.value)
-                                 }}
+                    <StyledInput
+                        type={"search"}
+                        placeholder="Пребарувај по ембг"
+                        onChange={(e) => {
+                            setSearchByEmbg(e.target.value)
+                        }}
                     />
-                    <StyledInput placeholder="Пребарувај по телефон"
-                                 onKeyUp={(e) => {
-                                     setSearchByTel(e.target.value)
-                                 }}
+                    <StyledInput
+                        type={"search"}
+                        placeholder="Пребарувај по телефон"
+                        onChange={(e) => {
+                            setSearchByTel(e.target.value)
+                        }}
                     />
                 </FilterWrapper>
 

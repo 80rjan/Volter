@@ -38,37 +38,37 @@ export default function ModalAddNewSale({ closeModal, refresh }) {
         <>
             <Overlay />
                 <Wrapper>
-                    {
-                        loading ? <Loading /> :
-                            <>
-                                <Header>
-                                    <div>
-                                        <BookmarkPlus size={32} />
-                                        <h1>Внеси Нова Продажба</h1>
-                                    </div>
-                                    <ButtonClose onClick={closeModal}>
-                                        <X size={32} />
-                                    </ButtonClose>
-                                </Header>
-                                <Form onSubmit={handleSubmit}>
-                                    <SaleInputs>
-                                        <div>
-                                            <p>Вредност на предметот</p>
-                                            <StyledInput name="price_bought" onChange={handleInputChange}
-                                                         type="number"
-                                                         required/>
-                                        </div>
-                                        <div>
-                                            <p>Опис</p>
-                                            <StyledInput name="description" onChange={handleInputChange} required/>
-                                        </div>
-                                    </SaleInputs>
-                                    <Button type="submit">
-                                        <CheckCheck size={28}/> Потврди
-                                    </Button>
-                                </Form>
-                            </>
-                    }
+                    <Header>
+                        <div>
+                            <BookmarkPlus size={32} />
+                            <h1>Внеси Нова Продажба</h1>
+                        </div>
+                        <ButtonClose onClick={closeModal}>
+                            <X size={32} />
+                        </ButtonClose>
+                    </Header>
+                    <Form onSubmit={handleSubmit}>
+                        <SaleInputs>
+                            <div>
+                                <p>Вредност на предметот</p>
+                                <StyledInput name="price_bought" onChange={handleInputChange}
+                                             type="number"
+                                             required/>
+                            </div>
+                            <div>
+                                <p>Опис</p>
+                                <StyledInput name="description" onChange={handleInputChange} required/>
+                            </div>
+                        </SaleInputs>
+                        <div style={{display: "flex", gap: "1rem", alignItems: "center"}}>
+                            <Button type="submit" disabled={loading}>
+                                <CheckCheck size={28}/> Потврди
+                            </Button>
+                            {
+                                loading && <Loading width={40} height={40} />
+                            }
+                        </div>
+                    </Form>
                 </Wrapper>
         </>,
         document.getElementById("portal")
@@ -172,6 +172,16 @@ const Button = styled.button`
     font-size: 1.4rem;
     box-shadow: 0 0 8px rgba(0,0,0,0.2);
     transition: scale 400ms ease-in-out;
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.4;
+
+        &:hover {
+            scale: 1;
+        }
+    }
+    
     &:hover {
         scale: 1.05;
     }

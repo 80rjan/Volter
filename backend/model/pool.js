@@ -4,11 +4,6 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const { Pool } = require('pg');
 
 // SET UP ENVIRONMENT VARIABLES IN THE SYSTEM
-// SET UP ENVIRONMENT VARIABLES IN THE SYSTEM
-// SET UP ENVIRONMENT VARIABLES IN THE SYSTEM
-// SET UP ENVIRONMENT VARIABLES IN THE SYSTEM
-// SET UP ENVIRONMENT VARIABLES IN THE SYSTEM
-// SET UP ENVIRONMENT VARIABLES IN THE SYSTEM
 
 console.log(process.env.VITE_DB_USER);
 console.log(process.env.VITE_DB_HOST);
@@ -36,12 +31,3 @@ pool.connect()
     });
 
 module.exports = pool;
-
-
-// module.exports = new Pool({
-//     host: 'localhost',
-//     user: 'postgres',
-//     password: 'Borjan2004',
-//     database: 'pawn_shop',
-//     port: 5432
-// })

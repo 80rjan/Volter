@@ -19,7 +19,7 @@ export default function Clients() {
     const [searchByTel, setSearchByTel] = useState("");
     const [refresh, setRefresh] = useState(false);
     const offset = useRef(0);
-    const limit = 20;
+    const limit = 40;
     const [isLastPage, setIsLastPage] = useState(false);
     const scrollableClientsRef = useRef(null);
     const [loading, setLoading] = useState(false);
@@ -103,18 +103,21 @@ export default function Clients() {
                 </HeaderWrapper>
 
                 <FilterWrapper >
-                    <StyledInput placeholder="Пребарувај по име"
-                                 onKeyUp={(e) => {
+                    <StyledInput type={"search"}
+                                 placeholder="Пребарувај по име"
+                                 onChange={(e) => {
                                      setSearchByName(e.target.value)
                                  }}
                     />
-                    <StyledInput placeholder="Пребарувај по ембг"
-                                 onKeyUp={(e) => {
+                    <StyledInput type={"search"}
+                                 placeholder="Пребарувај по ембг"
+                                 onChange={(e) => {
                                      setSearchByEmbg(e.target.value)
                                  }}
                     />
-                    <StyledInput placeholder="Пребарувај по телефон"
-                                 onKeyUp={(e) => {
+                    <StyledInput type={"search"}
+                                 placeholder="Пребарувај по телефон"
+                                 onChange={(e) => {
                                      setSearchByTel(e.target.value)
                                  }}
                     />

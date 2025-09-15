@@ -56,71 +56,71 @@ export default function ModalAddNewExpense({ closeModal, refresh }) {
         <>
             <Overlay />
             <Wrapper>
-                {
-                    loading ? <Loading /> :
-                        <>
-                            <Header>
-                                <div>
-                                    <ClipboardPlus size={32} />
-                                    <h1>Внеси Нов Расход</h1>
-                                </div>
-                                <ButtonClose onClick={closeModal}>
-                                    <X size={32} />
-                                </ButtonClose>
-                            </Header>
-                            <Form onSubmit={handleSubmit}>
-                                <div>
-                                    <ExpenseInputs>
-                                        <div>
-                                            <p>Година</p>
-                                            <StyledInput name="year" onChange={handleInputChange}
-                                                         type="number"
-                                                         required/>
-                                        </div>
-                                        <div>
-                                            <p>Месец</p>
-                                            <StyledInput name="month" onChange={handleInputChange}
-                                                         type="number"
-                                                         required/>
-                                        </div>
-                                        <div>
-                                            <p>Кирија</p>
-                                            <StyledInput name="rent" onChange={handleInputChange}
-                                                         type="number"
-                                                         />
-                                        </div>
-                                        <div>
-                                            <p>Плати</p>
-                                            <StyledInput name="salaries" onChange={handleInputChange}
-                                                         type="number"
-                                                         />
-                                        </div>
-                                        <div>
-                                            <p>Сметки</p>
-                                            <StyledInput name="bills" onChange={handleInputChange}
-                                                         type="number"
-                                                         />
-                                        </div>
-                                        <div>
-                                            <p>Друго</p>
-                                            <StyledInput name="other" onChange={handleInputChange}
-                                                         type="number"
-                                                         />
-                                        </div>
-                                        <div>
-                                            <p>Опис</p>
-                                            <StyledInput name="description" onChange={handleInputChange}
-                                                         />
-                                        </div>
-                                    </ExpenseInputs>
-                                </div>
-                                <Button type="submit">
-                                    <CheckCheck size={28}/> Потврди
-                                </Button>
-                                <Error>{error}</Error>
-                            </Form>
-                        </>
-                }
+                <Header>
+                    <div>
+                        <ClipboardPlus size={32} />
+                        <h1>Внеси Нов Расход</h1>
+                    </div>
+                    <ButtonClose onClick={closeModal}>
+                        <X size={32} />
+                    </ButtonClose>
+                </Header>
+                <Form onSubmit={handleSubmit}>
+                    <div>
+                        <ExpenseInputs>
+                            <div>
+                                <p>Година</p>
+                                <StyledInput name="year" onChange={handleInputChange}
+                                             type="number"
+                                             required/>
+                            </div>
+                            <div>
+                                <p>Месец</p>
+                                <StyledInput name="month" onChange={handleInputChange}
+                                             type="number"
+                                             required/>
+                            </div>
+                            <div>
+                                <p>Кирија</p>
+                                <StyledInput name="rent" onChange={handleInputChange}
+                                             type="number"
+                                />
+                            </div>
+                            <div>
+                                <p>Плати</p>
+                                <StyledInput name="salaries" onChange={handleInputChange}
+                                             type="number"
+                                />
+                            </div>
+                            <div>
+                                <p>Сметки</p>
+                                <StyledInput name="bills" onChange={handleInputChange}
+                                             type="number"
+                                />
+                            </div>
+                            <div>
+                                <p>Друго</p>
+                                <StyledInput name="other" onChange={handleInputChange}
+                                             type="number"
+                                />
+                            </div>
+                            <div>
+                                <p>Опис</p>
+                                <StyledInput name="description" onChange={handleInputChange}
+                                />
+                            </div>
+                        </ExpenseInputs>
+                    </div>
+                    <div style={{display: "flex", gap: "1rem", alignItems: "center"}}>
+                        <Button type="submit" disabled={loading}>
+                            <CheckCheck size={28}/> Потврди
+                        </Button>
+                        {
+                            loading && <Loading width={40} height={40} />
+                        }
+                    </div>
+                    <Error>{error}</Error>
+                </Form>
             </Wrapper>
         </>,
         document.getElementById("portal")
@@ -178,7 +178,7 @@ const Form = styled.form`
     align-items: center;
     gap: 2rem;
     
-    & > div {
+    & > div:first-child {
         display: flex;
         flex-direction: column;
         gap: 2rem;
@@ -243,6 +243,16 @@ const Button = styled.button`
     font-size: 1.4rem;
     box-shadow: 0 0 8px rgba(0,0,0,0.2);
     transition: scale 400ms ease-in-out;
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.4;
+
+        &:hover {
+            scale: 1;
+        }
+    }
+    
     &:hover {
         scale: 1.05;
     }

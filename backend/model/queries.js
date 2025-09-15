@@ -8,8 +8,11 @@ function getUTCDateNow() {
 }
 
 async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByTel = "", searchByCategory = "") {
-    const {rows: summaryRows} = await pool.query(`
-        SELECT COUNT(*)         AS "Num Pawns",
+    const client = await pool.connect()
+
+    try {
+        const {rows: summaryRows} = await client.query(`
+        SELECT COUNT(*)                      AS "Num Pawns",
                COALESCE(SUM("Item Cost"), 0) AS "Money Pawns",
                COALESCE(SUM("Provision"), 0) AS "Provision"
         FROM (SELECT ep.price_pawned AS "Item Cost", ep.provision AS "Provision"
@@ -76,7 +79,7 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
     `, [searchByName, searchByEmbg, searchByTel, searchByCategory, SHOP_ID]);
 
 
-    const {rows: pawnRows} = await pool.query(`
+        const {rows: pawnRows} = await client.query(`
         SELECT *
         FROM (SELECT c.id                                                AS "Client Id",
                      c.name                                              AS "Name",
@@ -192,7 +195,12 @@ async function getAllPawns(limit, offset, orderBy, orderDirection, searchByName 
     `, [searchByName, searchByEmbg, searchByTel, searchByCategory, SHOP_ID]);
 
 
-    return {pawns: pawnRows, summary: summaryRows[0]};
+        return {pawns: pawnRows, summary: summaryRows[0]};
+    } catch (error) {
+        throw error;
+    } finally {
+        client.release();
+    }
 }
 
 async function getPawn(clientId, category, pawnId) {
@@ -238,18 +246,24 @@ async function closePawn(id, tableName, priceClosed, description) {
             throw new Error("Invalid table name in REMOVE PAWN");
         }
 
-        const query = await client.query(`SELECT provision, price_pawned, client_id, ${tableName === 'gold_pawn' ? 'weight' : '0 as weight'}
+        const query = await client.query(`SELECT provision,
+                                                 price_pawned,
+                                                 client_id,
+                                                 date_to - CURRENT_DATE as days_left,
+                                                 ${tableName === 'gold_pawn' ? 'weight' : '0 as weight'}
                                           FROM ${tableName}
                                           WHERE id = $1;`, [id])
         let gold_grams = 0;
         let provision = null;
         let pawnMoney = null;
         let clientId = null;
+        let isExpired = false;
         if (query.rows.length > 0) {
             provision = query.rows[0].provision;
             pawnMoney = query.rows[0].price_pawned;
             clientId = query.rows[0].client_id;
             gold_grams = Number(query.rows[0]?.weight);
+            isExpired = query.rows[0].days_left < 0;
         } else
             throw new Error(`Pawn with id ${id} not found in table ${tableName} to REMOVE PAWN`);
 
@@ -271,10 +285,22 @@ async function closePawn(id, tableName, priceClosed, description) {
         const UTC_TIME = getUTCDateNow();
 
         //Insert a new transaction with cash inserted and profit made
+        const priceDiff = priceClosed - (+pawnMoney + +provision + (isExpired ? +provision : 0));
+        let finalDescription = transactionDescription
+        if (priceDiff < 0) {
+            if (isExpired)
+                if (priceDiff <= -(+provision * 2))
+                    finalDescription += 'Недостасува провизија и казна за залог кој го надминал дозволениот рок.';
+                else
+                    finalDescription += 'Недостасува казна за залог кој го надминал дозволениот рок.';
+            else
+                finalDescription += 'Недостасува провизија за залог.';
+        }
         await client.query(`
-            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date, shop_id)
+            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date,
+                                     shop_id)
             VALUES ($1, $2, $3, 0, $4, $5, $6, $7, $8);
-        `, [clientId, transactionCategory, transactionDescription, pawnMoney, priceClosed - pawnMoney, priceClosed - (+pawnMoney + +provision), UTC_TIME, SHOP_ID])
+        `, [clientId, transactionCategory, finalDescription, pawnMoney, priceClosed - pawnMoney, priceDiff, UTC_TIME, SHOP_ID])
 
         //Update cash register with money inserted, decrease numPawns, decrease moneyPawns, update quantity of gold in grams and update total provision for pawns
         await client.query(`
@@ -341,7 +367,8 @@ async function continuePawn(id, tableName, provision, description, carryOverDays
 
         //Insert a new transaction with profit made
         await client.query(`
-            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date, shop_id)
+            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date,
+                                     shop_id)
             VALUES ($1, $2, $3, 0, 0, $4, 0, $5, $6);
         `, [clientId, transactionCategory, transactionDescription, provision, UTC_TIME, SHOP_ID])
 
@@ -456,7 +483,8 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
 
         //Insert a new transaction where money is given to client for pawn
         await client.query(`
-            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date, shop_id)
+            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date,
+                                     shop_id)
             VALUES ($1, $2, $3, $4, 0, 0, 0, $5::DATE, $6);
         `, [clientId, transactionCategory, transactionDescription, pawnObj.price_pawned, pawnObj.date, SHOP_ID])
 
@@ -566,7 +594,8 @@ async function updatePawn(pawnTable, pawnId, pricePawned, provision, description
         //Insert a new transaction with money given
         try {
             await client.query(`
-                INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date,
+                INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff,
+                                         date,
                                          shop_id)
                 VALUES ($1, $2, $3, $4, 0, 0, 0, $5, $6);
             `, [clientId, category, s, pricePawned - oldPrice, UTC_TIME, SHOP_ID])
@@ -729,7 +758,8 @@ async function changePawnToSale(id, pawnCategory) {
 
         //Insert a new transaction with profit made
         await client.query(`
-            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date, shop_id)
+            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date,
+                                     shop_id)
             VALUES ($1, $2, $3, 0, 0, 0, 0, $4, $5);
         `, [clientId, transactionCategory, transactionDescription, UTC_TIME, SHOP_ID])
 
@@ -808,7 +838,8 @@ async function closeSale(id, priceSold, description) {
 
         //Insert a new transaction with cash inserted and profit made
         await client.query(`
-            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date, shop_id)
+            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date,
+                                     shop_id)
             VALUES (0, $1, $2, 0, $3, $4, 0, $5, $6);
         `, [transactionCategory, transactionDescription, priceBought, priceSold - priceBought, UTC_TIME, SHOP_ID])
 
@@ -851,7 +882,8 @@ async function addNewSale(priceBought, description) {
 
         //Insert a new transaction with money given
         await client.query(`
-            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date, shop_id)
+            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date,
+                                     shop_id)
             VALUES (0, $1, $2, $3, 0, 0, 0, $4, $5);
         `, [transactionCategory, transactionDescription, priceBought, UTC_TIME, SHOP_ID])
 
@@ -1016,7 +1048,8 @@ async function insertIntoCashRegister(amount, description) {
         `, [amount, UTC_TIME, SHOP_ID])
 
         await client.query(`
-            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date, shop_id)
+            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date,
+                                     shop_id)
             VALUES (0, 'Insert', $1, 0, $2, 0, 0, $3, $4);
         `, [description, amount, UTC_TIME, SHOP_ID])
 
@@ -1045,7 +1078,8 @@ async function removeFromCashRegister(amount, description) {
         `, [amount, UTC_TIME, SHOP_ID])
 
         await client.query(`
-            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date, shop_id)
+            INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date,
+                                     shop_id)
             VALUES (0, 'Remove', $1, $2, 0, 0, 0, $3, $4);
         `, [description, amount, UTC_TIME, SHOP_ID])
 
@@ -1186,7 +1220,8 @@ async function insertExpense(year, month, rent, salaries, bills, other, descript
                     transactionDescription += ` Опис: ${description}.`;
                 }
                 await client.query(`
-                    INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date,
+                    INSERT INTO transaction (client_id, category, description, money_given, money_got, profit,
+                                             money_diff, date,
                                              shop_id)
                     VALUES (0, 'Expense', $1, $2, 0, 0, 0, $3, $4)
                 `, [transactionDescription, value, UTC_TIME_EXPENSE_DATE, SHOP_ID]);
@@ -1303,8 +1338,8 @@ async function getDailyReport(date) {
 
     const {rows: cashFlowRows} = await pool.query(`
         SELECT category,
-               SUM(money_given)        AS "moneyGiven",
-               SUM(money_got)          AS "moneyGot"
+               SUM(money_given) AS "moneyGiven",
+               SUM(money_got)   AS "moneyGot"
         FROM transaction t1
         WHERE DATE(t1.date) = $1
           AND t1.category IN ('Remove', 'Insert', 'Expense')

@@ -43,9 +43,12 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
             .then(() => {
                 setSuccessMsg("Успешно продолжен залог")
                 setInfoMsg(`Додадени се ${provision.toLocaleString("de-DE")} во каса!`)
+                setModalContinuePawn(false)
                 setModalSuccessMsg(true);
             })
-            .catch(error => console.error('Error continuing pawn:', error))
+            .catch(error => {
+                console.error('Error continuing pawn:', error)
+            })
             .finally(() => setLoading(false));
     }
 
@@ -67,9 +70,12 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
             .then(() => {
                 setSuccessMsg("Успешно затворен залог")
                 setInfoMsg(`Додадени се ${priceClosed.toLocaleString("de-DE")} во каса!`)
+                setModalClosePawn(false)
                 setModalSuccessMsg(true);
             })
-            .catch(error => console.error('Error closing pawn:', error))
+            .catch(error => {
+                console.error('Error closing pawn:', error)
+            })
             .finally(() => setLoading(false));
     }
 
@@ -90,7 +96,6 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
         axios.put(`http://localhost:3000/changePawnToSale`, { id, tableName })
             .then(() => {
                 setSuccessMsg("Успешно пренесен залог во продажба")
-                // setInfoMsg(`Added ${response.data.profit.toLocaleString("de-DE")} into cash register!`)
                 setModalSuccessMsg(true);
             })
             .catch(error => console.error('Error continuing pawn:', error))
@@ -147,7 +152,6 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
                     action={closePawn}
                     id={pawn.Id}
                     category={pawn.Category}
-                    clientName={pawn.Name}
                     successMsg="Успешно затворен залог!"
                     closeModal={() => setModalClosePawn(false)}
                     priceBought={Number(pawn["Item Cost"])}
@@ -156,7 +160,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
                     suggestedPrice={Number(pawn["Item Cost"]) + Number(pawn.Provision)}
                     daysLeft={Number(pawn["Days Left"])}
                     title={"Со кој износ е затворен залогот?"}
-                    refresh={refresh}
+                    loading={loading}
                 />
             }
 
@@ -166,7 +170,6 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
                     action={continuePawn}
                     id={pawn.Id}
                     category={pawn.Category}
-                    clientName={pawn.Name}
                     successMsg="Успешно продолжен залог!"
                     closeModal={() => setModalContinuePawn(false)}
                     priceBought={Number(pawn["Item Cost"])}
@@ -175,7 +178,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
                     suggestedPrice={Number(pawn.Provision)}
                     daysLeft={Number(pawn["Days Left"])}
                     title={"Со кој износ е продолжен залогот?"}
-                    refresh={refresh}
+                    loading={loading}
                 />
             }
 
@@ -187,6 +190,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
                     }}
                     successMsg={successMsg}
                     infoMsg={infoMsg}
+                    clientName={pawn.Name}
                 />
             }
 

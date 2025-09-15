@@ -20,6 +20,17 @@
   --grey: #666;
 }
 
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  height: 16px;
+  width: 16px;
+  background: url('assets/x.svg') no-repeat center;
+  background-size: contain;
+  cursor: pointer;
+}
+
+
+
 html, body {
   height: 100%;
   margin: 0;
