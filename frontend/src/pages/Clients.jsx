@@ -97,10 +97,9 @@ export default function Clients() {
             <Nav />
             <Container >
 
-                <HeaderWrapper >
-                    <h1>Клиенти</h1>
-                    {/*/>}*/}
-                </HeaderWrapper>
+                {/*<HeaderWrapper >*/}
+                {/*    <h1>Клиенти</h1>*/}
+                {/*</HeaderWrapper>*/}
 
                 <FilterWrapper >
                     <StyledInput type={"search"}
@@ -176,7 +175,7 @@ const ClientsPage = styled.div`
 const Container = styled.div`
     display: flex;
     flex-direction: column;
-    padding: 2rem 2rem 0 2rem;
+    padding: .4rem 2rem 0 2rem;
     gap: .8rem;
     flex-grow: 1;
     overflow: hidden;
@@ -184,11 +183,12 @@ const Container = styled.div`
 
 const HeaderWrapper = styled.div`
     display: flex;
+    align-items: center;
     justify-content: space-between;
     width: 100%;
 
     & > h1 {
-        font-size: 1.8rem;
+        font-size: 1.2rem;
     }
 `
 

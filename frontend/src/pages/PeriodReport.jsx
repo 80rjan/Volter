@@ -334,6 +334,7 @@ const DetailedReports = styled.div`
     display: grid;
     grid-template-columns: 1fr 2fr;
     overflow: hidden;
+    height: 100%;
 `
 
 const PawnSaleReports = styled.div`
@@ -427,15 +428,15 @@ const TableHeader = styled.div`
     place-items: center;
     grid-template-columns: 2fr 1.5fr repeat(4, 1.5fr);
     column-gap: 1rem;
-    padding: 1rem .5rem;
+    padding: .6rem .5rem;
     border-bottom: rgba(0, 0, 0, 0.2) 2px solid;
     color: #eee;
     background: #666;
 `
 
 const Text = styled.div`
-    font-weight: 600;
-    font-size: .8rem;
+    font-weight: 500;
+    font-size: .7rem;
     display: flex;
     align-items: center;
 `
@@ -463,15 +464,16 @@ const TransactionShort = styled.div`
     font-weight: 400;
     display: grid;
     place-items: center;
-    padding: .6rem;
+    //padding: .2rem;
     grid-template-columns: 2fr 1.5fr repeat(4, 1.5fr);
     column-gap: 1rem;
 
     & > span {
         font-weight: inherit;
+        font-size: .8rem;
 
         &.bold {
-            font-weight: 600;
+            font-weight: 400;
         }
 
         &.color {

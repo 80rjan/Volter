@@ -109,22 +109,6 @@ export default function Pawns() {
         <PawnsPage>
             <Nav/>
             <Container>
-
-                <HeaderWrapper>
-                    <h1>Залози</h1>
-                    <ButtonAddNewPawn
-                        onClick={() => setModalAddNewPawn(true)}
-                    >
-                        <Plus size={22} color="white" strokeWidth={3}/>
-                        Внеси Нов Залог
-                    </ButtonAddNewPawn>
-
-                    {modalAddNewPawn && <ModalAddNewPawn
-                        closeModal={() => setModalAddNewPawn(false)}
-                        refresh={() => setRefresh(prev => !prev)}
-                    />}
-                </HeaderWrapper>
-
                 <FilterWrapper>
                     <StyledSelect
                         style={{
@@ -162,6 +146,18 @@ export default function Pawns() {
                             setSearchByTel(e.target.value)
                         }}
                     />
+
+                    <ButtonAddNewPawn
+                        onClick={() => setModalAddNewPawn(true)}
+                    >
+                        <Plus size={16} color="white" strokeWidth={3}/>
+                        Внеси Нов Залог
+                    </ButtonAddNewPawn>
+
+                    {modalAddNewPawn && <ModalAddNewPawn
+                        closeModal={() => setModalAddNewPawn(false)}
+                        refresh={() => setRefresh(prev => !prev)}
+                    />}
                 </FilterWrapper>
 
                 <PawnsWrapper>
@@ -220,54 +216,35 @@ export default function Pawns() {
                             ))}
                     </ScrollablePawns>
 
-                    <TableFooter>
-                        {
-                            searchByTel.length > 0 || searchByEmbg.length > 0 || searchByName.length > 0 || searchByCategory.length > 0 ?
-                                (
-                                    <>
-                                        <div>
-                                            <span>Бр. залози:</span>
-                                            {loading ?
-                                                <Loading width={20} height={20}/> :
-                                                Number(summary["Num Pawns"]).toLocaleString("de-DE")}
-                                        </div>
-                                        <div>
-                                            <span>Исплатени средства:</span>
-                                            {loading ?
-                                                <Loading width={20} height={20}/> :
-                                                Number(summary["Money Pawns"]).toLocaleString("de-DE")}
-                                        </div>
-                                        <div>
-                                            <span>Очекуван приход:</span>
-                                            {loading ? (
-                                                <Loading width={20} height={20}/>
-                                            ) : Number(summary["Provision"]).toLocaleString("de-DE")}
-                                            <span>/</span>
-                                            <span>
+                    {
+                        searchByTel.length > 0 || searchByEmbg.length > 0 || searchByName.length > 0 || searchByCategory.length > 0 &&
+                        <TableFooter>
+                            <div>
+                                <span>Бр. залози:</span>
+                                {loading ?
+                                    <Loading width={20} height={20}/> :
+                                    Number(summary["Num Pawns"]).toLocaleString("de-DE")}
+                            </div>
+                            <div>
+                                <span>Исплатени средства:</span>
+                                {loading ?
+                                    <Loading width={20} height={20}/> :
+                                    Number(summary["Money Pawns"]).toLocaleString("de-DE")}
+                            </div>
+                            <div>
+                                <span>Очекуван приход:</span>
+                                {loading ? (
+                                    <Loading width={20} height={20}/>
+                                ) : Number(summary["Provision"]).toLocaleString("de-DE")}
+                                <span>/</span>
+                                <span>
                                                 {loading ? (
                                                     <Loading width={20} height={20}/>
                                                 ) : ((summary["Provision"] / summary["Money Pawns"] * 100) || 0).toFixed(2).toLocaleString("de-DE") + '%'}
                                             </span>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        <div>
-                                            <X size={18} color="#000"/>
-                                            <span> - Затвори залог</span>
-                                        </div>
-                                        <div>
-                                            <RotateCcw size={18} color="var(--cta-color)"/>
-                                            <span> - Продолжи залог</span>
-                                        </div>
-                                        <div>
-                                            <Euro size={18} color="var(--green)"/>
-                                            <span> - Премести залог во продажба</span>
-                                        </div>
-                                    </>
-                                )
-                        }
-                    </TableFooter>
+                            </div>
+                        </TableFooter>
+                    }
                 </PawnsWrapper>
 
                 <CashRegister refreshDependency={refresh} refreshDependencyAdjustPawn={refreshCashReg}/>
@@ -285,7 +262,7 @@ const PawnsPage = styled.div`
 const Container = styled.div`
     display: flex;
     flex-direction: column;
-    padding: 2rem 2rem 0 2rem;
+    padding: .4rem 2rem 0 2rem;
     gap: .8rem;
     flex-grow: 1;
     overflow: hidden;
@@ -293,11 +270,12 @@ const Container = styled.div`
 
 const HeaderWrapper = styled.div`
     display: flex;
+    align-items: center;
     justify-content: space-between;
     width: 100%;
     
     & > h1 {
-        font-size: 1.8rem;
+        font-size: 1.2rem;
     }
 `
 
@@ -305,11 +283,11 @@ const ButtonAddNewPawn = styled.button`
     background: var(--green);
     height: fit-content;
     color: white;
-    border-radius: .4rem;
+    border-radius: .2rem;
     display: flex;
     align-items: center;
-    padding: .6rem 1.6rem;
-    font-size: 1rem;
+    padding: .4rem 1.2rem;
+    font-size: .8rem;
     box-shadow: 4px 2px 6px rgba(0, 0, 0, 0.2);
     gap: .5rem;
     transition: all 250ms ease-in-out;

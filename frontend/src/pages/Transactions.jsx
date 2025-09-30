@@ -127,9 +127,9 @@ export default function Transactions() {
         <TransactionsPage>
             <Nav />
             <Container>
-                <HeaderWrapper>
-                    <h1>Трансакции</h1>
-                </HeaderWrapper>
+                {/*<HeaderWrapper>*/}
+                {/*    <h1>Трансакции</h1>*/}
+                {/*</HeaderWrapper>*/}
                 <FilterWrapper>
                     <StyledSelect
                         style={{
@@ -219,7 +219,8 @@ const TransactionsPage = styled.div`
 const Container = styled.div`
     display: flex;
     flex-direction: column;
-    padding: 2rem 2rem 0 2rem;
+    padding: .4rem 2rem 0 2rem;
+    //padding: 2rem 2rem 0 2rem;
     gap: .8rem;
     flex-grow: 1;
     overflow: hidden;
@@ -227,11 +228,12 @@ const Container = styled.div`
 
 const HeaderWrapper = styled.div`
     display: flex;
+    align-items: center;
     justify-content: space-between;
     width: 100%;
 
     & > h1 {
-        font-size: 1.8rem;
+        font-size: 1.2rem;
     }
 `;
 
@@ -331,10 +333,10 @@ const Transaction = styled.div`
 
 const TextTransaction = styled.p`
     font-size: .7rem;
-    font-weight: 500;
+    font-weight: 400;
 
     &.bold {
-        font-weight: bold;
+        font-weight: 700;
     }
     &.color {
         font-style: italic;

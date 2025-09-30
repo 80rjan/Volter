@@ -38,11 +38,11 @@ const Wrapper = styled.div`
 `;
 
 const Text = styled.p`
-    font-weight: 500;
+    font-weight: 400;
     font-size: .7rem;
     
     &.bold {
-        font-weight: bold;
+        font-weight: 700;
     }
     &.color {
         font-style: italic;

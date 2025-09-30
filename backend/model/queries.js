@@ -1029,7 +1029,18 @@ async function getCashRegister() {
                                      FROM cash_register
                                      WHERE shop_id = $1`, [SHOP_ID]);
 
-    return rows[0];
+    const {rows: profit} = await pool.query(`
+        SELECT SUM(profit) 
+        FROM transaction
+        WHERE date >= date_trunc('month', CURRENT_DATE)
+          AND date < (date_trunc('month', CURRENT_DATE) + interval '1 month')
+        AND shop_id = $1
+    `, [SHOP_ID]);
+
+    return {
+        cashRegister: rows[0],
+        profit: profit[0].sum
+    };
 }
 
 async function insertIntoCashRegister(amount, description) {

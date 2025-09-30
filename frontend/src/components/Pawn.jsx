@@ -123,24 +123,26 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }) {
     return (
         <Wrapper style={isOdd ? {background: "#f0f0f0"} : {background: "#ffffff"}}>
             <Text>{pawn["Client Id"]}</Text>
-            <Text className="bold">{pawn.Name}</Text>
+            <Text className={`bold ${
+                pawn["Days Left"] < 0 && "red"
+            }`}>{pawn.Name.toUpperCase()}</Text>
             <Text>{getCat[pawn.Category]}</Text>
             <Text>{pawn.About}</Text>
             <Text>{Number(pawn["Item Cost"]).toLocaleString("de-DE")}</Text>
             <Text className="bold color" >{Number(pawn.Provision).toLocaleString("de-DE")}</Text>
-            <Text className={
-                pawn["Days Left"] < 0 ? "red" : pawn["Days Left"] < 5 ? "orange" : "green"
-            }>{pawn["Days Left"]}</Text>
+            <Text className={`bold ${
+                pawn["Days Left"] < 0 ? "red" : "green"
+            }`}>{pawn["Days Left"]}</Text>
             <Text>{pawn["Valid Until"].substring(0, 10)}</Text>
             {
                 loading ? <Loading width={30} height={30} /> :
                     <>
                         <ButtonWrapper>
-                            <X size={22} onClick={() => setModalClosePawn(true)} />
-                            <RotateCcw size={22} color="var(--cta-color)" onClick={() => setModalContinuePawn(true)} />
-                            <Euro size={22} color="var(--green)" onClick={() => movePawnToSale(pawn.Id, pawn.Category)} />
+                            <X size={16} onClick={() => setModalClosePawn(true)} />
+                            <RotateCcw size={16} color="var(--cta-color)" onClick={() => setModalContinuePawn(true)} />
+                            <Euro size={16} color="var(--green)" onClick={() => movePawnToSale(pawn.Id, pawn.Category)} />
                         </ButtonWrapper>
-                        <Ellipsis size={28} color="#888"
+                        <Ellipsis size={20} color="#888"
                                   onClick={() => fetchPawn(pawn["Client Id"], pawn.Category, pawn.Id)}
                         />
                     </>
@@ -215,7 +217,7 @@ const Wrapper = styled.div`
     display: grid;
     place-items: center;
     grid-template-columns: 3rem 1.5fr 1fr 2fr repeat(4, 1fr) 1.5fr .5fr;
-    padding: .2rem;
+    //padding: .2rem;
     border-bottom: rgba(0,0,0,0.2) 2px solid;
     //transition: all 200ms ease-in-out;
     //z-index: 1;
@@ -237,11 +239,11 @@ const Wrapper = styled.div`
 `;
 
 const Text = styled.p`
-    font-weight: 500;
+    font-weight: 400;
     font-size: .7rem;
     
     &.bold {
-        font-weight: bold;
+        font-weight: 600;
     }
     &.color {
         font-style: italic;
@@ -249,8 +251,11 @@ const Text = styled.p`
     &.red {
         color: red;
     }
+    &.yellow {
+        color: yellow;
+    }
     &.orange {
-        color: orangered;
+        color: darkorange;
     }
     &.green {
         color: var(--green);

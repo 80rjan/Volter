@@ -15,7 +15,7 @@ export default function CashRegister({ refreshDependency, refreshDependencyAdjus
         setLoading(true)
         axios.get(`http://localhost:3000/cashRegister`)
             .then(res => {
-                setCashReg(res.data.cashReg);
+                setCashReg({...res.data.cashReg, profit: res.data.profit});
             })
             .catch(error => console.error('Error fetching cash register', error))
             .finally(() => setLoading(false));
@@ -25,6 +25,7 @@ export default function CashRegister({ refreshDependency, refreshDependencyAdjus
         fetchCashRegister();
     }, [refreshDependency, refreshDependencyAdjustPawn]);
 
+    useEffect(() => {console.log(cashReg)}, [cashReg])
     return (
         <Wrapper>
             <TextWrapper>
@@ -43,16 +44,9 @@ export default function CashRegister({ refreshDependency, refreshDependencyAdjus
                 {
                     loading ? <Loading width={30} height={30}/> :
                         <>
-                            <Value className="bold">{(Math.round(cashReg.total_provision / cashReg.money_pawns * 100 * 100) / 100 || 0).toLocaleString("de-DE")}</Value>
-                        </>
-                }
-            </TextWrapper>
-            <TextWrapper>
-                <HandCoins size={24} />
-                {
-                    loading ? <Loading width={30} height={30}/> :
-                        <>
                             <Value className="bold">{Number(cashReg.total_provision).toLocaleString("de-DE")}</Value>
+                            <Value>/</Value>
+                            <Value>{(Math.round(cashReg.total_provision / cashReg.money_pawns * 100 * 100) / 100 || 0).toLocaleString("de-DE")}</Value>
                         </>
                 }
             </TextWrapper>
@@ -74,6 +68,13 @@ export default function CashRegister({ refreshDependency, refreshDependencyAdjus
                             <Value>/</Value>
                             <Value>{Number(cashReg.num_sale_items).toLocaleString("de-DE")}</Value>
                         </>
+                }
+            </TextWrapper>
+            <TextWrapper>
+                <HandCoins size={24} />
+                {
+                    loading ? <Loading width={30} height={30}/> :
+                        <Value className="bold">{Number(cashReg.profit).toLocaleString("de-DE")}</Value>
                 }
             </TextWrapper>
             <TextWrapper>

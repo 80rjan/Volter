@@ -73,7 +73,7 @@ const Wrapper = styled.div`
     display: grid;
     place-items: center;
     grid-template-columns: 3fr 1fr 1fr 1.5fr .5fr;
-    padding: .5rem;
+    //padding: .5rem;
     border-bottom: rgba(0,0,0,0.2) 2px solid;
     transition: all 200ms ease-in-out;
     z-index: 1;
@@ -100,7 +100,7 @@ const Text = styled.p`
     font-size: .8rem;
 
     &.bold {
-        font-weight: bold;
+        //font-weight: bold;
     }
     &.color {
         font-style: italic;

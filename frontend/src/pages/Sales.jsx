@@ -94,7 +94,6 @@ export default function Sales() {
             <Container >
 
                 <HeaderWrapper >
-                    <h1>Продажби</h1>
                     <ButtonAddNewSale
                         onClick={() => setModalAddNewSale(true)}
                     >
@@ -136,12 +135,12 @@ export default function Sales() {
                         )) }
                     </ScrollableSales>
 
-                    <TableFooter>
-                        <div>
-                            <Euro size={18} color="var(--green)" />
-                            <span> - Продади предмет</span>
-                        </div>
-                    </TableFooter>
+                    {/*<TableFooter>*/}
+                    {/*    <div>*/}
+                    {/*        <Euro size={18} color="var(--green)" />*/}
+                    {/*        <span> - Продади предмет</span>*/}
+                    {/*    </div>*/}
+                    {/*</TableFooter>*/}
                 </SalesWrapper>
 
                 <CashRegister refreshDependency={refresh}/>
@@ -179,11 +178,12 @@ const ButtonAddNewSale = styled.button`
     background: var(--green);
     height: fit-content;
     color: white;
-    border-radius: .4rem;
     display: flex;
     align-items: center;
-    padding: .6rem 1.6rem;
-    font-size: 1rem;
+    border-radius: .2rem;
+    margin-left: auto;
+    padding: .4rem 1.2rem;
+    font-size: .8rem;
     box-shadow: 4px 2px 6px rgba(0,0,0,0.2);
     gap: .5rem;
     transition: all 250ms ease-in-out;

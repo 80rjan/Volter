@@ -245,8 +245,8 @@ const getAllClients = asyncHandler(async (req, res) => {
 const getCashRegister = asyncHandler(async (req, res) => {
 
     try {
-        const cashReg = await db.getCashRegister();
-        res.status(200).json({ cashReg: cashReg }).end();
+        const rows = await db.getCashRegister();
+        res.status(200).json({ cashReg: rows.cashRegister, profit: rows.profit }).end();
     } catch (error) {
         res.status(500).json({ message: "Error query get cash register" }).end();
     }
