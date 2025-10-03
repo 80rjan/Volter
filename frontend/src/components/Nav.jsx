@@ -13,19 +13,21 @@ import {
     BanknoteArrowDown,
     Users, User, UsersRound, UserRound
 } from "lucide-react";
+import GoldPriceLive from "./GoldPriceLive.jsx";
 
 export default function Nav() {
     return (
         <NavWrapper >
             <Logo src={navImage} alt="Volter Zalozna Kukja"/>
-            <StyledNavLink to="/"><Handshake size={28} /> Залози</StyledNavLink>
-            <StyledNavLink to="/sales" ><Tag size={28} /> Продажби</StyledNavLink>
-            <StyledNavLink to="/transactions" ><ArrowLeftRight size={28} /> Трансакции</StyledNavLink>
-            <StyledNavLink to="/clients" ><UserRound size={28} /> Клиенти</StyledNavLink>
-            <StyledNavLink to="/expenses" ><BanknoteArrowDown size={28} /> Расходи</StyledNavLink>
-            <StyledNavLink to="/report" ><CalendarFold size={28} /> Извештај</StyledNavLink>
-            <StyledNavLink to="/monthlyReport" ><Calendar1 size={28} /> Месечен Извештај</StyledNavLink>
-            <StyledNavLink to="/yearlyReport" ><CalendarDays size={28} /> Годишен Извештај</StyledNavLink>
+            <StyledNavLink to="/"><Handshake size={24} /> Залози</StyledNavLink>
+            <StyledNavLink to="/sales" ><Tag size={24} /> Продажби</StyledNavLink>
+            <StyledNavLink to="/transactions" ><ArrowLeftRight size={24} /> Трансакции</StyledNavLink>
+            <StyledNavLink to="/clients" ><UserRound size={24} /> Клиенти</StyledNavLink>
+            <StyledNavLink to="/expenses" ><BanknoteArrowDown size={24} /> Расходи</StyledNavLink>
+            <StyledNavLink to="/report" ><CalendarFold size={24} /> Извештај</StyledNavLink>
+            <StyledNavLink to="/monthlyReport" ><Calendar1 size={24} /> Месечен Извештај</StyledNavLink>
+
+            <GoldPriceLive />
         </NavWrapper>
     )
 }
@@ -54,7 +56,7 @@ const StyledNavLink = styled(NavLink)`
     width: 100%;
     min-width: max-content;
     text-decoration: none;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     color: black;
     padding: 0.6rem 0;

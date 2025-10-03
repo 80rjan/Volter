@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
 import Nav from "../components/Nav.jsx";
@@ -7,17 +7,18 @@ import CashRegister from "./CashRegister.jsx";
 import Loading from "../components/Loading.jsx";
 
 export default function Transactions() {
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
     const [allTransactions, setAllTransactions] = useState([]);
     const [orderBy, setOrderBy] = useState("Date");
     const orderDirectionArr = useRef([0, 0, 0, 0, 0, 0, 0, 0, -1]);
     const [orderDirection, setOrderDirection] = useState("DESC");
     const [searchByName, setSearchByName] = useState("");
     const [searchByEmbg, setSearchByEmbg] = useState("");
-    const [searchByDate, setSearchByDate] = useState("");
     const [searchByCategory, setSearchByCategory] = useState("");
     const [refresh, setRefresh] = useState(false);
     const offset = useRef(0);
-    const limit = 40;
+    const limit = 60;
     const [isLastPage, setIsLastPage] = useState(false);
     const scrollableTransactionsRef = useRef(null);
     const [loading, setLoading] = useState(false);
@@ -60,13 +61,13 @@ export default function Transactions() {
 
     const fetchedTransactionIds = useRef(new Set());
 
-    const fetchTransactions = (limit, offset, order, direction, searchByName, searchByEmbg, searchByDate, searchByCategory, isLoading) => {
+    const fetchTransactions = (limit, offset, order, direction, searchByName, searchByEmbg, dateFrom, dateTo, searchByCategory, isLoading) => {
         if (isFetching) return;
         setIsFetching(true);
         setLoading(isLoading);
         isFetchingRef.current = true;
 
-        axios.get(`http://localhost:3000/transactions?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&searchByDate=${searchByDate}&searchByCategory=${searchByCategory}`)
+        axios.get(`http://localhost:3000/transactions?limit=${limit}&offset=${offset}&orderBy=${order}&orderDirection=${direction}&searchByName=${searchByName}&searchByEmbg=${searchByEmbg}&dateFrom=${dateFrom}&dateTo=${dateTo}&searchByCategory=${searchByCategory}`)
             .then(res => {
                 const newUnique = res.data.filter(t => !fetchedTransactionIds.current.has(t.Id));
                 newUnique.forEach(t => fetchedTransactionIds.current.add(t.Id));
@@ -93,7 +94,7 @@ export default function Transactions() {
 
             if (scrollHeight - scrollTop - clientHeight <= scrollHeight * 0.3 && !isLastPage && !isFetchingRef.current) {
                 offset.current += limit;
-                fetchTransactions(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByDate, searchByCategory, false);
+                fetchTransactions(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, dateFrom, dateTo, searchByCategory, false);
             }
         };
 
@@ -103,16 +104,14 @@ export default function Transactions() {
         return () => {
             scrollableDiv.removeEventListener("scroll", handleScroll);
         };
-    }, [isLastPage, orderBy, orderDirection, searchByName, searchByEmbg, searchByDate, searchByCategory]);
+    }, [isLastPage, orderBy, orderDirection, searchByName, searchByEmbg, dateFrom, dateTo, searchByCategory]);
 
     useEffect(() => {
-        if (searchByDate && searchByDate.length > 0 && searchByDate.length < 10)
-            return;
         fetchedTransactionIds.current.clear();
         setAllTransactions([]);
         offset.current = 0;
-        fetchTransactions(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByDate, searchByCategory, true);
-    }, [refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByDate, searchByCategory]);
+        fetchTransactions(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, dateFrom, dateTo, searchByCategory, true);
+    }, [refresh, orderBy, orderDirection, searchByName, searchByEmbg, dateFrom, dateTo, searchByCategory]);
 
     const handleOrder = (orderBy, index) => {
         const oldDirection = [...orderDirectionArr.current];
@@ -149,8 +148,20 @@ export default function Transactions() {
                                  placeholder="Пребарувај по име" onChange={(e) => setSearchByName(e.target.value)} />
                     <StyledInput type={"search"}
                                  placeholder="Пребарувај по ембг" onChange={(e) => setSearchByEmbg(e.target.value)} />
-                    <StyledInput type={"search"}
-                                 placeholder="Пребарувај по датум (yyyy-mm-dd)" onChange={(e) => setSearchByDate(e.target.value)} />
+                    <DateBox>
+                        <DateInput
+                            type="date"
+                            value={dateFrom}
+                            onChange={(e) => setDateFrom(e.target.value)}
+                            style={{ opacity: dateFrom ? 1 : 0.6 }}
+                        />
+                        <DateInput
+                            type="date"
+                            value={dateTo}
+                            onChange={(e) => setDateTo(e.target.value)}
+                            style={{ opacity: dateTo ? 1 : 0.6 }}
+                        />
+                    </DateBox>
                 </FilterWrapper>
                 <TransactionsWrapper>
                     <TableHeader>
@@ -260,6 +271,25 @@ const StyledInput = styled.input`
     padding: .4rem;
     box-shadow: 0 0 8px rgba(0,0,0,0.2);
 `;
+
+const DateBox = styled.div`
+    display: flex;
+    gap: 4px;
+    width: 20%;
+`
+
+const DateInput = styled.input`
+    padding: .4rem;
+    height: fit-content;
+    border: none;
+    border-radius: .2rem;
+    box-shadow: 4px 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: .8rem;
+
+    &:focus {
+        border-color: var(--green);
+    }
+`
 
 const TransactionsWrapper = styled.div`
     display: flex;

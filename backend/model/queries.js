@@ -290,11 +290,11 @@ async function closePawn(id, tableName, priceClosed, description) {
         if (priceDiff < 0) {
             if (isExpired)
                 if (priceDiff <= -(+provision * 2))
-                    finalDescription += 'Недостасува провизија и казна за залог кој го надминал дозволениот рок.';
+                    finalDescription += '\n Недостасува провизија и казна за залог кој го надминал дозволениот рок.';
                 else
-                    finalDescription += 'Недостасува казна за залог кој го надминал дозволениот рок.';
+                    finalDescription += '\n Недостасува казна за залог кој го надминал дозволениот рок.';
             else
-                finalDescription += 'Недостасува провизија за залог.';
+                finalDescription += '\n Недостасува провизија за залог.';
         }
         await client.query(`
             INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date,
@@ -333,12 +333,14 @@ async function continuePawn(id, tableName, provision, description, carryOverDays
             throw new Error("Invalid table name in CONTINUE PAWN");
         }
 
-        let query = await client.query(`SELECT (price_pawned * (provision / 100)) AS provision_money, client_id
+        let query = await client.query(`SELECT client_id, provision
                                         FROM ${tableName}
                                         WHERE id = $1;`, [id])
         let clientId = null;
+        let priceDiff = null;
         if (query.rows.length > 0) {
             clientId = query.rows[0].client_id;
+            priceDiff = +provision - +query.rows[0].provision;
         } else
             throw new Error(`Pawn with id ${id} not found in ${tableName} to CONTINUE PAWN`);
 
@@ -361,6 +363,8 @@ async function continuePawn(id, tableName, provision, description, carryOverDays
                 tableName === "vehicle_pawn" ? "Vehicle" :
                     tableName === "watch_pawn" ? "Watch" : "Other";
         let transactionDescription = `Продолжен залог. ${description}`;
+        if (priceDiff < 0)
+            transactionDescription += "\n Залогот е продолжен со износ помал од очекуваниот."
 
         // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
         const UTC_TIME = getUTCDateNow();
@@ -369,8 +373,8 @@ async function continuePawn(id, tableName, provision, description, carryOverDays
         await client.query(`
             INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date,
                                      shop_id)
-            VALUES ($1, $2, $3, 0, 0, $4, 0, $5, $6);
-        `, [clientId, transactionCategory, transactionDescription, provision, UTC_TIME, SHOP_ID])
+            VALUES ($1, $2, $3, 0, 0, $4, $5, $6, $7);
+        `, [clientId, transactionCategory, transactionDescription, provision, priceDiff, UTC_TIME, SHOP_ID])
 
         //Update cash register with money inserted
         await client.query(`
@@ -1262,8 +1266,7 @@ async function insertExpense(year, month, rent, salaries, bills, other, descript
 }
 
 
-async function getAllTransactions(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", searchByDate = "", searchByCategory = "") {
-
+async function getAllTransactions(limit, offset, orderBy, orderDirection, searchByName = "", searchByEmbg = "", dateFrom, dateTo, searchByCategory = "") {
     const {rows} = await pool.query(`
         SELECT c.id          AS "Client Id",
                c.name        AS "Name",
@@ -1281,17 +1284,20 @@ async function getAllTransactions(limit, offset, orderBy, orderDirection, search
                             ON c.id = t.client_id
         WHERE LOWER(c.name) LIKE $1 || '%'
           AND c.embg LIKE $2 || '%'
-          AND ($3 = '' OR $3 IS NULL OR t.date::DATE = $3::DATE)
           AND (
-            $4 = ''
-                OR ($4 = 'Change' AND t.description ILIKE '%Промена%')
-                OR ($4 = 'Sale' AND (t.category = 'Sale' OR t.description = 'Transferred pawn to sale'))
-                OR ($4 <> 'Change' AND t.category = $4)
+            t.date::DATE >= COALESCE($3::DATE, t.date::DATE)
+                AND t.date::DATE <= COALESCE($4::DATE, t.date::DATE)
             )
-          AND t.shop_id = $5
+          AND (
+            $5 = ''
+                OR ($5 = 'Change' AND t.description ILIKE '%Промена%')
+                OR ($5 = 'Sale' AND (t.category = 'Sale' OR t.description = 'Transferred pawn to sale'))
+                OR ($5 <> 'Change' AND t.category = $5)
+            )
+          AND t.shop_id = $6
         ORDER BY "${orderBy}" ${orderDirection}, "Id" ${orderDirection}
         LIMIT ${limit} OFFSET ${offset};
-    `, [searchByName, searchByEmbg, searchByDate, searchByCategory, SHOP_ID])
+    `, [searchByName, searchByEmbg, dateFrom, dateTo, searchByCategory, SHOP_ID])
 
     return rows;
 }
@@ -1748,6 +1754,34 @@ async function generateNewMonthReport(year, month) {
     return {passed: true, message: 'Успешно внесен месечен извештај'}
 }
 
+// Pure function to fetch gold price
+async function fetchGoldPriceLive() {
+    try {
+        const apiKey = process.env.VITE_GOLD_API_KEY;
+
+        const response = await fetch("https://www.goldapi.io/api/XAU/EUR", {
+            headers: {
+                "x-access-token": apiKey,
+                "Content-Type": "application/json",
+            },
+        });
+
+        const data = await response.json();
+
+        if (!data.price_gram_24k) {
+            console.error("Invalid data from GoldAPI:", data);
+            return null; // just return null if invalid
+        }
+
+        // Convert ounce -> gram
+        // const pricePerGram = data.price / 31.1035;
+        const pricePerGram = data.price_gram_24k;
+        return pricePerGram.toFixed(2);
+    } catch (err) {
+        console.error("Error fetching gold price:", err);
+        return null;
+    }
+}
 
 module.exports = {
     getAllPawns,
@@ -1774,5 +1808,6 @@ module.exports = {
     getPeriodReport,
     getAllMonthlyReports,
     getMonthlyReport,
-    generateNewMonthReport
+    generateNewMonthReport,
+    fetchGoldPriceLive
 }

@@ -308,12 +308,13 @@ const insertExpense = asyncHandler(async (req, res) => {
 const getAllTransactions = asyncHandler(async (req, res) => {
     let searchByName = req.query.searchByName !== 'undefined' ? req.query.searchByName.toLowerCase() : '';
     let searchByEmbg = req.query.searchByEmbg !== 'undefined' ? req.query.searchByEmbg : '';
-    let searchByDate = req.query.searchByDate && req.query.searchByDate !== 'undefined' && req.query.searchByDate !== '' ? req.query.searchByDate : null;
+    let dateFrom = req.query.dateFrom && req.query.dateFrom !== 'undefined' && req.query.dateFrom !== '' ? req.query.dateFrom : null;
+    let dateTo = req.query.dateTo && req.query.dateTo !== 'undefined' && req.query.dateTo !== '' ? req.query.dateTo : null;
     let searchByCategory = req.query.searchByCategory !== 'undefined' ? req.query.searchByCategory : '';
     const limit = req.query.limit;
     const offset = req.query.offset;
 
-    const transactions = await db.getAllTransactions(limit, offset, req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, searchByDate, searchByCategory);
+    const transactions = await db.getAllTransactions(limit, offset, req.query.orderBy, req.query.orderDirection, searchByName, searchByEmbg, dateFrom, dateTo, searchByCategory);
     res.send(transactions).end();
 })
 
@@ -364,6 +365,15 @@ const generateNewMonthReport = asyncHandler(async (req, res) => {
     }
 })
 
+const getGoldPriceLive = asyncHandler(async (req, res) => {
+    try {
+        const pricePerGram = await db.fetchGoldPriceLive();
+        res.status(200).json({ goldPricePerGram: pricePerGram }).end();
+    } catch (error) {
+        res.status(500).json({ message: "Error query fetch gold price live " + error }).end();
+    }
+})
+
 module.exports = {
     getAllPawns,
     getPawn,
@@ -390,4 +400,5 @@ module.exports = {
     getAllMonthlyReports,
     getMonthlyReport,
     generateNewMonthReport,
+    getGoldPriceLive
 }

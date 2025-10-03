@@ -16,7 +16,7 @@ export default function Sales() {
     const [modalAddNewSale, setModalAddNewSale] = useState(false);
     const [refresh, setRefresh] = useState(false);
     const offset = useRef(0);
-    const limit = 40;
+    const limit = 60;
     const [isLastPage, setIsLastPage] = useState(false);
     const scrollableSalesRef = useRef(null);
     const [loading, setLoading] = useState(false);

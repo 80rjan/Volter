@@ -25,7 +25,6 @@ export default function CashRegister({ refreshDependency, refreshDependencyAdjus
         fetchCashRegister();
     }, [refreshDependency, refreshDependencyAdjustPawn]);
 
-    useEffect(() => {console.log(cashReg)}, [cashReg])
     return (
         <Wrapper>
             <TextWrapper>

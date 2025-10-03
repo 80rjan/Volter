@@ -21,7 +21,7 @@ export default function Pawns() {
     const [modalAddNewPawn, setModalAddNewPawn] = useState(false);
     const [refresh, setRefresh] = useState(false);
     const offset = useRef(0);
-    const limit = 40;
+    const limit = 60;
     const [isLastPage, setIsLastPage] = useState(false);
     const scrollablePawnsRef = useRef(null);
     const [loading, setLoading] = useState(false);

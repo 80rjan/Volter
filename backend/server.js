@@ -41,4 +41,6 @@ app.get('/monthlyReport', appController.getAllMonthlyReports)
 app.get('/monthlyReport/getReport', appController.getMonthlyReport)
 app.post('/monthlyReport/generate', appController.generateNewMonthReport)
 
+app.get('/goldPriceLive', appController.getGoldPriceLive)
+
 app.listen(3000);
