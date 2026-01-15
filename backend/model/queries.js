@@ -1755,33 +1755,56 @@ async function generateNewMonthReport(year, month) {
 }
 
 // Pure function to fetch gold price
+let goldPriceCache = {
+  price: null,
+  timestamp: null
+};
+const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
+
 async function fetchGoldPriceLive() {
     try {
-        const apiKey = process.env.VITE_GOLD_API_KEY;
-
-        const response = await fetch("https://www.goldapi.io/api/XAU/EUR", {
-            headers: {
-                "x-access-token": apiKey,
-                "Content-Type": "application/json",
-            },
-        });
-
-        const data = await response.json();
-
-        if (!data.price_gram_24k) {
-            console.error("Invalid data from GoldAPI:", data);
-            return null; // just return null if invalid
+        const now = Date.now();
+        if (goldPriceCache.price && goldPriceCache.timestamp && (now - goldPriceCache.timestamp < CACHE_DURATION)) {
+            return goldPriceCache.price;
         }
 
-        // Convert ounce -> gram
-        // const pricePerGram = data.price / 31.1035;
-        const pricePerGram = data.price_gram_24k;
-        return pricePerGram.toFixed(2);
+        const apiKey = process.env.VITE_GOLD_API_KEY;
+        
+        const response = await fetch("https://goldpricez.com/api/rates/currency/eur/measure/gram", {
+            headers: {
+                "X-API-KEY": apiKey,
+                "Content-Type": "application/json",
+            }
+        });
+
+        const text = await response.text();
+        let data = JSON.parse(text);
+        
+        // Handle double-encoded JSON
+        if (typeof data === 'string') {
+            data = JSON.parse(data);
+        }
+        
+        if (!data.gram_in_eur) {
+            return goldPriceCache.price || null;
+        }
+
+        const pricePerGram = parseFloat(data.gram_in_eur).toFixed(2);
+        
+        goldPriceCache = {
+            price: pricePerGram,
+            timestamp: now
+        };
+
+        return pricePerGram;
+        
     } catch (err) {
         console.error("Error fetching gold price:", err);
-        return null;
+        return goldPriceCache.price || null;
     }
 }
+
+
 
 module.exports = {
     getAllPawns,
