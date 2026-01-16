@@ -41,6 +41,8 @@ export default function ModalReadMoreClient({ client, closeModal }) {
     Expense: "Расходи",
   };
 
+console.log(client)
+
   return ReactDom.createPortal(
     <>
       <Overlay />
@@ -49,7 +51,7 @@ export default function ModalReadMoreClient({ client, closeModal }) {
         <ClientInfo>
           <div>
             <UserRound size={32} />
-            {client.Name}
+            {client.Name} <div>({client["Date Joined"].split("T")[0]})</div>
           </div>
           <div>
             <span>
@@ -292,6 +294,12 @@ const ClientInfo = styled.div`
     align-items: center;
     gap: 0.6rem;
     white-space: nowrap;
+
+    & > div {
+      font-size: 1.2rem;
+      font-weight: 400;
+      margin-top: 0.4rem;
+    }
   }
 
   & > div:last-child {

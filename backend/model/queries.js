@@ -415,6 +415,9 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
             [clientObj.name, clientObj.embg]
         );
 
+        // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
+        const UTC_TIME = getUTCDateNow();
+
         let clientId;
         if (clientCheck.rows.length > 0) {
             // Client found → update telephones
@@ -429,10 +432,10 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
         } else {
             // Insert new client since no match by name & embg
             const insertRes = await client.query(
-                `INSERT INTO client (name, embg, telephone, telephone_2, city)
-                 VALUES ($1, $2, $3, $4, $5)
+                `INSERT INTO client (name, embg, telephone, telephone_2, city, date_joined)
+                 VALUES ($1, $2, $3, $4, $5, $6)
                  RETURNING id;`,
-                [clientObj.name, clientObj.embg, clientObj.telephone, clientObj.telephone_2, clientObj.city]
+                [clientObj.name, clientObj.embg, clientObj.telephone, clientObj.telephone_2, clientObj.city, UTC_TIME]
             );
             clientId = insertRes.rows[0].id;
         }
@@ -491,9 +494,6 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
                                      shop_id)
             VALUES ($1, $2, $3, $4, 0, 0, 0, $5::DATE, $6);
         `, [clientId, transactionCategory, transactionDescription, pawnObj.price_pawned, pawnObj.date, SHOP_ID])
-
-        // Adjust Skopje time to UTC manually (Skopje is UTC+2 during regular time, UTC+1 during daylight saving time)
-        const UTC_TIME = getUTCDateNow();
 
         //Update cash register with money taken, increase numPawns, increase moneyPawns, update quantity of gold in grams and update total provision for pawns
         await client.query(`
@@ -936,6 +936,7 @@ async function getAllClients(limit, offset, orderBy, orderDirection, searchByNam
                c.telephone_2                                         AS "Telephone 2",
                c.city                                                AS "City",
                c.embg                                                AS "Embg",
+               c.date_joined                                         AS "Date Joined",
                COALESCE((SELECT COUNT(*)
                          FROM transaction t
                          WHERE t.client_id = c.id

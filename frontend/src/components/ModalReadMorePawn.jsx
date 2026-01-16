@@ -164,7 +164,7 @@ export default function ModalReadMorePawn({
                                 <ClientWrapper>
                                     <div>
                                         <UserRound size={32}/>
-                                        {client.name}
+                                        {client.name} <span>({client.date_joined.split("T")[0]})</span>
                                     </div>
                                     <div>
                                         <span>
@@ -834,10 +834,16 @@ const ClientWrapper = styled.div`
     & > div:first-child {
         display: flex;
         flex-direction: row;
-        align-items: flex-start;
+        align-items: center;
         gap: .4rem;
         font-size: 1.6rem;
         font-weight: 600;
+
+        & > span {
+            font-size: 1rem;
+            font-weight: 400;
+            margin-top: 0.2rem;;
+        }
     }
 
     span {

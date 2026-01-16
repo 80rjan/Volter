@@ -201,7 +201,9 @@ export default function PeriodReport() {
                     {report.transactions.map((transaction, index) => (
                       <TransactionShort
                         style={
-                          index % 2 === 1
+                          transaction.Description?.startsWith("Промена!")
+                            ? { background: "#ffe6e6"} // Yellow highlight for "Промена!"
+                            : index % 2 === 1
                             ? { background: "#f0f0f0" }
                             : { background: "#ffffff" }
                         }
@@ -219,21 +221,39 @@ export default function PeriodReport() {
                           </span>
                         ) : (
                           <>
-                            <span className="bold color">
+                            <span
+                              className={`
+                              color ${
+                                Number(transaction.Given) === 0 ? "" : "bold"
+                              }
+                            `}
+                            >
                               {Number(transaction.Given).toLocaleString(
                                 "de-DE"
                               )}
                             </span>
-                            <span className="bold color">
+                            <span
+                              className={`
+                              color ${
+                                Number(transaction.Got) === 0 ? "" : "bold"
+                              }
+                            `}
+                            >
                               {Number(transaction.Got).toLocaleString("de-DE")}
                             </span>
-                            <span className="bold color">
+                            <span
+                              className={`
+                              color ${
+                                Number(transaction.Profit) === 0 ? "" : "bold"
+                              }
+                            `}
+                            >
                               {Number(transaction.Profit).toLocaleString(
                                 "de-DE"
                               )}
                             </span>
                             <span
-                              className={`bold color ${
+                              className={`color ${
                                 Number(transaction.Diff) === 0
                                   ? ""
                                   : Number(transaction.Diff) < 0
@@ -475,7 +495,7 @@ const TransactionReports = styled.div`
 const TableHeader = styled.div`
   display: grid;
   place-items: center;
-  grid-template-columns: 2fr 1fr 2fr repeat(4, 1.5fr);
+  grid-template-columns: 1.5fr 1.5fr 3fr repeat(4, 1.5fr);
   column-gap: 1rem;
   padding: 0.6rem 0.5rem;
   border-bottom: rgba(0, 0, 0, 0.2) 2px solid;
@@ -514,7 +534,7 @@ const TransactionShort = styled.div`
   display: grid;
   place-items: center;
   //padding: .2rem;
-  grid-template-columns: 2fr 1fr 2fr repeat(4, 1.5fr);
+  grid-template-columns: 1.5fr 1.5fr 3fr repeat(4, 1.5fr);
   column-gap: 1rem;
 
   & > span {
@@ -522,7 +542,7 @@ const TransactionShort = styled.div`
     font-size: 0.8rem;
 
     &.bold {
-      font-weight: 400;
+      font-weight: 600;
     }
 
     &.color {
@@ -531,10 +551,13 @@ const TransactionShort = styled.div`
 
     &.red {
       color: red;
+      font-weight: 900;
+      font-size: 1rem;
     }
 
     &.green {
       color: green;
+      font-weight: 900;
     }
   }
 `;
