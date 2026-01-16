@@ -935,6 +935,7 @@ async function getAllClients(limit, offset, orderBy, orderDirection, searchByNam
                c.telephone                                           AS "Telephone 1",
                c.telephone_2                                         AS "Telephone 2",
                c.city                                                AS "City",
+               c.embg                                                AS "Embg",
                COALESCE((SELECT COUNT(*)
                          FROM transaction t
                          WHERE t.client_id = c.id
@@ -1026,6 +1027,94 @@ async function getAllClients(limit, offset, orderBy, orderDirection, searchByNam
     `, [searchByName, searchByEmbg, searchByTel, SHOP_ID]);
     return rows;
 }
+
+
+async function getClientPawnsAndTransactions(clientId) {
+    const {rows: pawns} = await pool.query(`
+        SELECT 'Gold' AS category,
+               gp.id,
+               gp.weight::FLOAT::TEXT || 'g ' || gp.carats || 'k ' || gp.type || ' ' || gp.description AS description,
+               gp.date_to,
+               gp.date_from,
+               gp.provision,
+               gp.price_pawned,
+               gp.date_to - CURRENT_DATE AS days_left,
+               gp.total_days
+        FROM gold_pawn gp
+        WHERE gp.client_id = $1 AND gp.shop_id = $2
+
+        UNION ALL
+
+        SELECT 'Electronics' AS category,
+               ep.id,
+               ep.brand || ' ' || ep.year || ' ' || ep.description AS description,
+               ep.date_to,
+               ep.date_from,
+               ep.provision,
+               ep.price_pawned,
+               ep.date_to - CURRENT_DATE AS days_left,
+               ep.total_days
+        FROM electronics_pawn ep
+        WHERE ep.client_id = $1 AND ep.shop_id = $2
+
+        UNION ALL
+
+        SELECT 'Other' AS category,
+               op.id,
+               op.description,
+               op.date_to,
+               op.date_from,
+               op.provision,
+               op.price_pawned,
+               op.date_to - CURRENT_DATE AS days_left,
+               op.total_days
+        FROM other_pawn op
+        WHERE op.client_id = $1 AND op.shop_id = $2
+
+        UNION ALL
+
+        SELECT 'Vehicle' AS category,
+               vp.id,
+               vp.brand || ' ' || vp.model || ' ' || vp.year || ' ' || vp.description AS description,
+               vp.date_to,
+               vp.date_from,
+               vp.provision,
+               vp.price_pawned,
+               vp.date_to - CURRENT_DATE AS days_left,
+               vp.total_days
+        FROM vehicle_pawn vp
+        WHERE vp.client_id = $1 AND vp.shop_id = $2
+
+        UNION ALL
+
+        SELECT 'Watch' AS category,
+               wp.id,
+               wp.brand || ' ' || wp.year || ', ' || wp.description AS description,
+               wp.date_to,
+               wp.date_from,
+               wp.provision,
+               wp.price_pawned,
+               wp.date_to - CURRENT_DATE AS days_left,
+               wp.total_days
+        FROM watch_pawn wp
+        WHERE wp.client_id = $1 AND wp.shop_id = $2
+
+        ORDER BY date_to DESC
+    `, [clientId, SHOP_ID]);
+
+    const {rows: transactions} = await pool.query(`
+        SELECT *
+        FROM transaction
+        WHERE client_id = $1 AND shop_id = $2
+        ORDER BY date DESC
+    `, [clientId, SHOP_ID]);
+
+    return {
+        pawns,
+        transactions
+    };
+}
+
 
 
 async function getCashRegister() {
@@ -1820,6 +1909,7 @@ module.exports = {
     addNewSale,
     getAllClientsAutocomplete,
     getAllClients,
+    getClientPawnsAndTransactions,
     getCashRegister,
     insertIntoCashRegister,
     removeFromCashRegister,

@@ -241,6 +241,17 @@ const getAllClients = asyncHandler(async (req, res) => {
     }
 });
 
+const getClientPawnsAndTransactions = asyncHandler(async (req, res) => {
+    const clientId = req.query.clientId;
+
+    try {
+        const data = await db.getClientPawnsAndTransactions(clientId);
+        res.status(200).json(data).end();
+    } catch (error) {
+        res.status(500).json({ message: "Error query get client pawns and transactions " + error }).end();
+    }
+})
+
 
 const getCashRegister = asyncHandler(async (req, res) => {
 
@@ -386,8 +397,9 @@ module.exports = {
     getSale,
     insertSale,
     sellItem,
-    getAllClients,
     getAllClientsAutocomplete,
+    getAllClients,
+    getClientPawnsAndTransactions,
     getCashRegister,
     insertIntoCashRegister,
     removeFromCashRegister,

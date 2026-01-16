@@ -11,9 +11,9 @@ import Client from "../components/Client.jsx";
 
 export default function Clients() {
     const [allClients, setAllClients] = useState([]);
-    const [orderBy, setOrderBy] = useState("Id");
-    const orderDirectionArr = useRef([1,0,0,0,0,0,0]); // -1=desc 0=normal 1=asc
-    const [orderDirection, setOrderDirection] = useState("ASC");
+    const [orderBy, setOrderBy] = useState("Active Pawns");
+    const orderDirectionArr = useRef([0,0,0,0,-1,0,0]); // -1=desc 0=normal 1=asc
+    const [orderDirection, setOrderDirection] = useState("DESC");
     const [searchByName, setSearchByName] = useState("");
     const [searchByEmbg, setSearchByEmbg] = useState("");
     const [searchByTel, setSearchByTel] = useState("");
@@ -148,6 +148,9 @@ export default function Clients() {
                         <Text onClick={() => handleOrder("Money Provision", 6)} >
                             Приход од провизија {orderDirectionArr.current[6] === 0 ? <Minus size={14} /> : orderDirectionArr.current[6] === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </Text>
+                        <Text>
+                            Повеќе
+                        </Text>
                     </TableHeader>
 
                     <ScrollableClients ref={scrollableClientsRef}>
@@ -222,7 +225,7 @@ const ClientsWrapper = styled.div`
 const TableHeader = styled.div`
     display: grid;
     place-items: center;
-    grid-template-columns: 3rem repeat(7, 1fr);
+    grid-template-columns: 3rem repeat(8, 1fr);
     padding: .6rem .5rem;
     border-bottom: rgba(0, 0, 0, 0.2) 2px solid;
     color: #eee;
