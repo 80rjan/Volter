@@ -383,7 +383,7 @@ export default function Transactions() {
                     {Number(transaction.Diff).toLocaleString("de-DE")}
                   </TextTransaction>
                   <TextTransaction>
-                    {transaction.Date.substring(0, 10)}
+                    {transaction.Date.split(".")[0].split("T").join(" ")}
                   </TextTransaction>
                 </Transaction>
               ))
@@ -483,7 +483,7 @@ const TransactionsWrapper = styled.div`
 const TableHeader = styled.div`
   display: grid;
   place-items: center;
-  grid-template-columns: 3rem 1.5fr 1.5fr 1fr 2fr repeat(4, 1fr) 1fr;
+  grid-template-columns: 2rem 1.5fr 1.5fr 1fr 2fr repeat(4, 1fr) 2fr;
   gap: 1rem;
   padding: 0.6rem 0.5rem;
   border-bottom: rgba(0, 0, 0, 0.2) 2px solid;
@@ -522,7 +522,7 @@ const ScrollableTransactions = styled.div`
 const Transaction = styled.div`
   display: grid;
   place-items: center;
-  grid-template-columns: 3rem 1.5fr 1.5fr 1fr 2fr repeat(4, 1fr) 1fr;
+  grid-template-columns: 2rem 1.5fr 1.5fr 1fr 2fr repeat(4, 1fr) 2fr;
   gap: 0.4rem;
   padding: 0.2rem;
   border-bottom: rgba(0, 0, 0, 0.2) 2px solid;

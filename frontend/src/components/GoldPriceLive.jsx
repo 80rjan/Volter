@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import axios from "axios";
 import {Coins} from "lucide-react";
 
@@ -26,8 +26,42 @@ export default function GoldPriceLive() {
     return (
         <Wrapper>
             <GoldPrice>
-                <Coins size={24} />
-                {pricePerGram ? pricePerGram + "€" : "Loading..."}
+                {/*<Coins size={24} />*/}
+                <span>24k:</span>
+                <div>
+                    {
+                        pricePerGram ? (
+                            <div>
+                                {Number(pricePerGram).toFixed(2)}€
+                                <span> / {(pricePerGram * 61.5).toFixed(0)} den</span>
+                            </div>
+                        ) : "Loading..."
+                    }
+                </div>
+            </GoldPrice>
+            <GoldPrice>
+                {/*<Coins size={24} />*/}
+                <span>18k:</span>
+                {
+                    pricePerGram ? (
+                        <div>
+                            {(pricePerGram * 0.75).toFixed(2)}€
+                            <span> / {(pricePerGram * 0.75 * 61.5).toFixed(0)} den</span>
+                        </div>
+                    ) : "Loading..."
+                }
+            </GoldPrice>
+            <GoldPrice>
+                {/*<Coins size={24} />*/}
+                <span>14k:</span>
+                {
+                    pricePerGram ? (
+                        <div>
+                            {(pricePerGram * 0.585).toFixed(2)}€
+                            <span> / {(pricePerGram * 0.585 * 61.5).toFixed(0)} den</span>
+                        </div>
+                    ) : "Loading..."
+                }
             </GoldPrice>
         </Wrapper>
     );
@@ -35,13 +69,16 @@ export default function GoldPriceLive() {
 
 const Wrapper = styled.div`
     margin-top: auto;
+    width: 100%;
 `
 
 const GoldPrice = styled.div`
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    width: 100%;
     gap: .4rem;
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: darkgoldenrod;
+    font-size: 1rem;
+    font-weight: 700;
+    color: orangered;
 `

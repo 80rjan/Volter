@@ -14,10 +14,15 @@ export default function Sale({ sale, refresh, isOdd }) {
 
     const sellItem = (id, priceSold, description) => {
         //Put http which sends the id of the sale to sell item and close sale
+        setLoading(true);
         axios.put(`http://localhost:3000/sales/sellItem`, { id, priceSold, description })
             .then()
             .catch(error => console.error('Error selling item:', error))
-            .finally(() => setLoading(false));
+            .finally(() => {
+                setLoading(false);
+                setModalSellItem(false);
+                refresh();
+            });
     }
 
 
@@ -54,6 +59,7 @@ export default function Sale({ sale, refresh, isOdd }) {
                     daysLeft={undefined}
                     title={"По која цена е продаден предметот?"}
                     refresh={refresh}
+                    loading={loading}
                 />
             }
 

@@ -488,12 +488,14 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
                     pawnCategory === "watch_pawn" ? "Watch" : "Other";
         let transactionDescription = "Added new pawn";
 
+        const isToday = pawnObj.date === new Date().toISOString().slice(0, 10);
+        const timestampToInsert = isToday ? UTC_TIME : new Date(pawnObj.date + "T00:00:00Z").toISOString();
         //Insert a new transaction where money is given to client for pawn
         await client.query(`
             INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date,
                                      shop_id)
-            VALUES ($1, $2, $3, $4, 0, 0, 0, $5::DATE, $6);
-        `, [clientId, transactionCategory, transactionDescription, pawnObj.price_pawned, pawnObj.date, SHOP_ID])
+            VALUES ($1, $2, $3, $4, 0, 0, 0, $5, $6);
+        `, [clientId, transactionCategory, transactionDescription, pawnObj.price_pawned, timestampToInsert, SHOP_ID])
 
         //Update cash register with money taken, increase numPawns, increase moneyPawns, update quantity of gold in grams and update total provision for pawns
         await client.query(`
