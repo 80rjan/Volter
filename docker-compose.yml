@@ -1,23 +1,48 @@
 services:
-  frontend:
-    image: volter-frontend-image
-    container_name: volter-frontend
-    build:
-      context: ./frontend
+  db:
+    image: postgres:16-alpine
+    container_name: volter_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: borjan123
+      POSTGRES_DB: volter
     ports:
-      - "5173:5173"
-    depends_on:
-      - backend
+      - "5432:5432"
+    volumes:
+      - db_:/var/lib/postgresql/data
+
   backend:
-    image: volter-backend-image
-    container_name: volter-backend
     build:
       context: ./backend
+      dockerfile: Dockerfile
+    container_name: volter_backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - db
     ports:
       - "3000:3000"
+    volumes:
+      - ./backend:/app/backend
+      - /app/backend/node_modules
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: volter_frontend
+    restart: unless-stopped
     environment:
-      - VOLTER_CENTAR_DB_USER=doadmin
-      - VOLTER_CENTAR_DB_HOST=volter-centar-do-user-20466161-0.i.db.ondigitalocean.com
-      - VOLTER_CENTAR_DB_NAME=defaultdb
-      - VOLTER_CENTAR_DB_PASS=AVNS_7Jb5wyjnJscqL_iKEfV
-      - VOLTER_CENTAR_DB_PORT=25060
+      VITE_API_URL: http://backend:3000
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+
+volumes:
+  db_: {}
