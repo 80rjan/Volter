@@ -3,7 +3,7 @@ import { Ellipsis } from "lucide-react";
 import { useState } from "react";
 import ModalReadMoreClient from "./ModalReadMoreClient.jsx";
 
-export default function Client({ client, index }) {
+export default function Client({ client, index, updateTelephones }) {
   const [modalReadMore, setModalReadMore] = useState(false);
   
   return (
@@ -35,6 +35,7 @@ export default function Client({ client, index }) {
         <ModalReadMoreClient
           client={client}
           closeModal={() => setModalReadMore(false)}
+          updateTelephones={updateTelephones}
         />
       )}
     </Wrapper>

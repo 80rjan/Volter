@@ -157,7 +157,14 @@ export default function Clients() {
                         { loading ?
                             <Loading /> :
                             allClients.map((client, index) => (
-                                <Client key={index} client={client} index={index} />
+                                <Client
+                                    key={index}
+                                    client={client}
+                                    updateTelephones={(tel1, tel2) => setAllClients(
+                                        prev => prev.map(c => c.Id === client.Id ? {...c, "Telephone 1": tel1, "Telephone 2": tel2} : c)
+                                    )}
+                                    index={index}
+                                />
                             )) }
                     </ScrollableClients>
 

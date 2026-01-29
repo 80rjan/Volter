@@ -490,6 +490,7 @@ async function addNewPawn(pawnCategory, pawnObj, clientObj) {
 
         const isToday = pawnObj.date === new Date().toISOString().slice(0, 10);
         const timestampToInsert = isToday ? UTC_TIME : new Date(pawnObj.date + "T00:00:00Z").toISOString();
+
         //Insert a new transaction where money is given to client for pawn
         await client.query(`
             INSERT INTO transaction (client_id, category, description, money_given, money_got, profit, money_diff, date,
@@ -1031,7 +1032,6 @@ async function getAllClients(limit, offset, orderBy, orderDirection, searchByNam
     return rows;
 }
 
-
 async function getClientPawnsAndTransactions(clientId) {
     const {rows: pawns} = await pool.query(`
         SELECT 'Gold' AS category,
@@ -1118,6 +1118,27 @@ async function getClientPawnsAndTransactions(clientId) {
     };
 }
 
+async function updateClientTelephone(clientId, telephone, telephone_2) {
+    const client = await pool.connect();
+
+    try {
+        await client.query("BEGIN");
+
+        await client.query(`
+            UPDATE client
+            SET telephone = $1,
+                telephone_2 = $2
+            WHERE id = $3 ;
+        `, [telephone, telephone_2, clientId]);
+
+        await client.query("COMMIT");
+    } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+    } finally {
+        client.release();
+    }
+}
 
 
 async function getCashRegister() {
@@ -1913,6 +1934,7 @@ module.exports = {
     getAllClientsAutocomplete,
     getAllClients,
     getClientPawnsAndTransactions,
+    updateClientTelephone,
     getCashRegister,
     insertIntoCashRegister,
     removeFromCashRegister,

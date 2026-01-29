@@ -17,9 +17,9 @@ const pool = new Pool({
     database: process.env.VITE_DB_NAME,
     password: process.env.VITE_DB_PASSWORD,
     port: process.env.VITE_DB_PORT,
-    ssl: {
-        rejectUnauthorized: false
-    }
+    // ssl: {
+    //     rejectUnauthorized: false
+    // }
 });
 pool.connect()
     .then(() => {

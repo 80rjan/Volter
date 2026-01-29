@@ -252,6 +252,17 @@ const getClientPawnsAndTransactions = asyncHandler(async (req, res) => {
     }
 })
 
+const updateClientTelephone = asyncHandler(async (req, res) => {
+    const { clientId, telephone1, telephone2 } = req.body;
+
+    try {
+        await db.updateClientTelephone(clientId, telephone1, telephone2);
+        res.status(200).end();
+    } catch (error) {
+        res.status(500).json({ message: "Error query update client telephone " + error }).end();
+    }
+})
+
 
 const getCashRegister = asyncHandler(async (req, res) => {
 
@@ -400,6 +411,7 @@ module.exports = {
     getAllClientsAutocomplete,
     getAllClients,
     getClientPawnsAndTransactions,
+    updateClientTelephone,
     getCashRegister,
     insertIntoCashRegister,
     removeFromCashRegister,

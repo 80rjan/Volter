@@ -15,6 +15,8 @@ import Expenses from "./pages/Expenses.jsx";
 import Clients from "./pages/Clients.jsx";
 
 function App() {
+    console.log(new Date(Date.now()))
+    console.log(new Date(Date.now() - new Date().getTimezoneOffset() * 60000))
     return (
         <HashRouter>
             <Routes>

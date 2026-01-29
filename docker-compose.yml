@@ -7,6 +7,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: borjan123
       POSTGRES_DB: volter
+      TZ: Europe/Skopje
+    command: postgres -c timezone=Europe/Skopje
     ports:
       - "5432:5432"
     volumes:

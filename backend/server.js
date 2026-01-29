@@ -34,6 +34,7 @@ app.get('/transactions', appController.getAllTransactions)
 app.get('/clientsAutocomplete', appController.getAllClientsAutocomplete)
 app.get('/clients', appController.getAllClients)
 app.get('/clients/details', appController.getClientPawnsAndTransactions)
+app.post('/clients/updateTelephones', appController.updateClientTelephone)
 
 app.get('/dailyReport', appController.getDailyReport)
 app.get('/periodReport', appController.getPeriodReport)
