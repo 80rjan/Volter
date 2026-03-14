@@ -1,8 +1,8 @@
 package com.volter.backend.modificationNotification;
 
-import com.volter.backend.manager.Manager;
 import com.volter.backend.modificationNotification.enums.ModificationSeverity;
 import com.volter.backend.modificationNotification.enums.ModificationType;
+import com.volter.backend.staff.Staff;
 import com.volter.backend.transaction.Transaction;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -67,8 +67,8 @@ public class ModificationNotification {
     private Transaction transaction;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "manager_id", nullable = false, foreignKey = @ForeignKey(name = "fk_modification_notification_manager"))      // Manager.id
-    private Manager manager;
+    @JoinColumn(name = "manager_id", nullable = false, foreignKey = @ForeignKey(name = "fk_modification_notification_manager"))      // Staff.id
+    private Staff manager;
 
     @PrePersist
     public void prePersist() {

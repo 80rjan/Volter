@@ -4,13 +4,12 @@ import com.volter.backend.customer.Customer;
 import com.volter.backend.customer.enums.CustomerRiskLevel;
 import com.volter.backend.item.Item;
 import com.volter.backend.pawn.enums.PawnStatus;
+import com.volter.backend.pawnEvent.PawnEvent;
 import com.volter.backend.transaction.Transaction;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,6 +19,8 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(
         indexes = {
                 @Index(name = "idx_pawn_status", columnList = "status"),
@@ -78,7 +79,7 @@ public class Pawn {
     private LocalDateTime updatedAt;
 
     @NotNull(message = "Pawn customer is required")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false, foreignKey = @ForeignKey(name = "fk_pawn_customer"))     // Customer.id
     private Customer customer;
 
@@ -89,6 +90,9 @@ public class Pawn {
 
     @OneToMany(mappedBy = "pawn", cascade = CascadeType.PERSIST, orphanRemoval = false)
     private List<Transaction> transactions;
+
+    @OneToMany(mappedBy = "pawn", cascade = CascadeType.PERSIST, orphanRemoval = false)
+    private List<PawnEvent> pawnEvents;
 
     @PrePersist
     public void prePersist() {

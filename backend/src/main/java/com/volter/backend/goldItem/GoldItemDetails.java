@@ -4,14 +4,14 @@ import com.volter.backend.goldItem.enums.GoldItemCarats;
 import com.volter.backend.item.Item;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(
         indexes = {
                 @Index(name = "idx_gold_item_details_carats", columnList = "carats"),

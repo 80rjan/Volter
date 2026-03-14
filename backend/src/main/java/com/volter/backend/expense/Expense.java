@@ -1,8 +1,7 @@
 package com.volter.backend.expense;
 
-import com.volter.backend.employee.Employee;
+import com.volter.backend.staff.Staff;
 import com.volter.backend.expense.enums.ExpenseType;
-import com.volter.backend.manager.Manager;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -19,8 +18,7 @@ import java.time.LocalDateTime;
 @Table(
         indexes = {
                 @Index(name = "idx_expense_date", columnList = "date DESC"),
-                @Index(name = "idx_expense_employee_id", columnList = "employee_id"),
-                @Index(name = "idx_expense_manager_id", columnList = "manager_id"),
+                @Index(name = "idx_expense_staff_id", columnList = "staff_id"),
                 @Index(name = "idx_expense_type_date", columnList = "expenseType, date DESC")
         }
 )
@@ -56,12 +54,8 @@ public class Expense {
     private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "employee_id", nullable = true, foreignKey = @ForeignKey(name = "fk_expense_employee"))
-    private Employee employee;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "manager_id", nullable = true, foreignKey = @ForeignKey(name = "fk_expense_manager"))
-    private Manager manager;
+    @JoinColumn(name = "staff_id", nullable = true, foreignKey = @ForeignKey(name = "fk_expense_staff"))
+    private Staff staff;
 
     @PrePersist
     protected void onCreate() {

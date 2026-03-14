@@ -28,6 +28,10 @@ public class CashRegister {
     @Column(nullable = false)
     private Integer totalPawnPayout;
 
+    @NotNull(message = "Cash register total interest amount is required")
+    @Column(nullable = false)
+    private Integer totalInterestAmount;
+
     @NotNull(message = "Cash register sale count is required")
     @Column(nullable = false)
     private Integer saleCount;
@@ -36,6 +40,10 @@ public class CashRegister {
     @Column(nullable = false)
     private Integer totalSalePayout;
 
+    @NotNull(message = "Cash register total gold weight in grams is required")
+    @Column(nullable = false)
+    private Float totalGoldWeightGrams;
+
     @NotNull(message = "Cash register balance is required")
     @Column(nullable = false)
     private Integer balance;
@@ -43,14 +51,6 @@ public class CashRegister {
     @NotNull(message = "Cash register updated at is required")
     @Column(nullable = false)
     private LocalDateTime updatedAt;
-
-    @NotNull(message = "Cash register total gold weight in grams is required")
-    @Column(nullable = false)
-    private Integer totalGoldWeightGrams;
-
-    @NotNull(message = "Cash register total interest amount is required")
-    @Column(nullable = false)
-    private Integer totalInterestAmount;
 
     @OneToMany(mappedBy = "cashRegister", cascade = CascadeType.PERSIST, orphanRemoval = false)
     private List<Transaction> transactions;

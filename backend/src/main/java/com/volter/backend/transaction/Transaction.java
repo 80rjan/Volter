@@ -1,16 +1,14 @@
 package com.volter.backend.transaction;
 
 import com.volter.backend.cashRegister.CashRegister;
-import com.volter.backend.employee.Employee;
+import com.volter.backend.staff.Staff;
 import com.volter.backend.modificationNotification.ModificationNotification;
 import com.volter.backend.pawn.Pawn;
 import com.volter.backend.sale.Sale;
 import com.volter.backend.transaction.enums.TransactionType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,6 +17,8 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(
         indexes = {
                 @Index(name = "idx_transaction_pawn_id", columnList = "pawn_id, createdAt DESC"),
@@ -56,8 +56,7 @@ public class Transaction {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @NotNull(message = "Transaction description is required")
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -73,11 +72,13 @@ public class Transaction {
     private CashRegister cashRegister;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "employee_id", nullable = false, foreignKey = @ForeignKey(name = "fk_transaction_employee"))      // Employee.id
-    private Employee employee;
+    @JoinColumn(name = "employee_id", nullable = false, foreignKey = @ForeignKey(name = "fk_transaction_employee"))      // Staff.id
+    private Staff staff;
 
     @OneToMany(mappedBy = "transaction", cascade = CascadeType.PERSIST, orphanRemoval = false)
     private List<ModificationNotification> modificationNotifications;
+
+    // TODO: add a anomaly notification so i send notifications to the manager if the transaction smells of anomaly in it (cash in smaller than amount + profit for pawn, etc...
 
     @PrePersist
     public void prePersist() {

@@ -5,9 +5,7 @@ import com.volter.backend.pawn.Pawn;
 import com.volter.backend.sale.Sale;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,6 +14,8 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(
         indexes = {
                 @Index(name = "idx_customer_embg", columnList = "embg"),
@@ -69,6 +69,30 @@ public class Customer {
     @Enumerated(EnumType.STRING)
     private CustomerRiskLevel riskLevel;
 
+    @NotNull(message = "Customer total pawn count is required")
+    @Column(nullable = false)
+    private Integer totalPawnCount;
+
+    @NotNull(message = "Customer total sale count is required")
+    @Column(nullable = false)
+    private Integer totalSaleCount;
+
+    @NotNull(message = "Customer late renewal count is required")
+    @Column(nullable = false)
+    private Integer lateRenewalCount;
+
+    @NotNull(message = "Customer on-time renewal count is required")
+    @Column(nullable = false)
+    private Integer onTimeRenewalCount;
+
+    @NotNull(message = "Customer forfeit count is required")
+    @Column(nullable = false)
+    private Integer forfeitCount;
+
+    @NotNull(message = "Customer average days late is required")
+    @Column(nullable = false)
+    private Double avgDaysLate;
+
     @OneToMany(mappedBy = "customer", cascade = {CascadeType.PERSIST}, orphanRemoval = false)
     private List<Pawn> pawns;
 
@@ -78,6 +102,14 @@ public class Customer {
     @PrePersist
     public void prePersist() {
         LocalDateTime now = LocalDateTime.now();
+
+        riskLevel = CustomerRiskLevel.LOW;
+        forfeitCount = 0;
+        totalPawnCount = 0;
+        totalSaleCount = 0;
+        lateRenewalCount = 0;
+        onTimeRenewalCount = 0;
+        avgDaysLate = 0.0;
         createdAt = now;
         updatedAt = now;
     }

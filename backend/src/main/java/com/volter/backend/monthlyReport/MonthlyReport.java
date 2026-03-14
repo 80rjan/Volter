@@ -1,7 +1,7 @@
 package com.volter.backend.monthlyReport;
 
-import com.volter.backend.manager.Manager;
 import com.volter.backend.monthlyReportItemBreakdown.MonthlyReportItemBreakdown;
+import com.volter.backend.staff.Staff;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -55,7 +55,7 @@ public class MonthlyReport {
 
     @NotNull(message = "Monthly report total revenue is required")
     @Column(nullable = false)
-    private Integer totalRevenue;
+    private Integer totalRevenue;       // cash in + profit from transactions
 
     @NotNull(message = "Monthly report total cash in is required")
     @Column(nullable = false)
@@ -79,7 +79,7 @@ public class MonthlyReport {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id", nullable = false, foreignKey = @ForeignKey(name = "fk_monthly_report_manager"))
-    private Manager manager;
+    private Staff manager;
 
     @OneToMany(mappedBy = "monthlyReport", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MonthlyReportItemBreakdown> itemBreakdowns;

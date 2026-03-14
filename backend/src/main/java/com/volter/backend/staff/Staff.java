@@ -1,10 +1,11 @@
-package com.volter.backend.manager;
+package com.volter.backend.staff;
 
-import com.volter.backend.admin.Admin;
-import com.volter.backend.employee.Employee;
 import com.volter.backend.expense.Expense;
 import com.volter.backend.modificationNotification.ModificationNotification;
 import com.volter.backend.monthlyReport.MonthlyReport;
+import com.volter.backend.pawnEvent.PawnEvent;
+import com.volter.backend.staff.enums.StaffRole;
+import com.volter.backend.transaction.Transaction;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -24,77 +25,87 @@ import java.util.List;
 @NoArgsConstructor
 @Table(
         indexes = {
-                @Index(name = "idx_manager_username", columnList = "username"),
-                @Index(name = "idx_manager_embg", columnList = "embg"),
-                @Index(name = "idx_manager_phone_number", columnList = "phoneNumber"),
+                @Index(name = "idx_staff_username", columnList = "username"),
+                @Index(name = "idx_staff_embg", columnList = "embg"),
+                @Index(name = "idx_staff_phone_number", columnList = "phoneNumber"),
         },
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_manager_username", columnNames = "username"),
-                @UniqueConstraint(name = "uk_manager_embg", columnNames = "embg"),
-                @UniqueConstraint(name = "uk_manager_phone_number", columnNames = "phoneNumber")
+                @UniqueConstraint(name = "uk_staff_username", columnNames = "username"),
+                @UniqueConstraint(name = "uk_staff_embg", columnNames = "embg"),
+                @UniqueConstraint(name = "uk_staff_phone_number", columnNames = "phoneNumber")
         }
 )
-public class Manager implements UserDetails {
+public class Staff implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @NotNull(message = "Employee name is required")
+    @NotNull(message = "Staff role is required")
+    @Column(nullable = false)
+    private StaffRole role;
+
+    @NotNull(message = "Staff name is required")
     @Column(nullable = false)
     private String name;
 
-    @NotNull(message = "Employee username is required")
+    @NotNull(message = "Staff username is required")
     @Column(nullable = false)
     private String username;
 
-    @NotNull(message = "Employee password hash is required")
+    @NotNull(message = "Staff password hash is required")
     @Column(nullable = false)
     private String passwordHash;
 
-    @NotNull(message = "Employee embg is required")
+    @NotNull(message = "Staff embg is required")
     @Column(columnDefinition = "CHAR(13)", nullable = false)
     private String embg;
 
-    @NotNull(message = "Employee phone number is required")
+    @NotNull(message = "Staff phone number is required")
     @Column(nullable = false)
     private String phoneNumber;
 
-    @NotNull(message = "Employee created at is required")
+    @NotNull(message = "Staff created at is required")
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @NotNull(message = "Employee updated at is required")
+    @NotNull(message = "Staff updated at is required")
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     @Column(nullable = true)
     private LocalDateTime deletedAt;
 
-    @NotNull(message = "Employee is deleted is required")
+    @NotNull(message = "Staff is deleted is required")
     @Column(nullable = false)
     private boolean deleted;
 
-    @OneToMany(mappedBy = "manager", cascade = CascadeType.PERSIST, orphanRemoval = false)
-    private List<Employee> employees;
+    @OneToMany(mappedBy = "staff", cascade = CascadeType.PERSIST, orphanRemoval = false)
+    private List<Transaction> transactions;
 
-    @OneToMany(mappedBy = "manager", cascade = CascadeType.PERSIST, orphanRemoval = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "manager_id", nullable = true, foreignKey = @ForeignKey(name = "fk_staff_manager"))
+    private Staff manager;
+
+    @OneToMany(mappedBy = "manager")
+    private List<Staff> subordinates;
+
+    @OneToMany(mappedBy = "staff", cascade = CascadeType.PERSIST, orphanRemoval = false)
     private List<Expense> expenses;
 
     @OneToMany(mappedBy = "manager", cascade = CascadeType.PERSIST, orphanRemoval = false)
     private List<ModificationNotification> modificationNotifications;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "admin_id", nullable = false, foreignKey = @ForeignKey(name = "fk_manager_admin"))
-    private Admin admin;
-
     @OneToMany(mappedBy = "manager", cascade = CascadeType.PERSIST, orphanRemoval = false)
     private List<MonthlyReport> monthlyReports;
+
+    @OneToMany(mappedBy = "staff", cascade = CascadeType.PERSIST, orphanRemoval = false)
+    private List<PawnEvent> pawnEvents;
 
     // USER DETAILS METHODS
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_MANAGER"));
+        return List.of(new SimpleGrantedAuthority("ROLE_STAFF"));
     }
 
     @Override

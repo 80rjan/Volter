@@ -12,9 +12,7 @@ import com.volter.backend.vehicleItem.VehicleItemDetails;
 import com.volter.backend.watchItem.WatchItemDetails;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,6 +21,8 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(
         indexes = {
                 @Index(name = "idx_item_item_type", columnList = "itemType"),

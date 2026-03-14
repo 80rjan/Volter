@@ -2,14 +2,11 @@ package com.volter.backend.sale;
 
 import com.volter.backend.customer.Customer;
 import com.volter.backend.item.Item;
-import com.volter.backend.pawn.enums.PawnStatus;
 import com.volter.backend.sale.enums.SaleStatus;
 import com.volter.backend.transaction.Transaction;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,6 +15,8 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(
         indexes = {
                 @Index(name = "idx_sale_status", columnList = "status"),
@@ -36,9 +35,9 @@ public class Sale {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @NotNull(message = "Sale listed price is required")
+    @NotNull(message = "Sale purchase price is required")
     @Column(nullable = false)
-    private Integer listedPrice;
+    private Integer purchasePrice;
 
     @Column(nullable = true)
     private Integer soldPrice;
