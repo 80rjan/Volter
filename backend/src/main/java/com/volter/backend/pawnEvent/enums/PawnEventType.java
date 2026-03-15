@@ -5,5 +5,5 @@ public enum PawnEventType {
     RENEW,
     REDEEM,
     FORFEIT,
-    ADD_NOTE
+    MODIFY
 }

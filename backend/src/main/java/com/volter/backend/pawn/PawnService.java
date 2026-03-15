@@ -9,6 +9,7 @@ import com.volter.backend.item.Item;
 import com.volter.backend.item.ItemService;
 import com.volter.backend.item.enums.ItemType;
 import com.volter.backend.pawn.dto.PawnCreationRequest;
+import com.volter.backend.pawn.dto.PawnModificationRequest;
 import com.volter.backend.pawn.enums.PawnStatus;
 import com.volter.backend.pawn.mapper.PawnMapper;
 import com.volter.backend.pawnEvent.PawnEvent;
@@ -271,8 +272,72 @@ public class PawnService {
         return pawn;
     }
 
-    public Pawn update() {
-        return null;
+    public Pawn modify(Long pawnId, PawnModificationRequest request, String transactionDescription, Long cashRegisterId, Authentication authentication) {
+        Staff staff = staffService.getById(validate.extractStaffId(authentication));
+        Pawn pawn = pawnRepository.findById(pawnId).orElseThrow(
+                () -> new ResourceNotFoundException("Pawn with ID " + pawnId + " not found")
+        );
+        Item item = pawn.getItem();
+        CashRegister cashRegister = cashRegisterService.getById(cashRegisterId);
+
+        int cashIn = 0;
+        int cashOut = 0;
+        if (request.getAmount() != null) {
+            int amountDifference = request.getAmount() - pawn.getAmount();
+            pawn.setAmount(request.getAmount());
+                if (amountDifference > 0) {
+                    cashOut = amountDifference;
+                    cashRegister.setTotalPawnPayout(cashRegister.getTotalPawnPayout() + cashOut);
+                    cashRegister.setBalance(cashRegister.getBalance() - cashOut);
+                } else if (amountDifference < 0) {
+                    cashIn = -amountDifference;
+                    cashRegister.setTotalPawnPayout(cashRegister.getTotalPawnPayout() - cashIn);
+                    cashRegister.setBalance(cashRegister.getBalance() + cashIn);
+                }
+        }
+        if (request.getInterest() != null) {
+            pawn.setInterest(request.getInterest());
+        }
+        if (request.getDurationDays() != null) {
+            int durationDifference = request.getDurationDays() - pawn.getDurationDays();
+            pawn.setDurationDays(request.getDurationDays());
+            pawn.setMaturityDate(pawn.getMaturityDate().plusDays(durationDifference));
+        }
+        if (request.getItemDescription() != null) {
+            item.setDescription(request.getItemDescription());
+        }
+        if (request.getGoldItemDetailsWeightGrams() != null && item.getItemType() == ItemType.GOLD) {
+            float weightDifference = request.getGoldItemDetailsWeightGrams() - item.getGoldItemDetails().getWeightGrams();
+            item.getGoldItemDetails().setWeightGrams(request.getGoldItemDetailsWeightGrams());
+            cashRegister.setTotalGoldWeightGrams(cashRegister.getTotalGoldWeightGrams() + weightDifference);
+        }
+
+        Transaction transaction = Transaction.builder()
+                .transactionType(TransactionType.PAWN_MODIFICATION)
+                .cashIn(cashIn)
+                .cashOut(cashOut)
+                .profit(0)
+                .description(transactionDescription)
+                .pawn(pawn)
+                .staff(staff)
+                .cashRegister(cashRegister)
+                .build();
+
+        PawnEvent pawnEvent = PawnEvent.builder()
+                .type(PawnEventType.MODIFY)
+                .note("Pawn modified")
+                .pawn(pawn)
+                .staff(staff)
+                .build();
+
+        pawn.getPawnEvents().add(pawnEvent);
+
+        pawnRepository.save(pawn);              // pawn event will be saved via cascade from pawn
+        transactionService.save(transaction);
+        itemService.save(item);
+        cashRegisterService.save(cashRegister);
+
+        return pawn;
     }
 
 

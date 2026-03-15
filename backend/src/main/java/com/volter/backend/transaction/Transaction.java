@@ -2,7 +2,7 @@ package com.volter.backend.transaction;
 
 import com.volter.backend.cashRegister.CashRegister;
 import com.volter.backend.staff.Staff;
-import com.volter.backend.modificationNotification.ModificationNotification;
+import com.volter.backend.notification.Notification;
 import com.volter.backend.pawn.Pawn;
 import com.volter.backend.sale.Sale;
 import com.volter.backend.transaction.enums.TransactionType;
@@ -78,7 +78,7 @@ public class Transaction {
 
     @Builder.Default
     @OneToMany(mappedBy = "transaction", cascade = CascadeType.PERSIST, orphanRemoval = false)
-    private List<ModificationNotification> modificationNotifications = new ArrayList<>();
+    private List<Notification> notifications = new ArrayList<>();
 
     // TODO: add a anomaly notification so i send notifications to the manager if the transaction smells of anomaly in it (cash in smaller than amount + profit for pawn, etc...
 

@@ -5,7 +5,7 @@ public enum TransactionType {
     PAWN_RENEWAL,
     PAWN_REDEMPTION,
     PAWN_FORFEIT,
-    PAWN_ADJUSTMENT,
+    PAWN_MODIFICATION,
     PURCHASE,
     PURCHASE_ADJUSTMENT,
     SALE,

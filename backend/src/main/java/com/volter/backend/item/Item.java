@@ -70,7 +70,7 @@ public class Item {
     private List<Pawn> pawns = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "item", cascade = {CascadeType.PERSIST}, orphanRemoval = false)
+    @OneToMany(mappedBy = "item", cascade = {}, orphanRemoval = false)
     private List<Sale> sales = new ArrayList<>();
 
     @OneToOne(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)

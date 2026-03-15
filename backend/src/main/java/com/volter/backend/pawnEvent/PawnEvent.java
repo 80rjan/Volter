@@ -1,5 +1,6 @@
 package com.volter.backend.pawnEvent;
 
+import com.volter.backend.notification.Notification;
 import com.volter.backend.pawn.Pawn;
 import com.volter.backend.pawnEvent.enums.PawnEventType;
 import com.volter.backend.pawnEvent.snapshot.PawnChangesSnapshot;
@@ -12,6 +13,8 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Entity
@@ -32,15 +35,13 @@ public class PawnEvent {
     @Enumerated(EnumType.STRING)
     private PawnEventType type;
 
-    @NotNull(message = "Pawn event pawn snapshot is required")
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private PawnSnapshot pawnSnapshot;
+    private PawnSnapshot pawnSnapshot;              // only for modification event, otherwise null
 
-    @NotNull(message = "Pawn event changes snapshot is required")
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private PawnChangesSnapshot changesSnapshot;
+    private PawnChangesSnapshot changesSnapshot;    // only for modification events, otherwise null
 
     @NotNull(message = "Pawn event note is required")
     @Column(nullable = false)
@@ -57,6 +58,10 @@ public class PawnEvent {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "staff_id", nullable = false, foreignKey = @ForeignKey(name = "fk_pawn_event_staff"))
     private Staff staff;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "pawnEvent", cascade = CascadeType.PERSIST, orphanRemoval = false)
+    private List<Notification> notifications = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {

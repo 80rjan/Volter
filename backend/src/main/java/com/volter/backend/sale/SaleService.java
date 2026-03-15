@@ -2,11 +2,17 @@ package com.volter.backend.sale;
 
 import com.volter.backend.cashRegister.CashRegister;
 import com.volter.backend.cashRegister.CashRegisterService;
+import com.volter.backend.customer.Customer;
+import com.volter.backend.customer.CustomerService;
 import com.volter.backend.exceptions.ResourceNotFoundException;
+import com.volter.backend.item.Item;
+import com.volter.backend.item.ItemService;
+import com.volter.backend.sale.dto.SaleCreationRequest;
 import com.volter.backend.sale.enums.SaleStatus;
 import com.volter.backend.staff.Staff;
 import com.volter.backend.staff.StaffService;
 import com.volter.backend.transaction.Transaction;
+import com.volter.backend.transaction.TransactionService;
 import com.volter.backend.transaction.enums.TransactionType;
 import com.volter.backend.util.Validate;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +30,10 @@ public class SaleService {
     private final StaffService staffService;
     private final SaleRepository saleRepository;
     private final CashRegisterService cashRegisterService;
+    private final SaleMapper saleMapper;
+    private final TransactionService transactionService;
+    private final ItemService itemService;
+    private final CustomerService customerService;
 
     public Sale save(Sale sale) {
         return saleRepository.save(sale);
@@ -67,16 +77,43 @@ public class SaleService {
         sale.setSoldPrice(soldPrice);
         sale.setStatus(SaleStatus.SOLD);
         sale.setActive(false);
-        sale.getTransactions().add(transaction);
 
         saleRepository.save(sale);
+        transactionService.save(transaction);
         cashRegisterService.save(cashRegister);
 
         return sale;
     }
 
     @Transactional
-    public Sale create() {
-        return null;
+    public Sale create(SaleCreationRequest request, String transactionDescription, Long cashRegisterId, Authentication authentication) {
+        Staff staff = staffService.getById(validate.extractStaffId(authentication));
+        Sale sale = saleMapper.toEntity(request);
+        Customer customer = sale.getCustomer();
+        Item item = sale.getItem();
+        CashRegister cashRegister = cashRegisterService.getById(cashRegisterId);
+
+        Transaction transaction = Transaction.builder()
+                .transactionType(TransactionType.PAWN_CREATION)
+                .cashIn(0)
+                .cashOut(sale.getPurchasePrice())
+                .profit(0)
+                .description(transactionDescription)
+                .sale(sale)
+                .staff(staff)
+                .cashRegister(cashRegister)
+                .build();
+
+        cashRegister.setSaleCount(cashRegister.getSaleCount() + 1);
+        cashRegister.setTotalSalePayout(cashRegister.getTotalSalePayout() + sale.getPurchasePrice());
+        cashRegister.setBalance(cashRegister.getBalance() - sale.getPurchasePrice());
+
+        saleRepository.save(sale);
+        customerService.save(customer);
+        itemService.save(item);
+        transactionService.save(transaction);
+        cashRegisterService.save(cashRegister);
+
+        return sale;
     }
 }

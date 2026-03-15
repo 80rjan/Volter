@@ -1,7 +1,7 @@
 package com.volter.backend.staff;
 
 import com.volter.backend.expense.Expense;
-import com.volter.backend.modificationNotification.ModificationNotification;
+import com.volter.backend.notification.Notification;
 import com.volter.backend.monthlyReport.MonthlyReport;
 import com.volter.backend.pawnEvent.PawnEvent;
 import com.volter.backend.staff.enums.StaffRole;
@@ -99,7 +99,7 @@ public class Staff implements UserDetails {
 
     @Builder.Default
     @OneToMany(mappedBy = "manager", cascade = CascadeType.PERSIST, orphanRemoval = false)
-    private List<ModificationNotification> modificationNotifications = new ArrayList<>();
+    private List<Notification> notifications = new ArrayList<>();
 
     @Builder.Default
     @OneToMany(mappedBy = "manager", cascade = CascadeType.PERSIST, orphanRemoval = false)

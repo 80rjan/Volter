@@ -1,4 +1,4 @@
-package com.volter.backend.modificationNotification;
+package com.volter.backend.notification;
 
 import lombok.Getter;
 import lombok.Setter;
