@@ -3,6 +3,7 @@ package com.volter.backend.pawn.mapper;
 import com.volter.backend.customer.mapper.CustomerMapper;
 import com.volter.backend.item.mapper.ItemMapper;
 import com.volter.backend.pawn.Pawn;
+import com.volter.backend.pawn.dto.PawnCreationRequest;
 import com.volter.backend.pawn.dto.PawnDetailsResponse;
 import com.volter.backend.pawn.dto.PawnResponse;
 import org.mapstruct.AfterMapping;
@@ -14,6 +15,8 @@ public abstract class PawnMapper {
     public abstract PawnResponse toResponse(Pawn pawn);
 
     public abstract PawnDetailsResponse toDetailsResponse(Pawn pawn);
+
+    public abstract Pawn toEntity(PawnCreationRequest request);
 
     @AfterMapping
     protected void enrichResponse(

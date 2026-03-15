@@ -24,4 +24,8 @@ public class OtherItemDetails {
     @NotNull(message = "Other item category is required")
     @Column(nullable = false)
     private String category;
+
+    @NotNull(message = "Other item description is required")
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String description;
 }

@@ -1,8 +1,8 @@
 package com.volter.backend.pawnEvent.enums;
 
 public enum PawnEventType {
-    ISSUE_LOAN,
-    RENEWAL,
+    CREATE,
+    RENEW,
     REDEEM,
     FORFEIT,
     ADD_NOTE

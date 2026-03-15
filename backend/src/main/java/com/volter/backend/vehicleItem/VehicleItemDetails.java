@@ -64,8 +64,7 @@ public class VehicleItemDetails {
     @Column(nullable = false)
     private boolean serviceHistoryAvailable;
 
-    @NotNull(message = "Vehicle last service date is required")
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalDate lastServiceDate;
 
     @NotNull(message = "Vehicle registration expiry date is required")

@@ -15,6 +15,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -47,10 +48,6 @@ public class Item {
     @Column(nullable = false)
     private ItemOriginType itemOriginType;
 
-    @NotNull(message = "Item creation timestamp is required")
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
     @NotNull(message = "Item status is required")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -60,11 +57,21 @@ public class Item {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    @OneToMany(mappedBy = "item", cascade = {CascadeType.PERSIST}, orphanRemoval = false)
-    private List<Pawn> pawns;
+    @NotNull(message = "Item creation timestamp is required")
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
 
+    @NotNull(message = "Item update timestamp is required")
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "item", cascade = {}, orphanRemoval = false)
+    private List<Pawn> pawns = new ArrayList<>();
+
+    @Builder.Default
     @OneToMany(mappedBy = "item", cascade = {CascadeType.PERSIST}, orphanRemoval = false)
-    private List<Sale> sales;
+    private List<Sale> sales = new ArrayList<>();
 
     @OneToOne(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
     private GoldItemDetails goldItemDetails;
@@ -83,6 +90,13 @@ public class Item {
 
     @PrePersist
     public void prePersist() {
-        createdAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        createdAt = now;
+        updatedAt = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }

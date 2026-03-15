@@ -3,6 +3,7 @@ package com.volter.backend.item.mapper;
 import com.volter.backend.electronicItem.mapper.ElectronicItemDetailsMapper;
 import com.volter.backend.goldItem.mapper.GoldItemDetailsMapper;
 import com.volter.backend.item.Item;
+import com.volter.backend.item.dto.ItemCreationRequest;
 import com.volter.backend.item.dto.ItemDetailsResponse;
 import com.volter.backend.item.dto.ItemResponse;
 import com.volter.backend.otherItem.mapper.OtherItemDetailsMapper;
@@ -21,4 +22,6 @@ public abstract class ItemMapper {
     public abstract ItemResponse toResponse(Item item);
 
     public abstract ItemDetailsResponse toDetailsResponse(Item item);
+
+    public abstract Item toEntity(ItemCreationRequest request);
 }

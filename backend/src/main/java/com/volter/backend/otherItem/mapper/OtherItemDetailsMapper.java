@@ -1,6 +1,7 @@
 package com.volter.backend.otherItem.mapper;
 
 import com.volter.backend.otherItem.OtherItemDetails;
+import com.volter.backend.otherItem.dto.OtherItemDetailsCreationRequest;
 import com.volter.backend.otherItem.dto.OtherItemDetailsResponse;
 import org.mapstruct.Mapper;
 
@@ -8,4 +9,6 @@ import org.mapstruct.Mapper;
 public abstract class OtherItemDetailsMapper {
 
     public abstract OtherItemDetailsResponse toDTO(OtherItemDetails otherItemDetails);
+
+    public abstract OtherItemDetails toEntity(OtherItemDetailsCreationRequest request);
 }

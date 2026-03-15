@@ -11,6 +11,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -75,8 +76,9 @@ public class Transaction {
     @JoinColumn(name = "employee_id", nullable = false, foreignKey = @ForeignKey(name = "fk_transaction_employee"))      // Staff.id
     private Staff staff;
 
+    @Builder.Default
     @OneToMany(mappedBy = "transaction", cascade = CascadeType.PERSIST, orphanRemoval = false)
-    private List<ModificationNotification> modificationNotifications;
+    private List<ModificationNotification> modificationNotifications = new ArrayList<>();
 
     // TODO: add a anomaly notification so i send notifications to the manager if the transaction smells of anomaly in it (cash in smaller than amount + profit for pawn, etc...
 

@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -67,55 +68,80 @@ public class Customer {
 
     @Column(nullable = true)
     @Enumerated(EnumType.STRING)
-    private CustomerRiskLevel riskLevel;
+    @Builder.Default
+    private CustomerRiskLevel riskLevel = CustomerRiskLevel.LOW;
 
     @NotNull(message = "Customer total pawn count is required")
     @Column(nullable = false)
-    private Integer totalPawnCount;
+    @Builder.Default
+    private Integer totalPawnCount = 0;
 
     @NotNull(message = "Customer total sale count is required")
     @Column(nullable = false)
-    private Integer totalSaleCount;
+    @Builder.Default
+    private Integer totalSaleCount = 0;
 
     @NotNull(message = "Customer late renewal count is required")
     @Column(nullable = false)
-    private Integer lateRenewalCount;
-
-    @NotNull(message = "Customer on-time renewal count is required")
-    @Column(nullable = false)
-    private Integer onTimeRenewalCount;
-
-    @NotNull(message = "Customer forfeit count is required")
-    @Column(nullable = false)
-    private Integer forfeitCount;
+    @Builder.Default
+    private Integer lateRenewalCount = 0;
 
     @NotNull(message = "Customer average days late is required")
     @Column(nullable = false)
-    private Double avgDaysLate;
+    @Builder.Default
+    private Double avgDaysLate = 0.0;
 
-    @OneToMany(mappedBy = "customer", cascade = {CascadeType.PERSIST}, orphanRemoval = false)
-    private List<Pawn> pawns;
+    @NotNull(message = "Customer on-time renewal count is required")
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer onTimeRenewalCount = 0;
 
-    @OneToMany(mappedBy = "customer", cascade = {CascadeType.PERSIST}, orphanRemoval = false)
-    private List<Sale> sales;
+    @NotNull(message = "Customer forfeit count is required")
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer forfeitCount = 0;
+
+    @NotNull(message = "Customer redeem count is required")
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer redeemCount = 0;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "customer", cascade = {}, orphanRemoval = false)
+    private List<Pawn> pawns = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "customer", cascade = {}, orphanRemoval = false)
+    private List<Sale> sales = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
         LocalDateTime now = LocalDateTime.now();
-
-        riskLevel = CustomerRiskLevel.LOW;
-        forfeitCount = 0;
-        totalPawnCount = 0;
-        totalSaleCount = 0;
-        lateRenewalCount = 0;
-        onTimeRenewalCount = 0;
-        avgDaysLate = 0.0;
         createdAt = now;
         updatedAt = now;
+    }
+
+    private CustomerRiskLevel calculateRiskLevel() {
+        if (totalPawnCount == 0) return CustomerRiskLevel.LOW;
+
+        double lateRate = (double) lateRenewalCount / totalPawnCount;
+        double forfeitRate = (double) getForfeitCount() / totalPawnCount;
+
+        // HIGH risk conditions
+        if (forfeitRate > 0.6) return CustomerRiskLevel.HIGH;
+        if (lateRate > 0.6 && avgDaysLate > 10) return CustomerRiskLevel.HIGH;
+
+        // MEDIUM risk conditions
+        if (forfeitRate > 0.2) return CustomerRiskLevel.MEDIUM;
+        if (lateRate > 0.3 || avgDaysLate > 5) return CustomerRiskLevel.MEDIUM;
+
+        return CustomerRiskLevel.LOW;
     }
 
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
+
+        riskLevel = calculateRiskLevel();
     }
 }

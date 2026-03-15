@@ -13,21 +13,8 @@ public class CustomerService {
 
     private final CustomerRepository customerRepository;
 
-    public CustomerRiskLevel calculateRiskLevel(Customer customer) {
-        if (customer.getTotalPawnCount() == 0) return CustomerRiskLevel.LOW;
-
-        double lateRate = (double) customer.getLateRenewalCount() / customer.getTotalPawnCount();
-        double forfeitRate = (double) customer.getForfeitCount() / customer.getTotalPawnCount();
-
-        // HIGH risk conditions
-        if (forfeitRate > 0.6) return CustomerRiskLevel.HIGH;
-        if (lateRate > 0.6 && customer.getAvgDaysLate() > 10) return CustomerRiskLevel.HIGH;
-
-        // MEDIUM risk conditions
-        if (forfeitRate > 0.2) return CustomerRiskLevel.MEDIUM;
-        if (lateRate > 0.3 || customer.getAvgDaysLate() > 5) return CustomerRiskLevel.MEDIUM;
-
-        return CustomerRiskLevel.LOW;
+    public Customer save(Customer customer) {
+        return customerRepository.save(customer);
     }
 
     public List<Customer> getAll() {

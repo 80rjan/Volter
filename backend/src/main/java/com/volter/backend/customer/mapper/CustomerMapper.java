@@ -1,6 +1,7 @@
 package com.volter.backend.customer.mapper;
 
 import com.volter.backend.customer.Customer;
+import com.volter.backend.customer.dto.CustomerCreationRequest;
 import com.volter.backend.customer.dto.CustomerDTO;
 import org.mapstruct.Mapper;
 
@@ -8,4 +9,6 @@ import org.mapstruct.Mapper;
 public abstract class CustomerMapper {
 
     public abstract CustomerDTO toDTO(Customer customer);
+
+    public abstract Customer toEntity(CustomerCreationRequest request);
 }

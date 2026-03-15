@@ -13,6 +13,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -64,11 +65,13 @@ public class Pawn {
     @NotNull(message = "Pawn status is required")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PawnStatus status;
+    @Builder.Default
+    private PawnStatus status = PawnStatus.ACTIVE;
 
     @NotNull(message = "Pawn active status is required")
     @Column(nullable = false)
-    private boolean active;
+    @Builder.Default
+    private boolean active = true;
 
     @NotNull(message = "Pawn creation timestamp is required")
     @Column(nullable = false)
@@ -84,23 +87,23 @@ public class Pawn {
     private Customer customer;
 
     @NotNull(message = "Pawn item is required")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "item_id", nullable = false, foreignKey = @ForeignKey(name = "fk_pawn_item"))     // Item.id
     private Item item;
 
-    @OneToMany(mappedBy = "pawn", cascade = CascadeType.PERSIST, orphanRemoval = false)
-    private List<Transaction> transactions;
+    @Builder.Default
+    @OneToMany(mappedBy = "pawn", cascade = {}, orphanRemoval = false)
+    private List<Transaction> transactions = new ArrayList<>();
 
-    @OneToMany(mappedBy = "pawn", cascade = CascadeType.PERSIST, orphanRemoval = false)
-    private List<PawnEvent> pawnEvents;
+    @Builder.Default
+    @OneToMany(mappedBy = "pawn", cascade = CascadeType.ALL, orphanRemoval = false)
+    private List<PawnEvent> pawnEvents = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
         LocalDateTime now = LocalDateTime.now();
         createdAt = now;
         updatedAt = now;
-        active = true;
-        status = PawnStatus.ACTIVE;
     }
 
     @PreUpdate

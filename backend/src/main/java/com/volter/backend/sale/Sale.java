@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -45,11 +46,13 @@ public class Sale {
     @NotNull(message = "Sale status is required")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private SaleStatus status;
+    @Builder.Default
+    private SaleStatus status = SaleStatus.LISTED;
 
     @NotNull(message = "Sale active flag is required")
     @Column(nullable = false)
-    private boolean active;
+    @Builder.Default
+    private boolean active = true;
 
     @NotNull(message = "Sale creation timestamp is required")
     @Column(nullable = false)
@@ -69,16 +72,15 @@ public class Sale {
     @JoinColumn(name = "item_id", nullable = false, foreignKey = @ForeignKey(name = "fk_sale_item"))     // Item.id
     private Item item;
 
+    @Builder.Default
     @OneToMany(mappedBy = "sale", cascade = CascadeType.PERSIST, orphanRemoval = false)
-    private List<Transaction> transactions;
+    private List<Transaction> transactions = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
         LocalDateTime now = LocalDateTime.now();
         createdAt = now;
         updatedAt = now;
-        active = true;
-        status = SaleStatus.LISTED;
     }
 
     @PreUpdate

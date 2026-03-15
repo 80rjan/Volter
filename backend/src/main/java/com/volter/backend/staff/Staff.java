@@ -8,14 +8,13 @@ import com.volter.backend.staff.enums.StaffRole;
 import com.volter.backend.transaction.Transaction;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -23,6 +22,8 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(
         indexes = {
                 @Index(name = "idx_staff_username", columnList = "username"),
@@ -80,27 +81,33 @@ public class Staff implements UserDetails {
     @Column(nullable = false)
     private boolean deleted;
 
+    @Builder.Default
     @OneToMany(mappedBy = "staff", cascade = CascadeType.PERSIST, orphanRemoval = false)
-    private List<Transaction> transactions;
+    private List<Transaction> transactions = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id", nullable = true, foreignKey = @ForeignKey(name = "fk_staff_manager"))
     private Staff manager;
 
+    @Builder.Default
     @OneToMany(mappedBy = "manager")
-    private List<Staff> subordinates;
+    private List<Staff> subordinates = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "staff", cascade = CascadeType.PERSIST, orphanRemoval = false)
-    private List<Expense> expenses;
+    private List<Expense> expenses = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "manager", cascade = CascadeType.PERSIST, orphanRemoval = false)
-    private List<ModificationNotification> modificationNotifications;
+    private List<ModificationNotification> modificationNotifications = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "manager", cascade = CascadeType.PERSIST, orphanRemoval = false)
-    private List<MonthlyReport> monthlyReports;
+    private List<MonthlyReport> monthlyReports = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "staff", cascade = CascadeType.PERSIST, orphanRemoval = false)
-    private List<PawnEvent> pawnEvents;
+    private List<PawnEvent> pawnEvents = new ArrayList<>();
 
     // USER DETAILS METHODS
     @Override
