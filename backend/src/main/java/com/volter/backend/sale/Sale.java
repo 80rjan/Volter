@@ -3,6 +3,7 @@ package com.volter.backend.sale;
 import com.volter.backend.customer.Customer;
 import com.volter.backend.item.Item;
 import com.volter.backend.sale.enums.SaleStatus;
+import com.volter.backend.transaction.SaleTransaction;
 import com.volter.backend.transaction.Transaction;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -74,7 +75,7 @@ public class Sale {
 
     @Builder.Default
     @OneToMany(mappedBy = "sale", cascade = {}, orphanRemoval = false)
-    private List<Transaction> transactions = new ArrayList<>();
+    private List<SaleTransaction> transactions = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {

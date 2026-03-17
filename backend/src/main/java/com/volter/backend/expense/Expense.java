@@ -2,6 +2,7 @@ package com.volter.backend.expense;
 
 import com.volter.backend.staff.Staff;
 import com.volter.backend.expense.enums.ExpenseType;
+import com.volter.backend.transaction.ExpenseTransaction;
 import com.volter.backend.transaction.Transaction;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -62,7 +63,7 @@ public class Expense {
 
     @Builder.Default
     @OneToMany(mappedBy = "expense", cascade = {}, orphanRemoval = false)
-    private List<Transaction> transactions = new ArrayList<>();
+    private List<ExpenseTransaction> transactions = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

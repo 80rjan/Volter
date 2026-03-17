@@ -1,46 +1,48 @@
 package com.volter.backend.transaction;
 
 import com.volter.backend.cashRegister.CashRegister;
-import com.volter.backend.expense.Expense;
-import com.volter.backend.staff.Staff;
 import com.volter.backend.notification.Notification;
-import com.volter.backend.pawn.Pawn;
-import com.volter.backend.sale.Sale;
-import com.volter.backend.transaction.enums.TransactionType;
+import com.volter.backend.staff.Staff;
+import com.volter.backend.transaction.enums.TransactionAction;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "transaction_category", discriminatorType = DiscriminatorType.STRING)
+@Table(
+        name = "transaction",
+        indexes = {
+                @Index(name = "idx_transaction_category", columnList = "transaction_category"),
+                @Index(name = "idx_transaction_action", columnList = "action"),
+                @Index(name = "idx_transaction_category_action", columnList = "transaction_category, action"),
+                @Index(name = "idx_transaction_created_at_desc", columnList = "createdAt DESC"),
+                @Index(name = "idx_transaction_category_created_at", columnList = "transaction_category, createdAt DESC"),
+                @Index(name = "idx_transaction_employee_created_at", columnList = "employee_id, createdAt DESC"),
+                @Index(name = "idx_transaction_cash_register_created_at", columnList = "cash_register_id, createdAt DESC")
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@Table(
-        indexes = {
-                @Index(name = "idx_transaction_pawn_id", columnList = "pawn_id, createdAt DESC"),
-                @Index(name = "idx_transaction_sale_id", columnList = "sale_id, createdAt DESC"),
-                @Index(name = "idx_transaction_created_at_desc", columnList = "createdAt DESC"),
-                @Index(name = "idx_transaction_type_created_at_desc", columnList = "transactionType, createdAt DESC"),
-                @Index(name = "idx_transaction_employee_created_at_desc", columnList = "employee_id, createdAt DESC"),
-                @Index(name = "idx_transaction_cash_register_created_at_desc", columnList = "cash_register_id, createdAt DESC")
-        }
-)
-public class Transaction {
+@SuperBuilder
+public abstract class Transaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @NotNull(message = "Transaction type is required")
+    @NotNull(message = "Transaction action is required")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TransactionType transactionType;
+    private TransactionAction action;
 
     @NotNull(message = "Transaction cash in is required")
     @Column(nullable = false)
@@ -61,24 +63,12 @@ public class Transaction {
     @Column(nullable = true)
     private String description;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pawn_id", nullable = true, foreignKey = @ForeignKey(name = "fk_transaction_pawn"))      // Pawn.id
-    private Pawn pawn;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sale_id", nullable = true, foreignKey = @ForeignKey(name = "fk_transaction_sale"))      // Sale.id
-    private Sale sale;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "expense_id", nullable = true, foreignKey = @ForeignKey(name = "fk_transaction_expense"))      // Expense.id
-    private Expense expense;
-
     @ManyToOne
-    @JoinColumn(name = "cash_register_id", nullable = false, foreignKey = @ForeignKey(name = "fk_transaction_cash_register"))      // CashRegister.id
+    @JoinColumn(name = "cash_register_id", nullable = false, foreignKey = @ForeignKey(name = "fk_transaction_cash_register"))
     private CashRegister cashRegister;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "employee_id", nullable = false, foreignKey = @ForeignKey(name = "fk_transaction_employee"))      // Staff.id
+    @JoinColumn(name = "employee_id", nullable = false, foreignKey = @ForeignKey(name = "fk_transaction_employee"))
     private Staff staff;
 
     @Builder.Default
@@ -88,7 +78,18 @@ public class Transaction {
     // TODO: add a anomaly notification so i send notifications to the manager if the transaction smells of anomaly in it (cash in smaller than amount + profit for pawn, etc...
 
     @PrePersist
-    public void prePersist() {
+    protected void onCreate() {
         createdAt = LocalDateTime.now();
+        validate();
     }
+
+    @PreUpdate
+    protected void onUpdate() {
+        validate();
+    }
+
+    protected abstract void validate();
+
+    @Transient
+    public abstract String getCategory();
 }

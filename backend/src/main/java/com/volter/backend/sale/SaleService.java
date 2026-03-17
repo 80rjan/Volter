@@ -11,9 +11,9 @@ import com.volter.backend.sale.dto.SaleCreationRequest;
 import com.volter.backend.sale.enums.SaleStatus;
 import com.volter.backend.staff.Staff;
 import com.volter.backend.staff.StaffService;
-import com.volter.backend.transaction.Transaction;
+import com.volter.backend.transaction.SaleTransaction;
 import com.volter.backend.transaction.TransactionService;
-import com.volter.backend.transaction.enums.TransactionType;
+import com.volter.backend.transaction.enums.TransactionAction;
 import com.volter.backend.util.Validate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -72,8 +72,8 @@ public class SaleService {
         Sale sale = getById(id);
         CashRegister cashRegister = cashRegisterService.getById(cashRegisterId);
 
-        Transaction transaction = Transaction.builder()
-                .transactionType(TransactionType.SALE)
+        SaleTransaction transaction = SaleTransaction.builder()
+                .action(TransactionAction.SALE)
                 .cashIn(soldPrice)
                 .cashOut(0)
                 .profit(soldPrice - sale.getPurchasePrice())
@@ -102,8 +102,8 @@ public class SaleService {
         Item item = sale.getItem();
         CashRegister cashRegister = cashRegisterService.getById(cashRegisterId);
 
-        Transaction transaction = Transaction.builder()
-                .transactionType(TransactionType.PAWN_CREATION)
+        SaleTransaction transaction = SaleTransaction.builder()
+                .action(TransactionAction.PURCHASE)
                 .cashIn(0)
                 .cashOut(sale.getPurchasePrice())
                 .profit(0)

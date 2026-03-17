@@ -6,6 +6,7 @@ import com.volter.backend.item.Item;
 import com.volter.backend.pawn.enums.PawnStatus;
 import com.volter.backend.pawnEvent.PawnEvent;
 import com.volter.backend.transaction.Transaction;
+import com.volter.backend.transaction.subclasses.PawnTransaction;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -93,7 +94,7 @@ public class Pawn {
 
     @Builder.Default
     @OneToMany(mappedBy = "pawn", cascade = {}, orphanRemoval = false)
-    private List<Transaction> transactions = new ArrayList<>();
+    private List<PawnTransaction> transactions = new ArrayList<>();
 
     @Builder.Default
     @OneToMany(mappedBy = "pawn", cascade = CascadeType.ALL, orphanRemoval = false)

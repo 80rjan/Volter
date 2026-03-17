@@ -9,9 +9,10 @@ import com.volter.backend.expense.enums.ExpenseType;
 import com.volter.backend.expense.mapper.ExpenseMapper;
 import com.volter.backend.staff.Staff;
 import com.volter.backend.staff.StaffService;
+import com.volter.backend.transaction.ExpenseTransaction;
 import com.volter.backend.transaction.Transaction;
 import com.volter.backend.transaction.TransactionService;
-import com.volter.backend.transaction.enums.TransactionType;
+import com.volter.backend.transaction.enums.TransactionAction;
 import com.volter.backend.util.Validate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -72,8 +73,8 @@ public class ExpenseService {
 
         expense.setStaff(staff);
 
-        Transaction transaction = Transaction.builder()
-                .transactionType(TransactionType.PAWN_CREATION)
+        ExpenseTransaction transaction = ExpenseTransaction.builder()
+                .action(TransactionAction.CREATION)
                 .cashIn(0)
                 .cashOut(expense.getAmount())
                 .profit(0)

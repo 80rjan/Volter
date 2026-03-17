@@ -4,7 +4,8 @@ import com.volter.backend.exceptions.ResourceNotFoundException;
 import com.volter.backend.staff.Staff;
 import com.volter.backend.staff.StaffService;
 import com.volter.backend.transaction.Transaction;
-import com.volter.backend.transaction.enums.TransactionType;
+import com.volter.backend.transaction.enums.TransactionAction;
+import com.volter.backend.transaction.subclasses.CashRegisterTransaction;
 import com.volter.backend.util.Validate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -44,8 +45,8 @@ public class CashRegisterService {
         CashRegister cashRegister = cashRegisterRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Cash register with ID " + id + " not found"));
 
-        Transaction transaction = Transaction.builder()
-                .transactionType(TransactionType.CASH_DEPOSIT)
+        CashRegisterTransaction transaction = CashRegisterTransaction.builder()
+                .action(TransactionAction.DEPOSIT)
                 .cashIn(depositAmount)
                 .cashOut(0)
                 .profit(0)
@@ -66,8 +67,8 @@ public class CashRegisterService {
         CashRegister cashRegister = cashRegisterRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Cash register with ID " + id + " not found"));
 
-        Transaction transaction = Transaction.builder()
-                .transactionType(TransactionType.CASH_WITHDRAW)
+        CashRegisterTransaction transaction = CashRegisterTransaction.builder()
+                .action(TransactionAction.WITHDRAW)
                 .cashIn(0)
                 .cashOut(withdrawAmount)
                 .profit(0)

@@ -20,7 +20,8 @@ import com.volter.backend.staff.Staff;
 import com.volter.backend.staff.StaffService;
 import com.volter.backend.transaction.Transaction;
 import com.volter.backend.transaction.TransactionService;
-import com.volter.backend.transaction.enums.TransactionType;
+import com.volter.backend.transaction.enums.TransactionAction;
+import com.volter.backend.transaction.subclasses.PawnTransaction;
 import com.volter.backend.util.Validate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -81,8 +82,8 @@ public class PawnService {
         Customer customer = pawn.getCustomer();
         CashRegister cashRegister = cashRegisterService.getById(cashRegisterId);
 
-        Transaction transaction = Transaction.builder()
-                .transactionType(TransactionType.PAWN_REDEMPTION)
+        PawnTransaction transaction = PawnTransaction.builder()
+                .action(TransactionAction.REDEMPTION)
                 .cashIn(redeemAmount)
                 .cashOut(0)
                 .profit(redeemAmount - pawn.getAmount())
@@ -131,8 +132,8 @@ public class PawnService {
         Customer customer = pawn.getCustomer();
         CashRegister cashRegister = cashRegisterService.getById(cashRegisterId);
 
-        Transaction transaction = Transaction.builder()
-                .transactionType(TransactionType.PAWN_FORFEIT)
+        PawnTransaction transaction = PawnTransaction.builder()
+                .action(TransactionAction.FORFEITURE)
                 .cashIn(0)
                 .cashOut(0)
                 .profit(0)
@@ -187,8 +188,8 @@ public class PawnService {
         Customer customer = pawn.getCustomer();
         CashRegister cashRegister = cashRegisterService.getById(cashRegisterId);
 
-        Transaction transaction = Transaction.builder()
-                .transactionType(TransactionType.PAWN_RENEWAL)
+        PawnTransaction transaction = PawnTransaction.builder()
+                .action(TransactionAction.RENEWAL)
                 .cashIn(interest)
                 .cashOut(0)
                 .profit(interest)
@@ -252,8 +253,8 @@ public class PawnService {
         // We need to save pawn before creating transaction because transaction has a reference to pawn and pawn needs to have an ID for the relationship to work.
         // For pawn event, we can rely on cascade from pawn, but for transaction we need to save it explicitly after pawn is saved.
 
-        Transaction transaction = Transaction.builder()
-                .transactionType(TransactionType.PAWN_CREATION)
+        PawnTransaction transaction = PawnTransaction.builder()
+                .action(TransactionAction.CREATION)
                 .cashIn(0)
                 .cashOut(pawn.getAmount())
                 .profit(0)
@@ -319,8 +320,8 @@ public class PawnService {
             cashRegister.setTotalGoldWeightGrams(cashRegister.getTotalGoldWeightGrams() + weightDifference);
         }
 
-        Transaction transaction = Transaction.builder()
-                .transactionType(TransactionType.PAWN_MODIFICATION)
+        PawnTransaction transaction = PawnTransaction.builder()
+                .action(TransactionAction.MODIFICATION)
                 .cashIn(cashIn)
                 .cashOut(cashOut)
                 .profit(0)
