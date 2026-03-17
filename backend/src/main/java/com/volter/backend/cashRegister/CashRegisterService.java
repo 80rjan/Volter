@@ -9,6 +9,7 @@ import com.volter.backend.util.Validate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,22 +19,26 @@ public class CashRegisterService {
     private final Validate validate;
     private final StaffService staffService;
 
+    @Transactional
     public CashRegister getById(Long id) {
         return cashRegisterRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Cash register with ID " + id + " not found")
         );
     }
 
+    @Transactional
     public CashRegister save(CashRegister cashRegister) {
         return cashRegisterRepository.save(cashRegister);
     }
 
+    @Transactional
     public CashRegister get(Long id) {
         return cashRegisterRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Cash register with ID " + id + " not found")
         );
     }
 
+    @Transactional
     public CashRegister deposit(Long id, Integer depositAmount, String transactionDescription, Authentication authentication) {
         Staff staff = staffService.getById(validate.extractStaffId(authentication));
         CashRegister cashRegister = cashRegisterRepository.findById(id).orElseThrow(
@@ -55,6 +60,7 @@ public class CashRegisterService {
         return cashRegisterRepository.save(cashRegister); // transaction will be saved due to cascade persist
     }
 
+    @Transactional
     public CashRegister withdraw(Long id, Integer withdrawAmount, String transactionDescription, Authentication authentication) {
         Staff staff = staffService.getById(validate.extractStaffId(authentication));
         CashRegister cashRegister = cashRegisterRepository.findById(id).orElseThrow(

@@ -1,8 +1,11 @@
 package com.volter.backend.customer;
 
-import com.volter.backend.customer.enums.CustomerRiskLevel;
+import com.volter.backend.customer.dto.CustomerFilterDTO;
 import com.volter.backend.exceptions.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,8 +20,9 @@ public class CustomerService {
         return customerRepository.save(customer);
     }
 
-    public List<Customer> getAll() {
-        return customerRepository.findAll();
+    public Page<Customer> getAll(CustomerFilterDTO filters, Pageable pageable) {
+        Specification<Customer> spec = CustomerSpecification.withFilters(filters);
+        return customerRepository.findAll(spec, pageable);
     }
 
     public void getDetails(Long clientId) {
@@ -34,4 +38,6 @@ public class CustomerService {
 
         return customerRepository.save(customer);
     }
+
+
 }

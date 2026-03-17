@@ -64,6 +64,14 @@ public class PawnService {
     }
 
     /**
+     * Retrieves all pawns for a specific customer
+     */
+    @Transactional
+    public List<Pawn> getByCustomerId(Long customerId) {
+        return pawnRepository.findByCustomer_Id(customerId);
+    }
+
+    /**
      * Redeems a pawn (client pays off the loan and retrieves their item)
      */
     @Transactional
@@ -206,8 +214,7 @@ public class PawnService {
         if (pawn.getMaturityDate().isBefore(LocalDate.now())) {
             customer.setAvgDaysLate((customer.getAvgDaysLate() * customer.getLateRenewalCount() + ChronoUnit.DAYS.between(pawn.getMaturityDate(), LocalDate.now())) / (customer.getLateRenewalCount() + 1));
             customer.setLateRenewalCount(customer.getLateRenewalCount() + 1);
-        }
-        else
+        } else
             customer.setOnTimeRenewalCount(customer.getOnTimeRenewalCount() + 1);
 
         cashRegister.setBalance(cashRegister.getBalance() + interest);
@@ -285,15 +292,15 @@ public class PawnService {
         if (request.getAmount() != null) {
             int amountDifference = request.getAmount() - pawn.getAmount();
             pawn.setAmount(request.getAmount());
-                if (amountDifference > 0) {
-                    cashOut = amountDifference;
-                    cashRegister.setTotalPawnPayout(cashRegister.getTotalPawnPayout() + cashOut);
-                    cashRegister.setBalance(cashRegister.getBalance() - cashOut);
-                } else if (amountDifference < 0) {
-                    cashIn = -amountDifference;
-                    cashRegister.setTotalPawnPayout(cashRegister.getTotalPawnPayout() - cashIn);
-                    cashRegister.setBalance(cashRegister.getBalance() + cashIn);
-                }
+            if (amountDifference > 0) {
+                cashOut = amountDifference;
+                cashRegister.setTotalPawnPayout(cashRegister.getTotalPawnPayout() + cashOut);
+                cashRegister.setBalance(cashRegister.getBalance() - cashOut);
+            } else if (amountDifference < 0) {
+                cashIn = -amountDifference;
+                cashRegister.setTotalPawnPayout(cashRegister.getTotalPawnPayout() - cashIn);
+                cashRegister.setBalance(cashRegister.getBalance() + cashIn);
+            }
         }
         if (request.getInterest() != null) {
             pawn.setInterest(request.getInterest());

@@ -2,19 +2,22 @@ package com.volter.backend.expense;
 
 import com.volter.backend.staff.Staff;
 import com.volter.backend.expense.enums.ExpenseType;
+import com.volter.backend.transaction.Transaction;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(
         indexes = {
                 @Index(name = "idx_expense_date", columnList = "date DESC"),
@@ -56,6 +59,10 @@ public class Expense {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "staff_id", nullable = true, foreignKey = @ForeignKey(name = "fk_expense_staff"))
     private Staff staff;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "expense", cascade = {}, orphanRemoval = false)
+    private List<Transaction> transactions = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

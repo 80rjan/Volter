@@ -35,6 +35,7 @@ public class SaleService {
     private final ItemService itemService;
     private final CustomerService customerService;
 
+    @Transactional
     public Sale save(Sale sale) {
         return saleRepository.save(sale);
     }
@@ -45,6 +46,14 @@ public class SaleService {
     @Transactional
     public List<Sale> getAll() {
         return saleRepository.findAll();
+    }
+
+    /**
+     * Retrieves all sales by Customer ID
+     */
+    @Transactional
+    public List<Sale> getByCustomerId(Long customerId) {
+        return saleRepository.findByCustomer_Id(customerId);
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.volter.backend.transaction;
 
 import com.volter.backend.cashRegister.CashRegister;
+import com.volter.backend.expense.Expense;
 import com.volter.backend.staff.Staff;
 import com.volter.backend.notification.Notification;
 import com.volter.backend.pawn.Pawn;
@@ -67,6 +68,10 @@ public class Transaction {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sale_id", nullable = true, foreignKey = @ForeignKey(name = "fk_transaction_sale"))      // Sale.id
     private Sale sale;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "expense_id", nullable = true, foreignKey = @ForeignKey(name = "fk_transaction_expense"))      // Expense.id
+    private Expense expense;
 
     @ManyToOne
     @JoinColumn(name = "cash_register_id", nullable = false, foreignKey = @ForeignKey(name = "fk_transaction_cash_register"))      // CashRegister.id
