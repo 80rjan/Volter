@@ -2,6 +2,7 @@ package com.volter.backend.transaction.subclasses;
 
 import com.volter.backend.transaction.Transaction;
 import com.volter.backend.transaction.enums.TransactionAction;
+import com.volter.backend.transaction.enums.TransactionCategory;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
@@ -20,8 +21,8 @@ import lombok.experimental.SuperBuilder;
 public class CashRegisterTransaction extends Transaction {
 
     @Override
-    public String getCategory() {
-        return "CASH_REGISTER";
+    public TransactionCategory getCategory() {
+        return TransactionCategory.CASH_REGISTER;
     }
 
     protected void validate() {

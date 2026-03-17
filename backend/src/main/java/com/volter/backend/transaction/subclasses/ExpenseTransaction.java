@@ -1,7 +1,9 @@
-package com.volter.backend.transaction;
+package com.volter.backend.transaction.subclasses;
 
 import com.volter.backend.expense.Expense;
+import com.volter.backend.transaction.Transaction;
 import com.volter.backend.transaction.enums.TransactionAction;
+import com.volter.backend.transaction.enums.TransactionCategory;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -20,8 +22,8 @@ public class ExpenseTransaction extends Transaction {
     private Expense expense;
 
     @Override
-    public String getCategory() {
-        return "EXPENSE";
+    public TransactionCategory getCategory() {
+        return TransactionCategory.EXPENSE;
     }
 
     @Override

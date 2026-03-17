@@ -3,6 +3,7 @@ package com.volter.backend.transaction.subclasses;
 import com.volter.backend.pawn.Pawn;
 import com.volter.backend.transaction.Transaction;
 import com.volter.backend.transaction.enums.TransactionAction;
+import com.volter.backend.transaction.enums.TransactionCategory;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -21,8 +22,8 @@ public class PawnTransaction extends Transaction {
     private Pawn pawn;
 
     @Override
-    public String getCategory() {
-        return "PAWN";
+    public TransactionCategory getCategory() {
+        return TransactionCategory.PAWN;
     }
 
     @Override

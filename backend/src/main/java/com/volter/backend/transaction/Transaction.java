@@ -4,6 +4,7 @@ import com.volter.backend.cashRegister.CashRegister;
 import com.volter.backend.notification.Notification;
 import com.volter.backend.staff.Staff;
 import com.volter.backend.transaction.enums.TransactionAction;
+import com.volter.backend.transaction.enums.TransactionCategory;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -91,5 +92,5 @@ public abstract class Transaction {
     protected abstract void validate();
 
     @Transient
-    public abstract String getCategory();
+    public abstract TransactionCategory getCategory();
 }
