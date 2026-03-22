@@ -1,11 +1,11 @@
 package com.volter.backend.staff;
 
-import com.volter.backend.expense.Expense;
+import com.volter.backend.expense.domain.model.Expense;
 import com.volter.backend.notification.Notification;
 import com.volter.backend.monthlyReport.MonthlyReport;
-import com.volter.backend.pawnEvent.PawnEvent;
+import com.volter.backend.pawn.domain.model.event.PawnEvent;
 import com.volter.backend.staff.enums.StaffRole;
-import com.volter.backend.transaction.Transaction;
+import com.volter.backend.transaction.domain.model.Transaction;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;

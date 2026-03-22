@@ -2,9 +2,9 @@ package com.volter.backend.notification;
 
 import com.volter.backend.notification.enums.NotificationSeverity;
 import com.volter.backend.notification.enums.NotificationType;
-import com.volter.backend.pawnEvent.PawnEvent;
+import com.volter.backend.pawn.domain.model.event.PawnEvent;
 import com.volter.backend.staff.Staff;
-import com.volter.backend.transaction.Transaction;
+import com.volter.backend.transaction.domain.model.Transaction;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;

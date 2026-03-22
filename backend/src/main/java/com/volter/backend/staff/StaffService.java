@@ -1,6 +1,6 @@
 package com.volter.backend.staff;
 
-import com.volter.backend.util.Validate;
+import com.volter.backend.common.utils.Validate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
