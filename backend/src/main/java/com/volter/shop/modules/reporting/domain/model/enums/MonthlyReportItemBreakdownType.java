@@ -1,0 +1,23 @@
+package com.volter.shop.modules.reporting.domain.model.enums;
+
+public enum MonthlyReportItemBreakdownType {
+    GOLD_PAWN,
+    ELECTRONIC_PAWN,
+    VEHICLE_PAWN,
+    WATCH_PAWN,
+    OTHER_PAWN,
+    GOLD_SALE,
+    ELECTRONIC_SALE,
+    VEHICLE_SALE,
+    WATCH_SALE,
+    OTHER_SALE,
+    EXPENSE_RENT,
+    EXPENSE_SALARIES,
+    EXPENSE_BILLS,
+    EXPENSE_UTILITIES,
+    EXPENSE_SUPPLIES,
+    EXPENSE_MAINTENANCE,
+    EXPENSE_MARKETING,
+    EXPENSE_TRAVEL,
+    EXPENSE_OTHER
+}
