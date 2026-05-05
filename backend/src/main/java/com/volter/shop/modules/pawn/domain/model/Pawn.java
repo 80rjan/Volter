@@ -37,9 +37,9 @@ import java.util.List;
         indexes = {
                 @Index(name = "idx_pawn_status", columnList = "status"),
 
-                @Index(name = "idx_pawn_active_maturity_date", columnList = "active, maturityDate"),
-                @Index(name = "idx_pawn_active_issue_date_desc", columnList = "active, issueDate DESC"),
-                @Index(name = "idx_pawn_status_maturity_date", columnList = "status, maturityDate"),
+                @Index(name = "idx_pawn_active_maturity_date", columnList = "active, maturity_date"),
+                @Index(name = "idx_pawn_active_issue_date_desc", columnList = "active, issue_date DESC"),
+                @Index(name = "idx_pawn_status_maturity_date", columnList = "status, maturity_date"),
                 @Index(name = "idx_pawn_customer_id_active", columnList = "customer_id, active")
         },
         uniqueConstraints = {

@@ -4,9 +4,15 @@ import com.volter.shop.modules.transaction.domain.model.enums.TransactionCategor
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionDirection;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionMarginType;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
+@NoArgsConstructor
 public class TransactionResponse {
     @NotNull(message = "Transaction ID is required")
     private Long id;

@@ -20,4 +20,6 @@ public class ExpenseCreationRequest {
 
     private LocalDate date;
 
+    // could be blank or null
+    private String transactionDescription;
 }

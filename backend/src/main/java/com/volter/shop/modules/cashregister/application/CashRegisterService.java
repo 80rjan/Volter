@@ -15,6 +15,8 @@ import com.volter.shop.modules.staff.domain.model.Staff;
 import com.volter.shop.modules.staff.application.StaffService;
 import com.volter.shop.shared.valueobject.Money;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +30,10 @@ public class CashRegisterService {
     private final CashRegisterRepository cashRegisterRepository;
     private final CashRegisterSessionRepository cashRegisterSessionRepository;
     private final StaffService staffService;
-    private final PawnService pawnService;
+
+    @Lazy
+    @Autowired
+    private PawnService pawnService;
 
     @Transactional
     public CashRegister getById(Long id) {

@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record ExpenseResponse(
+        @NotNull(message = "Expense id is required") Long id,
         @NotNull(message = "Expense type is required") ExpenseType expenseType,
         @NotNull(message = "Expense amount is required") Integer amount,
         @NotBlank(message = "Expense description is required") String description,

@@ -23,10 +23,10 @@ import java.util.List;
 @SuperBuilder
 @Table(
         indexes = {
-                @Index(name = "idx_item_item_type", columnList = "itemType"),
-                @Index(name = "idx_item_item_origin_type", columnList = "itemOriginType"),
-                @Index(name = "idx_item_item_status", columnList = "itemStatus"),
-                @Index(name = "idx_item_created_at_desc", columnList = "createdAt DESC")
+                @Index(name = "idx_item_item_type", columnList = "item_type"),
+                @Index(name = "idx_item_item_origin_type", columnList = "item_origin_type"),
+                @Index(name = "idx_item_item_status", columnList = "item_status"),
+                @Index(name = "idx_item_created_at_desc", columnList = "created_at DESC")
         }
 )
 @Inheritance(strategy = InheritanceType.JOINED)

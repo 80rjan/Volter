@@ -15,14 +15,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(
-        indexes = {
-                @Index(name = "idx_monthly_report_year_month", columnList = "year, month")
-        },
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_monthly_report_year_month", columnNames = {"year", "month"})
-        }
-)
 public class MonthlyReport {
 
     @Id

@@ -14,6 +14,10 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
+    // I only have access token with 12hrs expiration
+    // With this the user is logged on for 12hrs (which is more than his shift, this is for not being logged out during shift)
+    // And if the user logs out or comes the next day, he needs to log in again, which is good for security (no refresh token needed)
+
     @Value("${jwt.secret}")
     private String secret;
 

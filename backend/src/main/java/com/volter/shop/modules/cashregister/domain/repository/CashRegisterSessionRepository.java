@@ -11,10 +11,10 @@ public interface CashRegisterSessionRepository extends JpaRepository<CashRegiste
     CashRegisterSession findOpenSessionByStaffId(@Param("staffId") Long staffId);
 
     @Query("""
-                select case when count(s) > 0 then true else false
+                select case when count(s) > 0 then true else false end
                 from CashRegisterSession s
                 where s.staff.id = :staffId
-                and s.status = com.volter.shop.modules.cashregister.domain.model.CashRegisterStatus.OPEN
+                and s.status = 'OPEN'
             """)
     boolean existsByStaffIdAndStatusOpen(@Param("staffId") Long staffId);
 }

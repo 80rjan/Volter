@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("{api.base.path}/transactions")
+@RequestMapping("${api.base.path}/transactions")
 public class TransactionController {
 
     private final TransactionService transactionService;
@@ -33,5 +35,11 @@ public class TransactionController {
     public ResponseEntity<TransactionDetailedResponse> getById(@PathVariable Long id) {
         Transaction transaction = transactionService.getById(id);
         return ResponseEntity.ok(transactionMapper.toDetailedResponse(transaction));
+    }
+
+    @GetMapping("/customer/{customerId}")
+    public ResponseEntity<List<TransactionResponse>> getByCustomerId(@PathVariable Long customerId) {
+        List<Transaction> transactions = transactionService.getByCustomerId(customerId);
+        return ResponseEntity.ok(transactionMapper.toResponse(transactions));
     }
 }

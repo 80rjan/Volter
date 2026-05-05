@@ -1,5 +1,7 @@
 package com.volter.shop.modules.pawn.application;
 
+import com.volter.identity.application.IdentityUserService;
+import com.volter.identity.domain.model.IdentityUser;
 import com.volter.shop.modules.alert.application.dto.RiskAlertCreationRequest;
 import com.volter.shop.modules.cashregister.application.CashRegisterService;
 import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
@@ -49,6 +51,7 @@ public class PawnService {
 
     private final PawnRepository pawnRepository;
     private final StaffService staffService;
+    private final IdentityUserService identityUserService;
     private final CashRegisterService cashRegisterService;
     private final SaleService saleService;
     private final CustomerService customerService;
@@ -96,6 +99,8 @@ public class PawnService {
     @Transactional
     public Pawn redeem(Long id, PawnRedemptionRequest request) {
         Staff staff = staffService.getCurrentStaff();
+        IdentityUser identityUser = identityUserService.getCurrentIdentityUser();
+        RoleEnum role = identityUser.getRole().getName();
         Pawn pawn = getById(id);
         Customer customer = pawn.getCustomer();
         CashRegisterSession cashRegisterSession = cashRegisterService.getOpenSessionByStaff(staff.getId());
@@ -110,8 +115,8 @@ public class PawnService {
         cashRegisterSession.recordTransaction(pawnRedemptionResult.transaction());
         cashRegisterService.saveSession(cashRegisterSession);
 
-        if (!List.of(RoleEnum.MANAGER, RoleEnum.ADMIN).contains(staff.getRole().getName()) &&
-                pawnRedemptionResult.underpaid()) {
+
+        if (!List.of(RoleEnum.MANAGER, RoleEnum.ADMIN).contains(role) && pawnRedemptionResult.underpaid()) {
             RiskAlert riskAlert = RiskAlert.create(
                     new RiskAlertCreationRequest(
                         RiskAlertType.TRANSACTION_ANOMALY,

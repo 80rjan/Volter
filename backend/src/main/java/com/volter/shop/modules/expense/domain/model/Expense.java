@@ -22,13 +22,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(
-        indexes = {
-                @Index(name = "idx_expense_date", columnList = "date DESC"),
-                @Index(name = "idx_expense_staff_id", columnList = "staff_id"),
-                @Index(name = "idx_expense_type_date", columnList = "expenseType, date DESC")
-        }
-)
 public class Expense {
 
     @Id
@@ -80,7 +73,14 @@ public class Expense {
         updatedAt = LocalDateTime.now();
     }
 
-    public static Expense create(ExpenseCreationRequest request, String transactionDescription, Staff staff, CashRegisterSession cashRegisterSession) {
+    @Transient
+    public ExpenseTransaction getInitialTransaction() {
+        return transactions.stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Initial creation transaction not found for pawn id: " + id));
+    }
+
+    public static Expense create(ExpenseCreationRequest request, Staff staff, CashRegisterSession cashRegisterSession) {
         Expense expense = Expense.builder()
                 .expenseType(request.getExpenseType())
                 .amount(new Money(request.getAmount()))
@@ -94,7 +94,7 @@ public class Expense {
                 .direction(TransactionDirection.OUT)
                 .marginAmount(new Money(0))
                 .marginType(TransactionMarginType.NEUTRAL)
-                .description(transactionDescription)
+                .description(request.getTransactionDescription())
                 .expense(expense)
                 .staff(staff)
                 .cashRegisterSession(cashRegisterSession)

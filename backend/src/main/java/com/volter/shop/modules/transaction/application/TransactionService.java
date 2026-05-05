@@ -40,4 +40,6 @@ public class TransactionService {
     public List<Transaction> getByCustomerId(Long customerId) {
         return transactionRepository.findByCustomerId(customerId);
     }
+
+    //todo: manager / owner methods
 }
