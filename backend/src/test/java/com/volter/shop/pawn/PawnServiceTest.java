@@ -34,8 +34,10 @@ import com.volter.shop.modules.pawn.domain.model.valueobject.PawnPeriod;
 import com.volter.shop.modules.pawn.domain.repository.PawnRepository;
 import com.volter.shop.modules.sale.application.SaleService;
 import com.volter.shop.modules.sale.domain.model.Sale;
-import com.volter.shop.modules.staff.application.StaffService;
+import com.volter.identity.application.IdentityUserService;
+import com.volter.identity.domain.model.IdentityUser;
 import com.volter.identity.domain.model.Role;
+import com.volter.shop.modules.staff.application.StaffService;
 import com.volter.shop.modules.staff.domain.model.Staff;
 import com.volter.identity.domain.model.enums.RoleEnum;
 import com.volter.shop.shared.common.exceptions.ResourceNotFoundException;
@@ -85,6 +87,8 @@ class PawnServiceTest {
     private ItemFactory itemFactory;
     @Mock
     private CustomerFactory customerFactory;
+    @Mock
+    private IdentityUserService identityUserService;
 
     @InjectMocks
     private PawnService pawnService;
@@ -92,7 +96,7 @@ class PawnServiceTest {
     private Pawn pawn;
     private Staff staff;
     private Staff manager;
-    private Role staffRole;
+    private IdentityUser identityUser;
     private Customer customer;
     private Item item;
     private CashRegisterSession cashRegisterSession;
@@ -104,11 +108,15 @@ class PawnServiceTest {
 
         // Setup staff
         staff = mock(Staff.class);
-        staffRole = mock(Role.class);
-        lenient().when(staff.getRole()).thenReturn(staffRole);
-        lenient().when(staffRole.getName()).thenReturn(RoleEnum.EMPLOYEE);
         lenient().when(staff.getId()).thenReturn(1L);
         lenient().when(staff.getManager()).thenReturn(manager);
+
+        // Setup identity user (EMPLOYEE by default)
+        Role staffRole = mock(Role.class);
+        identityUser = mock(IdentityUser.class);
+        lenient().when(identityUser.getRole()).thenReturn(staffRole);
+        lenient().when(staffRole.getName()).thenReturn(RoleEnum.EMPLOYEE);
+        lenient().when(identityUserService.getCurrentIdentityUser()).thenReturn(identityUser);
 
         // Setup customer
         customer = mock(Customer.class);
@@ -399,7 +407,7 @@ class PawnServiceTest {
     void testRedeem_UnderpaymentByInternCreatesAlert() {
         Role internRole = mock(Role.class);
         when(internRole.getName()).thenReturn(RoleEnum.INTERN);
-        when(staff.getRole()).thenReturn(internRole);
+        when(identityUser.getRole()).thenReturn(internRole);
 
         when(staffService.getCurrentStaff()).thenReturn(staff);
         when(pawnRepository.findById(1L)).thenReturn(Optional.of(pawn));
@@ -416,7 +424,7 @@ class PawnServiceTest {
     void testRedeem_UnderpaymentByManagerNoAlert() {
         Role managerRole = mock(Role.class);
         when(managerRole.getName()).thenReturn(RoleEnum.MANAGER);
-        when(staff.getRole()).thenReturn(managerRole);
+        when(identityUser.getRole()).thenReturn(managerRole);
 
         when(staffService.getCurrentStaff()).thenReturn(staff);
         when(pawnRepository.findById(1L)).thenReturn(Optional.of(pawn));
@@ -433,7 +441,7 @@ class PawnServiceTest {
     void testRedeem_UnderpaymentByAdminNoAlert() {
         Role adminRole = mock(Role.class);
         when(adminRole.getName()).thenReturn(RoleEnum.ADMIN);
-        when(staff.getRole()).thenReturn(adminRole);
+        when(identityUser.getRole()).thenReturn(adminRole);
 
         when(staffService.getCurrentStaff()).thenReturn(staff);
         when(pawnRepository.findById(1L)).thenReturn(Optional.of(pawn));
@@ -610,6 +618,7 @@ class PawnServiceTest {
         verify(customerService).save(customer);
         verify(cashRegisterSession).recordTransaction(any(PawnTransaction.class));
         verify(cashRegisterService).saveSession(cashRegisterSession);
+        verify(itemService, never()).save(any());
     }
 
     @Test
@@ -643,6 +652,7 @@ class PawnServiceTest {
 
         assertNotNull(result);
         verify(itemFactory).createOrGetItem(itemRef);
+        verify(itemService).save(newItem);
         verify(pawnRepository).save(any(Pawn.class));
     }
 
@@ -678,6 +688,7 @@ class PawnServiceTest {
         assertNotNull(result);
         verify(customerFactory).createOrGetCustomer(customerRef);
         verify(customerService).save(newCustomer);
+        verify(itemService, never()).save(any());
     }
 
     @Test
@@ -712,6 +723,7 @@ class PawnServiceTest {
 
         assertNotNull(result);
         verify(itemFactory).createOrGetItem(itemRef);
+        verify(itemService).save(newItem);
         verify(customerFactory).createOrGetCustomer(customerRef);
         verify(pawnRepository).save(any(Pawn.class));
     }
@@ -745,6 +757,7 @@ class PawnServiceTest {
 
         verify(cashRegisterSession).recordTransaction(any(PawnTransaction.class));
         verify(cashRegisterService).saveSession(cashRegisterSession);
+        verify(itemService, never()).save(any());
     }
 
     @Test
@@ -774,6 +787,7 @@ class PawnServiceTest {
         // Verify pawn was created (description is validated by Pawn.create internally)
         assertNotNull(result);
         verify(pawnRepository).save(any(Pawn.class));
+        verify(itemService, never()).save(any());
     }
 
     // ========== MODIFY TESTS ==========

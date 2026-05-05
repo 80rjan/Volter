@@ -24,6 +24,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -62,6 +63,10 @@ class CashRegisterServiceTest {
         session = mock(CashRegisterSession.class);
         lenient().when(session.getId()).thenReturn(1L);
         lenient().when(session.getStatus()).thenReturn(CashRegisterSessionStatus.OPEN);
+
+        // pawnService uses @Lazy @Autowired (field injection to break circular dependency),
+        // so @InjectMocks won't inject it via constructor — use reflection instead.
+        ReflectionTestUtils.setField(cashRegisterService, "pawnService", pawnService);
     }
 
     // ========== GET BY ID TESTS ==========

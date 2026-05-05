@@ -3,6 +3,7 @@ package com.volter.shop.pawn;
 import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
 import com.volter.shop.modules.customer.domain.model.Customer;
 import com.volter.shop.modules.inventory.domain.model.Item;
+import com.volter.shop.modules.pawn.application.dto.request.PawnCreationRequest;
 import com.volter.shop.modules.pawn.application.dto.request.PawnModificationRequest;
 import com.volter.shop.modules.pawn.application.dto.result.PawnModificationResult;
 import com.volter.shop.modules.pawn.application.dto.result.PawnRedemptionResult;
@@ -63,6 +64,98 @@ class PawnTest {
     @DisplayName("getInitialTransaction() should throw when no creation transaction exists")
     void testGetInitialTransaction_ThrowsWhenMissing() {
         assertThrows(IllegalStateException.class, () -> pawn.getInitialTransaction());
+    }
+
+    // ========== CREATE TESTS ==========
+
+    @Test
+    @DisplayName("create() should initialize pawn with ACTIVE status and active=true")
+    void testCreate_InitializesWithActiveStatus() {
+        Pawn created = Pawn.create(buildCreationRequest(5000, 500, 30), cashRegisterSession, staff, item, customer);
+
+        assertEquals(PawnStatus.ACTIVE, created.getStatus());
+        assertTrue(created.isActive());
+    }
+
+    @Test
+    @DisplayName("create() should set amount and interest from request")
+    void testCreate_SetsAmountAndInterest() {
+        Pawn created = Pawn.create(buildCreationRequest(8000, 800, 30), cashRegisterSession, staff, item, customer);
+
+        assertEquals(8000, created.getAmount().amount());
+        assertEquals(800, created.getInterest().amount());
+    }
+
+    @Test
+    @DisplayName("create() should set issue/maturity dates and duration from request")
+    void testCreate_SetsDatesAndDuration() {
+        LocalDate issue = LocalDate.of(2025, 1, 1);
+        LocalDate maturity = LocalDate.of(2025, 1, 31);
+
+        PawnCreationRequest req = buildCreationRequest(5000, 500, 30);
+        req.setIssueDate(issue);
+        req.setMaturityDate(maturity);
+
+        Pawn created = Pawn.create(req, cashRegisterSession, staff, item, customer);
+
+        assertEquals(issue, created.getPeriod().issueDate());
+        assertEquals(maturity, created.getPeriod().maturityDate());
+        assertEquals(30, created.getDefaultDurationDays());
+    }
+
+    @Test
+    @DisplayName("create() should assign the given customer and item")
+    void testCreate_SetsCustomerAndItem() {
+        Pawn created = Pawn.create(buildCreationRequest(5000, 500, 30), cashRegisterSession, staff, item, customer);
+
+        assertEquals(customer, created.getCustomer());
+        assertEquals(item, created.getItem());
+    }
+
+    @Test
+    @DisplayName("create() should add exactly one CREATION transaction")
+    void testCreate_AddsCreationTransaction() {
+        Pawn created = Pawn.create(buildCreationRequest(5000, 500, 30), cashRegisterSession, staff, item, customer);
+
+        assertEquals(1, created.getTransactions().size());
+        PawnTransaction tx = created.getTransactions().get(0);
+        assertEquals(PawnTransactionAction.CREATION, tx.getAction());
+        assertEquals(5000, tx.getAmount().amount());
+        assertEquals(TransactionDirection.OUT, tx.getDirection());
+        assertEquals(0, tx.getMarginAmount().amount());
+        assertEquals(TransactionMarginType.NEUTRAL, tx.getMarginType());
+        assertEquals(staff, tx.getStaff());
+        assertEquals(cashRegisterSession, tx.getCashRegisterSession());
+    }
+
+    @Test
+    @DisplayName("create() transaction description from request is set on transaction")
+    void testCreate_TransactionDescriptionIsSet() {
+        PawnCreationRequest req = buildCreationRequest(5000, 500, 30);
+        req.setTransactionDescription("Initial loan for gold ring");
+
+        Pawn created = Pawn.create(req, cashRegisterSession, staff, item, customer);
+
+        assertEquals("Initial loan for gold ring", created.getTransactions().get(0).getDescription());
+    }
+
+    @Test
+    @DisplayName("create() should add exactly one PawnCreatedEvent")
+    void testCreate_AddsCreatedEvent() {
+        Pawn created = Pawn.create(buildCreationRequest(5000, 500, 30), cashRegisterSession, staff, item, customer);
+
+        assertEquals(1, created.getPawnEvents().size());
+        assertTrue(created.getPawnEvents().get(0) instanceof PawnCreatedEvent);
+        assertEquals(staff, ((PawnCreatedEvent) created.getPawnEvents().get(0)).getPerformedBy());
+    }
+
+    @Test
+    @DisplayName("create() transaction is retrievable via getInitialTransaction()")
+    void testCreate_GetInitialTransactionReturnsCreationTx() {
+        Pawn created = Pawn.create(buildCreationRequest(5000, 500, 30), cashRegisterSession, staff, item, customer);
+
+        PawnTransaction initial = created.getInitialTransaction();
+        assertEquals(PawnTransactionAction.CREATION, initial.getAction());
     }
 
     // ========== RENEW TESTS ==========
@@ -131,7 +224,7 @@ class PawnTest {
         PawnRenewedEvent renewEvent = (PawnRenewedEvent) event;
         assertEquals(oldMaturityDate, renewEvent.getMaturityDateChange().oldMaturityDate());
         assertEquals(oldMaturityDate.plusDays(15), renewEvent.getMaturityDateChange().newMaturityDate());
-        assertEquals(500, renewEvent.getInterestPaid());
+        assertEquals(500, renewEvent.getInterestPaid().amount());
         assertEquals(staff, renewEvent.getPerformedBy());
     }
 
@@ -466,5 +559,17 @@ class PawnTest {
 
         assertEquals(PawnTransactionAction.RENEWAL, pawn.getTransactions().get(0).getAction());
         assertEquals(PawnTransactionAction.REDEMPTION, pawn.getTransactions().get(1).getAction());
+    }
+
+    // ========== HELPER METHODS ==========
+
+    private PawnCreationRequest buildCreationRequest(int amount, int interest, int durationDays) {
+        PawnCreationRequest req = new PawnCreationRequest();
+        req.setAmount(amount);
+        req.setInterest(interest);
+        req.setIssueDate(LocalDate.now());
+        req.setMaturityDate(LocalDate.now().plusDays(durationDays));
+        req.setDurationDays(durationDays);
+        return req;
     }
 }

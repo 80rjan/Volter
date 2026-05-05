@@ -24,9 +24,7 @@ import com.volter.shop.modules.sale.domain.model.enums.SaleStatus;
 import com.volter.shop.modules.sale.domain.repository.SaleRepository;
 import com.volter.shop.modules.sale.infrastructure.SaleMapper;
 import com.volter.shop.modules.staff.application.StaffService;
-import com.volter.identity.domain.model.Role;
 import com.volter.shop.modules.staff.domain.model.Staff;
-import com.volter.identity.domain.model.enums.RoleEnum;
 import com.volter.shop.modules.transaction.application.TransactionService;
 import com.volter.shop.shared.common.exceptions.ResourceNotFoundException;
 import com.volter.shop.shared.valueobject.Money;
@@ -72,10 +70,7 @@ class SaleServiceTest {
 
     @BeforeEach
     void setUp() {
-        Role staffRole = mock(Role.class);
         staff = mock(Staff.class);
-        lenient().when(staff.getRole()).thenReturn(staffRole);
-        lenient().when(staffRole.getName()).thenReturn(RoleEnum.EMPLOYEE);
         lenient().when(staff.getId()).thenReturn(1L);
 
         customer = mock(Customer.class);
