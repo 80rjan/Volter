@@ -1,10 +1,10 @@
 package com.volter.shop.expense;
 
-import com.volter.shop.modules.expense.application.dto.response.ExpenseResponse;
+import com.volter.shop.modules.expense.web.response.ExpenseResponse;
 import com.volter.shop.modules.expense.domain.model.Expense;
 import com.volter.shop.modules.expense.domain.model.enums.ExpenseType;
-import com.volter.shop.modules.expense.infrastructure.ExpenseMapper;
-import com.volter.shop.modules.expense.infrastructure.ExpenseMapperImpl;
+import com.volter.shop.modules.expense.infrastructure.mapper.ExpenseMapper;
+import com.volter.shop.modules.expense.infrastructure.mapper.ExpenseMapperImpl;
 import com.volter.shop.shared.valueobject.Money;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

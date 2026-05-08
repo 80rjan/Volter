@@ -3,26 +3,28 @@ package com.volter.shop.sale;
 import com.volter.shop.modules.cashregister.application.CashRegisterService;
 import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
 import com.volter.shop.modules.customer.application.CustomerService;
-import com.volter.shop.modules.customer.application.dto.request.ExistingCustomerReferenceRequest;
-import com.volter.shop.modules.customer.application.dto.request.NewCustomerReferenceRequest;
+import com.volter.shop.modules.customer.web.request.ExistingCustomerReferenceRequest;
+import com.volter.shop.modules.customer.web.request.NewCustomerReferenceRequest;
 import com.volter.shop.modules.customer.domain.factory.CustomerFactory;
 import com.volter.shop.modules.customer.domain.model.Customer;
+import com.volter.shop.modules.customer.web.request.CustomerReferenceRequest;
 import com.volter.shop.modules.inventory.application.ItemService;
-import com.volter.shop.modules.inventory.application.dtos.baseitem.request.ExistingItemReferenceRequest;
-import com.volter.shop.modules.inventory.application.dtos.baseitem.request.NewItemReferenceRequest;
-import com.volter.shop.modules.inventory.application.dtos.baseitem.response.ItemFactoryResult;
+import com.volter.shop.modules.inventory.web.request.baseitem.ExistingItemReferenceRequest;
+import com.volter.shop.modules.inventory.web.request.baseitem.NewItemReferenceRequest;
+import com.volter.shop.modules.inventory.web.response.baseitem.ItemFactoryResult;
 import com.volter.shop.modules.inventory.domain.factory.ItemFactory;
 import com.volter.shop.modules.inventory.domain.model.Item;
 import com.volter.shop.modules.inventory.domain.model.enums.ItemType;
+import com.volter.shop.modules.inventory.web.request.baseitem.ItemReferenceRequest;
 import com.volter.shop.modules.sale.application.SaleService;
-import com.volter.shop.modules.sale.application.dto.filter.SaleFilter;
-import com.volter.shop.modules.sale.application.dto.request.SaleCreationRequest;
-import com.volter.shop.modules.sale.application.dto.request.SaleSellRequest;
+import com.volter.shop.modules.sale.web.request.SaleFilterRequest;
+import com.volter.shop.modules.sale.web.request.SaleCreationRequest;
+import com.volter.shop.modules.sale.web.request.SaleSellRequest;
 import com.volter.shop.modules.sale.domain.model.Sale;
 import com.volter.shop.modules.sale.domain.model.SaleTransaction;
 import com.volter.shop.modules.sale.domain.model.enums.SaleStatus;
-import com.volter.shop.modules.sale.domain.repository.SaleRepository;
-import com.volter.shop.modules.sale.infrastructure.SaleMapper;
+import com.volter.shop.modules.sale.infrastructure.repository.SaleRepository;
+import com.volter.shop.modules.sale.infrastructure.mapper.SaleMapper;
 import com.volter.shop.modules.staff.application.StaffService;
 import com.volter.shop.modules.staff.domain.model.Staff;
 import com.volter.shop.modules.transaction.application.TransactionService;
@@ -94,8 +96,8 @@ class SaleServiceTest {
                                                 Object customerRef) {
         return SaleCreationRequest.builder()
                 .purchasePrice(price)
-                .item((com.volter.shop.modules.inventory.application.dtos.baseitem.request.ItemReferenceRequest) itemRef)
-                .customer((com.volter.shop.modules.customer.application.dto.request.CustomerReferenceRequest) customerRef)
+                .item((ItemReferenceRequest) itemRef)
+                .customer((CustomerReferenceRequest) customerRef)
                 .transactionDescription("desc")
                 .build();
     }
@@ -133,7 +135,7 @@ class SaleServiceTest {
         void returnsPage() {
             Pageable pageable = PageRequest.of(0, 10);
             Page<Sale> page = new PageImpl<>(List.of(sale), pageable, 1);
-            SaleFilter filter = new SaleFilter(null, null, null, null, null, null);
+            SaleFilterRequest filter = new SaleFilterRequest(null, null, null, null, null, null);
 
             when(saleRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
 
@@ -148,7 +150,7 @@ class SaleServiceTest {
         void emptyFilter_returnsAll() {
             Pageable pageable = PageRequest.of(0, 10);
             Page<Sale> page = new PageImpl<>(List.of(sale, mock(Sale.class)));
-            SaleFilter filter = new SaleFilter(null, null, null, null, null, null);
+            SaleFilterRequest filter = new SaleFilterRequest(null, null, null, null, null, null);
 
             when(saleRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
 
@@ -161,7 +163,7 @@ class SaleServiceTest {
         @DisplayName("status filter is passed to specification")
         void statusFilter_passedToSpec() {
             Pageable pageable = PageRequest.of(0, 10);
-            SaleFilter filter = new SaleFilter(SaleStatus.LISTED, null, null, null, null, null);
+            SaleFilterRequest filter = new SaleFilterRequest(SaleStatus.LISTED, null, null, null, null, null);
             Page<Sale> page = new PageImpl<>(List.of(sale));
 
             when(saleRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
@@ -176,7 +178,7 @@ class SaleServiceTest {
         @DisplayName("active filter is passed to specification")
         void activeFilter_passedToSpec() {
             Pageable pageable = PageRequest.of(0, 10);
-            SaleFilter filter = new SaleFilter(null, true, null, null, null, null);
+            SaleFilterRequest filter = new SaleFilterRequest(null, true, null, null, null, null);
             Page<Sale> page = new PageImpl<>(List.of(sale));
 
             when(saleRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
@@ -191,7 +193,7 @@ class SaleServiceTest {
         @DisplayName("itemType filter is passed to specification")
         void itemTypeFilter_passedToSpec() {
             Pageable pageable = PageRequest.of(0, 10);
-            SaleFilter filter = new SaleFilter(null, null, ItemType.GOLD, null, null, null);
+            SaleFilterRequest filter = new SaleFilterRequest(null, null, ItemType.GOLD, null, null, null);
             Page<Sale> page = new PageImpl<>(List.of(sale));
 
             when(saleRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
@@ -206,7 +208,7 @@ class SaleServiceTest {
         @DisplayName("customerName filter is passed to specification")
         void customerNameFilter_passedToSpec() {
             Pageable pageable = PageRequest.of(0, 10);
-            SaleFilter filter = new SaleFilter(null, null, null, "Test IdentityUser", null, null);
+            SaleFilterRequest filter = new SaleFilterRequest(null, null, null, "Test IdentityUser", null, null);
             Page<Sale> page = new PageImpl<>(List.of(sale));
 
             when(saleRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
@@ -221,7 +223,7 @@ class SaleServiceTest {
         @DisplayName("combined filters are all passed to specification")
         void combinedFilters_passedToSpec() {
             Pageable pageable = PageRequest.of(0, 5, Sort.by("createdAt").descending());
-            SaleFilter filter = new SaleFilter(SaleStatus.LISTED, true, ItemType.ELECTRONIC, "Jane", null, null);
+            SaleFilterRequest filter = new SaleFilterRequest(SaleStatus.LISTED, true, ItemType.ELECTRONIC, "Jane", null, null);
             Page<Sale> page = new PageImpl<>(List.of());
 
             when(saleRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
@@ -236,7 +238,7 @@ class SaleServiceTest {
         @DisplayName("second page returns correct offset")
         void pagination_secondPage() {
             Pageable pageable = PageRequest.of(1, 5);
-            SaleFilter filter = new SaleFilter(null, null, null, null, null, null);
+            SaleFilterRequest filter = new SaleFilterRequest(null, null, null, null, null, null);
             Page<Sale> page = new PageImpl<>(List.of(sale), pageable, 10);
 
             when(saleRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
@@ -252,7 +254,7 @@ class SaleServiceTest {
         @DisplayName("empty result page returns empty content")
         void emptyPage() {
             Pageable pageable = PageRequest.of(0, 10);
-            SaleFilter filter = new SaleFilter(SaleStatus.SOLD, null, null, null, null, null);
+            SaleFilterRequest filter = new SaleFilterRequest(SaleStatus.SOLD, null, null, null, null, null);
             Page<Sale> page = Page.empty(pageable);
 
             when(saleRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);

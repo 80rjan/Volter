@@ -1,7 +1,7 @@
 package com.volter.shop.modules.expense.domain.model;
 
 import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
-import com.volter.shop.modules.expense.application.dto.request.ExpenseCreationRequest;
+import com.volter.shop.modules.expense.web.request.ExpenseCreationRequest;
 import com.volter.shop.modules.staff.domain.model.Staff;
 import com.volter.shop.modules.expense.domain.model.enums.ExpenseType;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionDirection;

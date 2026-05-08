@@ -2,11 +2,11 @@ package com.volter.shop.modules.pawn.domain.model;
 
 import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
 import com.volter.shop.modules.customer.domain.model.Customer;
-import com.volter.shop.modules.pawn.application.dto.request.PawnCreationRequest;
-import com.volter.shop.modules.pawn.application.dto.request.PawnModificationRequest;
-import com.volter.shop.modules.pawn.application.dto.result.PawnModificationResult;
-import com.volter.shop.modules.pawn.application.dto.result.PawnRedemptionResult;
-import com.volter.shop.modules.pawn.application.dto.result.PawnRenewalResult;
+import com.volter.shop.modules.pawn.web.request.PawnCreationRequest;
+import com.volter.shop.modules.pawn.web.request.PawnModificationRequest;
+import com.volter.shop.modules.pawn.application.dto.PawnModificationResult;
+import com.volter.shop.modules.pawn.application.dto.PawnRedemptionResult;
+import com.volter.shop.modules.pawn.application.dto.PawnRenewalResult;
 import com.volter.shop.modules.pawn.domain.model.enums.PawnTransactionAction;
 import com.volter.shop.modules.pawn.domain.model.event.*;
 import com.volter.shop.modules.pawn.domain.model.valueobject.MaturityDateChange;
@@ -169,14 +169,13 @@ public class Pawn {
         this.active = false;
 
         boolean underpaid = paidAmount.isLessThan(this.amount.add(this.interest));      // for risk alert creation
-        boolean isProfit = paidAmount.isGreaterThan(this.amount.add(this.interest));
 
         PawnTransaction transaction = PawnTransaction.builder()
                 .action(PawnTransactionAction.REDEMPTION)
                 .amount(paidAmount)
                 .direction(TransactionDirection.IN)
                 .marginAmount(paidAmount.absoluteSubtract(this.amount))
-                .marginType(isProfit ? TransactionMarginType.PROFIT : TransactionMarginType.LOSS)
+                .marginType(underpaid ? TransactionMarginType.LOSS : TransactionMarginType.PROFIT)
                 .description(transactionDescription)
                 .pawn(this)
                 .staff(staff)

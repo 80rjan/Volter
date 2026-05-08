@@ -4,7 +4,7 @@ import com.volter.shop.modules.customer.application.CustomerService;
 import com.volter.shop.modules.customer.application.dto.CustomerFilterDTO;
 import com.volter.shop.modules.customer.domain.model.Customer;
 import com.volter.shop.modules.customer.domain.model.enums.CustomerRiskLevel;
-import com.volter.shop.modules.customer.domain.repository.CustomerRepository;
+import com.volter.shop.modules.customer.infrastructure.CustomerRepository;
 import com.volter.shop.shared.common.exceptions.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

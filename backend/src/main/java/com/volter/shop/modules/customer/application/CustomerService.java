@@ -1,7 +1,7 @@
 package com.volter.shop.modules.customer.application;
 
-import com.volter.shop.modules.customer.domain.repository.CustomerSpecification;
-import com.volter.shop.modules.customer.domain.repository.CustomerRepository;
+import com.volter.shop.modules.customer.infrastructure.CustomerSpecification;
+import com.volter.shop.modules.customer.infrastructure.CustomerRepository;
 import com.volter.shop.modules.customer.application.dto.CustomerFilterDTO;
 import com.volter.shop.shared.common.exceptions.ResourceNotFoundException;
 import com.volter.shop.modules.customer.domain.model.Customer;

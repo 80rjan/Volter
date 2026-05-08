@@ -4,7 +4,7 @@ import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
 import com.volter.shop.modules.customer.domain.model.Customer;
 import com.volter.shop.modules.inventory.domain.model.Item;
 import com.volter.shop.modules.sale.application.dto.dto.SaleFromForfeitedPawnDTO;
-import com.volter.shop.modules.sale.application.dto.request.SaleCreationRequest;
+import com.volter.shop.modules.sale.web.request.SaleCreationRequest;
 import com.volter.shop.modules.sale.application.dto.result.SaleSellResult;
 import com.volter.shop.modules.sale.domain.model.enums.SaleStatus;
 import com.volter.shop.modules.sale.domain.model.enums.SaleTransactionAction;

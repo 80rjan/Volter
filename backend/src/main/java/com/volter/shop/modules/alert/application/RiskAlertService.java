@@ -1,7 +1,7 @@
 package com.volter.shop.modules.alert.application;
 
-import com.volter.shop.modules.alert.domain.model.RiskAlert;
-import com.volter.shop.modules.alert.domain.repository.RiskAlertRepository;
+import com.volter.shop.modules.alert.domain.RiskAlert;
+import com.volter.shop.modules.alert.infrastructure.RiskAlertRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

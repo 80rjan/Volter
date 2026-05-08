@@ -1,9 +1,9 @@
 package com.volter.shop.modules.customer.domain.factory;
 
 import com.volter.shop.modules.customer.application.CustomerService;
-import com.volter.shop.modules.customer.application.dto.request.CustomerReferenceRequest;
-import com.volter.shop.modules.customer.application.dto.request.ExistingCustomerReferenceRequest;
-import com.volter.shop.modules.customer.application.dto.request.NewCustomerReferenceRequest;
+import com.volter.shop.modules.customer.web.request.CustomerReferenceRequest;
+import com.volter.shop.modules.customer.web.request.ExistingCustomerReferenceRequest;
+import com.volter.shop.modules.customer.web.request.NewCustomerReferenceRequest;
 import com.volter.shop.modules.customer.domain.model.Customer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

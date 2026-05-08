@@ -1,16 +1,16 @@
 package com.volter.shop.modules.inventory.domain.factory;
 
 import com.volter.shop.modules.inventory.application.ItemService;
-import com.volter.shop.modules.inventory.application.dtos.baseitem.request.ExistingItemReferenceRequest;
-import com.volter.shop.modules.inventory.application.dtos.baseitem.request.ItemReferenceRequest;
-import com.volter.shop.modules.inventory.application.dtos.baseitem.request.ItemRequestData;
-import com.volter.shop.modules.inventory.application.dtos.baseitem.request.NewItemReferenceRequest;
-import com.volter.shop.modules.inventory.application.dtos.baseitem.response.ItemFactoryResult;
-import com.volter.shop.modules.inventory.application.dtos.types.electronic.request.ElectronicItemRequestData;
-import com.volter.shop.modules.inventory.application.dtos.types.gold.request.GoldItemRequestData;
-import com.volter.shop.modules.inventory.application.dtos.types.other.request.OtherItemRequestData;
-import com.volter.shop.modules.inventory.application.dtos.types.vehicle.request.VehicleItemRequestData;
-import com.volter.shop.modules.inventory.application.dtos.types.watch.request.WatchItemRequestData;
+import com.volter.shop.modules.inventory.web.request.baseitem.ExistingItemReferenceRequest;
+import com.volter.shop.modules.inventory.web.request.baseitem.ItemReferenceRequest;
+import com.volter.shop.modules.inventory.web.request.baseitem.ItemRequestData;
+import com.volter.shop.modules.inventory.web.request.baseitem.NewItemReferenceRequest;
+import com.volter.shop.modules.inventory.web.response.baseitem.ItemFactoryResult;
+import com.volter.shop.modules.inventory.web.request.types.electronic.ElectronicItemRequestData;
+import com.volter.shop.modules.inventory.web.request.types.gold.GoldItemRequestData;
+import com.volter.shop.modules.inventory.web.request.types.other.OtherItemRequestData;
+import com.volter.shop.modules.inventory.web.request.types.vehicle.VehicleItemRequestData;
+import com.volter.shop.modules.inventory.web.request.types.watch.WatchItemRequestData;
 import com.volter.shop.modules.inventory.domain.model.types.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

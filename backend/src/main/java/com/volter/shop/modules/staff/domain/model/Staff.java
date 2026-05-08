@@ -1,13 +1,11 @@
 package com.volter.shop.modules.staff.domain.model;
 
-import com.volter.identity.domain.model.Role;
 import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
 import com.volter.shop.modules.cashregister.domain.model.CashRegisterSessionAdjustment;
 import com.volter.shop.modules.expense.domain.model.Expense;
-import com.volter.shop.modules.alert.domain.model.RiskAlert;
+import com.volter.shop.modules.alert.domain.RiskAlert;
 import com.volter.shop.modules.reporting.domain.model.MonthlyReport;
 import com.volter.shop.modules.pawn.domain.model.event.PawnEvent;
-import com.volter.identity.domain.model.enums.PermissionEnum;
 import com.volter.shop.modules.transaction.domain.model.Transaction;
 import com.volter.shop.shared.valueobject.Compensation;
 import jakarta.persistence.*;

@@ -29,6 +29,15 @@ public class PredicateBuilder<T> {
         return this;
     }
 
+    // ── Value ────────────────────────────────────────────────────────────────
+
+    public PredicateBuilder<T> withValue(Path<?> path, Object value) {
+        if (value != null) {
+            predicates.add(cb.equal(path, value));
+        }
+        return this;
+    }
+
     // ── Enum ──────────────────────────────────────────────────────────────────
 
     public <E extends Enum<E>> PredicateBuilder<T> withEnum(Path<E> path, E value) {
@@ -38,14 +47,6 @@ public class PredicateBuilder<T> {
         return this;
     }
 
-    // ── Boolean ───────────────────────────────────────────────────────────────
-
-    public PredicateBuilder<T> withBoolean(Path<Boolean> path, Boolean value) {
-        if (value != null) {
-            predicates.add(cb.equal(path, value));
-        }
-        return this;
-    }
 
     // ── Date Range ────────────────────────────────────────────────────────────
 

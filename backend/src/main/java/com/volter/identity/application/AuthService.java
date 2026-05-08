@@ -1,8 +1,8 @@
 // identity/application/AuthService.java
 package com.volter.identity.application;
 
-import com.volter.identity.application.dto.LoginRequest;
-import com.volter.identity.application.dto.SwitchShopRequest;
+import com.volter.identity.web.request.LoginRequest;
+import com.volter.identity.web.request.SwitchShopRequest;
 import com.volter.identity.application.dto.TokenDTO;
 import com.volter.identity.domain.model.IdentityUser;
 import com.volter.identity.domain.model.Shop;

@@ -1,10 +1,10 @@
 package com.volter.shop.customer;
 
-import com.volter.shop.modules.customer.application.dto.response.CustomerResponse;
+import com.volter.shop.modules.customer.web.response.CustomerResponse;
 import com.volter.shop.modules.customer.domain.model.Customer;
 import com.volter.shop.modules.customer.domain.model.enums.CustomerRiskLevel;
-import com.volter.shop.modules.customer.infrastructure.CustomerMapper;
-import com.volter.shop.modules.customer.infrastructure.CustomerMapperImpl;
+import com.volter.shop.modules.customer.infrastructure.mapper.CustomerMapper;
+import com.volter.shop.modules.customer.infrastructure.mapper.CustomerMapperImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

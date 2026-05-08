@@ -1,9 +1,9 @@
 package com.volter.shop.modules.transaction.application;
 
-import com.volter.shop.modules.transaction.domain.repository.TransactionSpecification;
+import com.volter.shop.modules.transaction.domain.specification.TransactionSpecification;
 import com.volter.shop.modules.transaction.domain.model.Transaction;
-import com.volter.shop.modules.transaction.domain.repository.TransactionRepository;
-import com.volter.shop.modules.transaction.application.dto.filter.TransactionFilter;
+import com.volter.shop.modules.transaction.infrastructure.repository.TransactionRepository;
+import com.volter.shop.modules.transaction.web.request.TransactionFilterRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +25,7 @@ public class TransactionService {
     }
 
     @Transactional
-    public Page<Transaction> getAll(TransactionFilter filters, Pageable pageable) {
+    public Page<Transaction> getAll(TransactionFilterRequest filters, Pageable pageable) {
         Specification<Transaction> spec = TransactionSpecification.withFilters(filters);
         return transactionRepository.findAll(spec, pageable);
     }

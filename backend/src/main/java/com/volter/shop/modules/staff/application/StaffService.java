@@ -1,7 +1,7 @@
 package com.volter.shop.modules.staff.application;
 
 import com.volter.shop.modules.staff.domain.model.Staff;
-import com.volter.shop.modules.staff.domain.repository.StaffRepository;
+import com.volter.shop.modules.staff.infrastructure.repository.StaffRepository;
 import com.volter.shop.shared.common.exceptions.UnauthorizedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;

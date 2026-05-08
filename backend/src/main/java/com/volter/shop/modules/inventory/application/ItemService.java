@@ -1,7 +1,7 @@
 package com.volter.shop.modules.inventory.application;
 
 import com.volter.shop.modules.inventory.domain.model.Item;
-import com.volter.shop.modules.inventory.domain.repository.ItemRepository;
+import com.volter.shop.modules.inventory.infrastructure.ItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

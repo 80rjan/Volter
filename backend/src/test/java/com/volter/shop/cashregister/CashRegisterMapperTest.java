@@ -1,9 +1,9 @@
 package com.volter.shop.cashregister;
 
-import com.volter.shop.modules.cashregister.application.dto.response.CashRegisterSessionResponse;
+import com.volter.shop.modules.cashregister.web.response.CashRegisterSessionResponse;
 import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
-import com.volter.shop.modules.cashregister.infrastructure.CashRegisterMapper;
-import com.volter.shop.modules.cashregister.infrastructure.CashRegisterMapperImpl;
+import com.volter.shop.modules.cashregister.infrastructure.mapper.CashRegisterMapper;
+import com.volter.shop.modules.cashregister.infrastructure.mapper.CashRegisterMapperImpl;
 import com.volter.shop.shared.valueobject.Money;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

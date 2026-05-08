@@ -1,21 +1,22 @@
 package com.volter.shop.pawn;
 
 import com.volter.shop.modules.customer.domain.model.Customer;
-import com.volter.shop.modules.customer.infrastructure.CustomerMapperImpl;
+import com.volter.shop.modules.customer.infrastructure.mapper.CustomerMapperImpl;
 import com.volter.shop.modules.inventory.domain.model.types.GoldItem;
 import com.volter.shop.modules.inventory.domain.model.types.ElectronicItem;
-import com.volter.shop.modules.inventory.infrastructure.ItemDetailedMapperImpl;
-import com.volter.shop.modules.inventory.infrastructure.ItemMapperImpl;
-import com.volter.shop.modules.pawn.application.dto.response.PawnDetailedResponse;
-import com.volter.shop.modules.pawn.application.dto.response.PawnResponse;
+import com.volter.shop.modules.inventory.infrastructure.mapper.ItemDetailedMapperImpl;
+import com.volter.shop.modules.inventory.infrastructure.mapper.ItemMapperImpl;
+import com.volter.shop.modules.inventory.web.response.types.electronic.ElectronicItemDetailedResponseData;
+import com.volter.shop.modules.pawn.web.response.PawnDetailedResponse;
+import com.volter.shop.modules.pawn.web.response.PawnResponse;
 import com.volter.shop.modules.pawn.domain.model.Pawn;
 import com.volter.shop.modules.pawn.domain.model.valueobject.PawnPeriod;
 import com.volter.shop.modules.pawn.domain.model.enums.PawnStatus;
-import com.volter.shop.modules.inventory.application.dtos.types.gold.response.GoldItemResponseData;
-import com.volter.shop.modules.inventory.application.dtos.types.gold.response.GoldItemDetailedResponseData;
-import com.volter.shop.modules.inventory.application.dtos.types.electronic.response.ElectronicItemResponseData;
-import com.volter.shop.modules.pawn.infrastructure.PawnMapper;
-import com.volter.shop.modules.pawn.infrastructure.PawnMapperImpl;
+import com.volter.shop.modules.inventory.web.response.types.gold.GoldItemResponseData;
+import com.volter.shop.modules.inventory.web.response.types.gold.GoldItemDetailedResponseData;
+import com.volter.shop.modules.inventory.web.response.types.electronic.ElectronicItemResponseData;
+import com.volter.shop.modules.pawn.infrastructure.mapper.PawnMapper;
+import com.volter.shop.modules.pawn.infrastructure.mapper.PawnMapperImpl;
 import com.volter.shop.shared.valueobject.Money;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -311,7 +312,7 @@ class PawnMapperTest {
         void item_electronicPawn_mapsToElectronicItemDetailedResponseData() {
             Pawn pawn = buildPawnWithItem(electronicItem());
             assertThat(pawnMapper.toDetailedResponse(pawn).getItem())
-                    .isInstanceOf(com.volter.shop.modules.inventory.application.dtos.types.electronic.response.ElectronicItemDetailedResponseData.class);
+                    .isInstanceOf(ElectronicItemDetailedResponseData.class);
         }
 
         // KEY: toResponse uses @Named("toBaseResponse"), toDetailedResponse uses @Named("toDetailedResponse")

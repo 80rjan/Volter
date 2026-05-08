@@ -1,6 +1,6 @@
 package com.volter.shop.cashregister;
 
-import com.volter.shop.modules.cashregister.application.dto.result.CashRegisterSessionCloseResult;
+import com.volter.shop.modules.cashregister.application.dto.CashRegisterSessionCloseResult;
 import com.volter.shop.modules.cashregister.domain.model.CashRegister;
 import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
 import com.volter.shop.modules.cashregister.domain.model.CashRegisterTransaction;

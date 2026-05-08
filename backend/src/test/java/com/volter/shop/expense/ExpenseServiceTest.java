@@ -3,12 +3,12 @@ package com.volter.shop.expense;
 import com.volter.shop.modules.cashregister.application.CashRegisterService;
 import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
 import com.volter.shop.modules.expense.application.ExpenseService;
-import com.volter.shop.modules.expense.application.dto.filter.ExpenseFilter;
-import com.volter.shop.modules.expense.application.dto.request.ExpenseCreationRequest;
-import com.volter.shop.modules.expense.application.dto.response.ExpenseSummaryResponse;
+import com.volter.shop.modules.expense.web.request.ExpenseFilterRequest;
+import com.volter.shop.modules.expense.web.request.ExpenseCreationRequest;
+import com.volter.shop.modules.expense.web.response.ExpenseSummaryResponse;
 import com.volter.shop.modules.expense.domain.model.Expense;
 import com.volter.shop.modules.expense.domain.model.enums.ExpenseType;
-import com.volter.shop.modules.expense.domain.repository.ExpenseRepository;
+import com.volter.shop.modules.expense.infrastructure.ExpenseRepository;
 import com.volter.shop.modules.staff.application.StaffService;
 import com.volter.shop.modules.staff.domain.model.Staff;
 import com.volter.shop.shared.valueobject.Money;
@@ -71,7 +71,7 @@ class ExpenseServiceTest {
 
             when(expenseRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
 
-            Page<Expense> result = expenseService.getAll(new ExpenseFilter(), pageable);
+            Page<Expense> result = expenseService.getAll(new ExpenseFilterRequest(), pageable);
 
             assertEquals(1, result.getTotalElements());
             verify(expenseRepository).findAll(any(Specification.class), eq(pageable));
@@ -84,14 +84,14 @@ class ExpenseServiceTest {
 
             when(expenseRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(Page.empty(pageable));
 
-            assertTrue(expenseService.getAll(new ExpenseFilter(), pageable).isEmpty());
+            assertTrue(expenseService.getAll(new ExpenseFilterRequest(), pageable).isEmpty());
         }
 
         @Test
         @DisplayName("expenseType filter is forwarded to the specification")
         void typeFilter_forwardedToSpec() {
             Pageable pageable = PageRequest.of(0, 10);
-            ExpenseFilter filter = new ExpenseFilter();
+            ExpenseFilterRequest filter = new ExpenseFilterRequest();
             filter.setExpenseType(ExpenseType.RENT);
 
             when(expenseRepository.findAll(any(Specification.class), eq(pageable)))
@@ -105,7 +105,7 @@ class ExpenseServiceTest {
         @DisplayName("date range filter is forwarded to the specification")
         void dateRangeFilter_forwardedToSpec() {
             Pageable pageable = PageRequest.of(0, 10);
-            ExpenseFilter filter = new ExpenseFilter();
+            ExpenseFilterRequest filter = new ExpenseFilterRequest();
             filter.setFromDate(LocalDate.of(2025, 1, 1));
             filter.setToDate(LocalDate.of(2025, 1, 31));
 
@@ -125,7 +125,7 @@ class ExpenseServiceTest {
 
             when(expenseRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
 
-            Page<Expense> result = expenseService.getAll(new ExpenseFilter(), pageable);
+            Page<Expense> result = expenseService.getAll(new ExpenseFilterRequest(), pageable);
 
             assertEquals(1, result.getNumber());
             assertEquals(10, result.getTotalElements());
@@ -139,7 +139,7 @@ class ExpenseServiceTest {
 
             when(expenseRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(Page.empty());
 
-            expenseService.getAll(new ExpenseFilter(), pageable);
+            expenseService.getAll(new ExpenseFilterRequest(), pageable);
 
             verify(expenseRepository).findAll(any(Specification.class), eq(pageable));
         }
@@ -168,7 +168,7 @@ class ExpenseServiceTest {
             when(expenseRepository.findAll(any(Specification.class)))
                     .thenReturn(List.of(expense(ExpenseType.RENT, 1000)));
 
-            ExpenseSummaryResponse r = expenseService.getAllGrouped(new ExpenseFilter());
+            ExpenseSummaryResponse r = expenseService.getAllGrouped(new ExpenseFilterRequest());
 
             assertEquals(new Money(1000), r.grandTotal());
         }
@@ -182,7 +182,7 @@ class ExpenseServiceTest {
                             expense(ExpenseType.RENT, 500)
                     ));
 
-            ExpenseSummaryResponse r = expenseService.getAllGrouped(new ExpenseFilter());
+            ExpenseSummaryResponse r = expenseService.getAllGrouped(new ExpenseFilterRequest());
 
             assertEquals(new Money(1500), r.totalByType().get(ExpenseType.RENT));
             assertEquals(new Money(1500), r.grandTotal());
@@ -197,7 +197,7 @@ class ExpenseServiceTest {
                             expense(ExpenseType.UTILITIES, 200)
                     ));
 
-            ExpenseSummaryResponse r = expenseService.getAllGrouped(new ExpenseFilter());
+            ExpenseSummaryResponse r = expenseService.getAllGrouped(new ExpenseFilterRequest());
 
             assertEquals(new Money(1000), r.totalByType().get(ExpenseType.RENT));
             assertEquals(new Money(200), r.totalByType().get(ExpenseType.UTILITIES));
@@ -209,7 +209,7 @@ class ExpenseServiceTest {
         void emptyList_returnsZeroGrandTotal() {
             when(expenseRepository.findAll(any(Specification.class))).thenReturn(List.of());
 
-            ExpenseSummaryResponse r = expenseService.getAllGrouped(new ExpenseFilter());
+            ExpenseSummaryResponse r = expenseService.getAllGrouped(new ExpenseFilterRequest());
 
             assertEquals(new Money(0), r.grandTotal());
             assertTrue(r.totalByType().isEmpty());
@@ -218,7 +218,7 @@ class ExpenseServiceTest {
         @Test
         @DisplayName("fromDate and toDate from the filter are included in the response")
         void filterDates_includedInResponse() {
-            ExpenseFilter filter = new ExpenseFilter();
+            ExpenseFilterRequest filter = new ExpenseFilterRequest();
             filter.setFromDate(LocalDate.of(2025, 1, 1));
             filter.setToDate(LocalDate.of(2025, 1, 31));
 
@@ -240,7 +240,7 @@ class ExpenseServiceTest {
                             expense(ExpenseType.SALARIES, 5000)
                     ));
 
-            ExpenseSummaryResponse r = expenseService.getAllGrouped(new ExpenseFilter());
+            ExpenseSummaryResponse r = expenseService.getAllGrouped(new ExpenseFilterRequest());
 
             int sumOfTypes = r.totalByType().values().stream().mapToInt(Money::amount).sum();
             assertEquals(r.grandTotal().amount(), sumOfTypes);

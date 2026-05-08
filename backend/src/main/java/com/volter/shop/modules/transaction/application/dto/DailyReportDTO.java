@@ -1,6 +1,6 @@
 package com.volter.shop.modules.transaction.application.dto;
 
-import com.volter.shop.modules.inventory.application.dtos.baseitem.dto.ItemReportDTO;
+import com.volter.shop.modules.inventory.application.dtos.ItemReportDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

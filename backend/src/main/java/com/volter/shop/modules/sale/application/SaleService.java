@@ -5,18 +5,17 @@ import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
 import com.volter.shop.modules.customer.domain.factory.CustomerFactory;
 import com.volter.shop.modules.customer.domain.model.Customer;
 import com.volter.shop.modules.customer.application.CustomerService;
-import com.volter.shop.modules.inventory.application.dtos.baseitem.response.ItemFactoryResult;
+import com.volter.shop.modules.inventory.web.response.baseitem.ItemFactoryResult;
 import com.volter.shop.modules.inventory.domain.factory.ItemFactory;
-import com.volter.shop.modules.sale.application.dto.filter.SaleFilter;
-import com.volter.shop.modules.sale.application.dto.request.SaleSellRequest;
+import com.volter.shop.modules.sale.web.request.SaleFilterRequest;
+import com.volter.shop.modules.sale.web.request.SaleSellRequest;
 import com.volter.shop.modules.sale.application.dto.result.SaleSellResult;
 import com.volter.shop.modules.sale.domain.specification.SaleSpecification;
 import com.volter.shop.shared.common.exceptions.ResourceNotFoundException;
 import com.volter.shop.modules.inventory.application.ItemService;
 import com.volter.shop.modules.sale.domain.model.Sale;
-import com.volter.shop.modules.sale.domain.repository.SaleRepository;
-import com.volter.shop.modules.sale.application.dto.request.SaleCreationRequest;
-import com.volter.shop.modules.sale.infrastructure.SaleMapper;
+import com.volter.shop.modules.sale.infrastructure.repository.SaleRepository;
+import com.volter.shop.modules.sale.web.request.SaleCreationRequest;
 import com.volter.shop.modules.staff.domain.model.Staff;
 import com.volter.shop.modules.staff.application.StaffService;
 import com.volter.shop.modules.transaction.application.TransactionService;
@@ -25,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +37,6 @@ public class SaleService {
     private final StaffService staffService;
     private final SaleRepository saleRepository;
     private final CashRegisterService cashRegisterService;
-    private final SaleMapper saleMapper;
     private final TransactionService transactionService;
     private final ItemService itemService;
     private final CustomerService customerService;
@@ -53,7 +52,7 @@ public class SaleService {
      * Retrieves all sales
      */
     @Transactional
-    public Page<Sale> getAll(SaleFilter filter, Pageable pageable) {
+    public Page<Sale> getAll(SaleFilterRequest filter, Pageable pageable) {
         Specification<Sale> spec = SaleSpecification.withFilters(filter);
         return saleRepository.findAll(spec, pageable);
     }
@@ -74,6 +73,12 @@ public class SaleService {
         return saleRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Sale with ID " + id + " not found")
         );
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole(T(com.volter.identity.domain.model.enums.RoleEnum).MANAGER) or hasRole(T(com.volter.identity.domain.model.enums.RoleEnum).ADMIN)")
+    public Integer countByMonthAndYear(Integer month, Integer year) {
+        return saleRepository.countByMonthAndYear(month, year);
     }
 
     @Transactional

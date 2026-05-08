@@ -1,6 +1,6 @@
 package com.volter.shop.modules.inventory.domain.model.types;
 
-import com.volter.shop.modules.inventory.application.dtos.baseitem.request.ItemModificationRequest;
+import com.volter.shop.modules.inventory.web.request.baseitem.ItemModificationRequest;
 import com.volter.shop.modules.inventory.domain.model.enums.types.GoldItemCarats;
 import com.volter.shop.modules.inventory.domain.model.Item;
 import jakarta.persistence.*;

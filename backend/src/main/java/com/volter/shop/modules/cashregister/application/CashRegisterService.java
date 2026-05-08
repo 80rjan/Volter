@@ -1,13 +1,13 @@
 package com.volter.shop.modules.cashregister.application;
 
-import com.volter.shop.modules.cashregister.application.dto.request.CashRegisterSessionCloseRequest;
-import com.volter.shop.modules.cashregister.application.dto.request.CashRegisterSessionDepositRequest;
-import com.volter.shop.modules.cashregister.application.dto.request.CashRegisterSessionOpenRequest;
-import com.volter.shop.modules.cashregister.application.dto.request.CashRegisterSessionWithdrawRequest;
+import com.volter.shop.modules.cashregister.web.request.CashRegisterSessionCloseRequest;
+import com.volter.shop.modules.cashregister.web.request.CashRegisterSessionDepositRequest;
+import com.volter.shop.modules.cashregister.web.request.CashRegisterSessionOpenRequest;
+import com.volter.shop.modules.cashregister.web.request.CashRegisterSessionWithdrawRequest;
 import com.volter.shop.modules.cashregister.domain.model.CashRegister;
 import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
-import com.volter.shop.modules.cashregister.domain.repository.CashRegisterRepository;
-import com.volter.shop.modules.cashregister.domain.repository.CashRegisterSessionRepository;
+import com.volter.shop.modules.cashregister.infrastructure.CashRegisterRepository;
+import com.volter.shop.modules.cashregister.infrastructure.CashRegisterSessionRepository;
 import com.volter.shop.modules.pawn.application.PawnService;
 import com.volter.shop.modules.pawn.domain.model.Pawn;
 import com.volter.shop.shared.common.exceptions.ResourceNotFoundException;

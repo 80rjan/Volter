@@ -1,6 +1,6 @@
 package com.volter.shop.modules.pawn.domain.model.event;
 
-import com.volter.shop.modules.alert.domain.model.RiskAlert;
+import com.volter.shop.modules.alert.domain.RiskAlert;
 import com.volter.shop.modules.pawn.domain.model.Pawn;
 import com.volter.shop.modules.pawn.domain.model.PawnTransaction;
 import com.volter.shop.modules.pawn.domain.model.enums.PawnEventType;

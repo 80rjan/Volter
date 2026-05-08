@@ -1,37 +1,37 @@
 package com.volter.shop.pawn;
 
 import com.volter.shop.modules.alert.application.RiskAlertService;
-import com.volter.shop.modules.alert.domain.model.RiskAlert;
-import com.volter.shop.modules.alert.domain.model.enums.RiskAlertSeverity;
-import com.volter.shop.modules.alert.domain.model.enums.RiskAlertType;
+import com.volter.shop.modules.alert.domain.RiskAlert;
+import com.volter.shop.modules.alert.domain.enums.RiskAlertSeverity;
+import com.volter.shop.modules.alert.domain.enums.RiskAlertType;
 import com.volter.shop.modules.cashregister.application.CashRegisterService;
 import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
 import com.volter.shop.modules.customer.application.CustomerService;
-import com.volter.shop.modules.customer.application.dto.request.ExistingCustomerReferenceRequest;
-import com.volter.shop.modules.customer.application.dto.request.NewCustomerReferenceRequest;
+import com.volter.shop.modules.customer.web.request.ExistingCustomerReferenceRequest;
+import com.volter.shop.modules.customer.web.request.NewCustomerReferenceRequest;
 import com.volter.shop.modules.customer.domain.factory.CustomerFactory;
 import com.volter.shop.modules.customer.domain.model.Customer;
 import com.volter.shop.modules.inventory.application.ItemService;
-import com.volter.shop.modules.inventory.application.dtos.baseitem.request.ExistingItemReferenceRequest;
-import com.volter.shop.modules.inventory.application.dtos.baseitem.request.ItemModificationRequest;
-import com.volter.shop.modules.inventory.application.dtos.baseitem.request.NewItemReferenceRequest;
-import com.volter.shop.modules.inventory.application.dtos.baseitem.response.ItemFactoryResult;
+import com.volter.shop.modules.inventory.web.request.baseitem.ExistingItemReferenceRequest;
+import com.volter.shop.modules.inventory.web.request.baseitem.ItemModificationRequest;
+import com.volter.shop.modules.inventory.web.request.baseitem.NewItemReferenceRequest;
+import com.volter.shop.modules.inventory.web.response.baseitem.ItemFactoryResult;
 import com.volter.shop.modules.inventory.domain.factory.ItemFactory;
 import com.volter.shop.modules.inventory.domain.model.Item;
-import com.volter.shop.modules.inventory.domain.repository.ItemRepository;
+import com.volter.shop.modules.inventory.infrastructure.ItemRepository;
 import com.volter.shop.modules.pawn.application.PawnService;
-import com.volter.shop.modules.pawn.application.dto.filter.PawnFilter;
-import com.volter.shop.modules.pawn.application.dto.request.PawnCreationRequest;
-import com.volter.shop.modules.pawn.application.dto.request.PawnForfeitureRequest;
-import com.volter.shop.modules.pawn.application.dto.request.PawnModificationRequest;
-import com.volter.shop.modules.pawn.application.dto.request.PawnRedemptionRequest;
-import com.volter.shop.modules.pawn.application.dto.request.PawnRenewalRequest;
+import com.volter.shop.modules.pawn.web.request.PawnFilterRequest;
+import com.volter.shop.modules.pawn.web.request.PawnCreationRequest;
+import com.volter.shop.modules.pawn.web.request.PawnForfeitureRequest;
+import com.volter.shop.modules.pawn.web.request.PawnModificationRequest;
+import com.volter.shop.modules.pawn.web.request.PawnRedemptionRequest;
+import com.volter.shop.modules.pawn.web.request.PawnRenewalRequest;
 import com.volter.shop.modules.pawn.domain.model.Pawn;
 import com.volter.shop.modules.pawn.domain.model.PawnTransaction;
 import com.volter.shop.modules.pawn.domain.model.enums.PawnStatus;
 import com.volter.shop.modules.pawn.domain.model.enums.PawnTransactionAction;
 import com.volter.shop.modules.pawn.domain.model.valueobject.PawnPeriod;
-import com.volter.shop.modules.pawn.domain.repository.PawnRepository;
+import com.volter.shop.modules.pawn.infrastructure.PawnRepository;
 import com.volter.shop.modules.sale.application.SaleService;
 import com.volter.shop.modules.sale.domain.model.Sale;
 import com.volter.identity.application.IdentityUserService;
@@ -175,7 +175,7 @@ class PawnServiceTest {
 
         when(pawnRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
 
-        Page<Pawn> result = pawnService.getAll(new PawnFilter(null, null, null, null, null, null, null, null, null, null), pageable);
+        Page<Pawn> result = pawnService.getAll(new PawnFilterRequest(null, null, null, null, null, null, null, null, null, null), pageable);
 
         assertEquals(3, result.getTotalElements());
         assertEquals(3, result.getContent().size());
@@ -186,7 +186,7 @@ class PawnServiceTest {
     @DisplayName("getAll() with status filter should filter by status")
     void testGetAll_WithStatusFilter() {
         Pageable pageable = PageRequest.of(0, 10);
-        PawnFilter filter = new PawnFilter(PawnStatus.ACTIVE, null, null, null, null, null, null, null, null, null);
+        PawnFilterRequest filter = new PawnFilterRequest(PawnStatus.ACTIVE, null, null, null, null, null, null, null, null, null);
         Page<Pawn> page = new PageImpl<>(List.of(pawn), pageable, 1);
 
         when(pawnRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
@@ -201,7 +201,7 @@ class PawnServiceTest {
     @DisplayName("getAll() with active filter should filter by active flag")
     void testGetAll_WithActiveFilter() {
         Pageable pageable = PageRequest.of(0, 10);
-        PawnFilter filter = new PawnFilter(null, true, null, null, null, null, null, null, null, null);
+        PawnFilterRequest filter = new PawnFilterRequest(null, true, null, null, null, null, null, null, null, null);
         Page<Pawn> page = new PageImpl<>(List.of(pawn), pageable, 1);
 
         when(pawnRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
@@ -218,7 +218,7 @@ class PawnServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         LocalDate fromDate = LocalDate.now().minusDays(30);
         LocalDate toDate = LocalDate.now();
-        PawnFilter filter = new PawnFilter(null, null, fromDate, toDate, null, null, null, null, null, null);
+        PawnFilterRequest filter = new PawnFilterRequest(null, null, fromDate, toDate, null, null, null, null, null, null);
         Page<Pawn> page = new PageImpl<>(List.of(pawn), pageable, 1);
 
         when(pawnRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
@@ -233,7 +233,7 @@ class PawnServiceTest {
     @DisplayName("getAll() with customer filters should filter by customer data")
     void testGetAll_WithCustomerFilters() {
         Pageable pageable = PageRequest.of(0, 10);
-        PawnFilter filter = new PawnFilter(null, null, null, null, null, null, null, "John Doe", "1234567890123", "+38970123456");
+        PawnFilterRequest filter = new PawnFilterRequest(null, null, null, null, null, null, null, "John Doe", "1234567890123", "+38970123456");
         Page<Pawn> page = new PageImpl<>(List.of(pawn), pageable, 1);
 
         when(pawnRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
@@ -248,7 +248,7 @@ class PawnServiceTest {
     @DisplayName("getAll() with multiple filters combined should apply all")
     void testGetAll_WithMultipleFilters() {
         Pageable pageable = PageRequest.of(0, 10);
-        PawnFilter filter = new PawnFilter(
+        PawnFilterRequest filter = new PawnFilterRequest(
                 PawnStatus.ACTIVE,
                 true,
                 LocalDate.now().minusDays(30),
@@ -278,7 +278,7 @@ class PawnServiceTest {
 
         when(pawnRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(emptyPage);
 
-        Page<Pawn> result = pawnService.getAll(new PawnFilter(null, null, null, null, null, null, null, null, null, null), pageable);
+        Page<Pawn> result = pawnService.getAll(new PawnFilterRequest(null, null, null, null, null, null, null, null, null, null), pageable);
 
         assertTrue(result.isEmpty());
         assertEquals(0, result.getTotalElements());
@@ -298,8 +298,8 @@ class PawnServiceTest {
         when(pawnRepository.findAll(any(Specification.class), eq(page1))).thenReturn(firstPage);
         when(pawnRepository.findAll(any(Specification.class), eq(page2))).thenReturn(secondPage);
 
-        Page<Pawn> result1 = pawnService.getAll(new PawnFilter(null, null, null, null, null, null, null, null, null, null), page1);
-        Page<Pawn> result2 = pawnService.getAll(new PawnFilter(null, null, null, null, null, null, null, null, null, null), page2);
+        Page<Pawn> result1 = pawnService.getAll(new PawnFilterRequest(null, null, null, null, null, null, null, null, null, null), page1);
+        Page<Pawn> result2 = pawnService.getAll(new PawnFilterRequest(null, null, null, null, null, null, null, null, null, null), page2);
 
         assertEquals(2, result1.getContent().size());
         assertEquals(0, result1.getNumber());

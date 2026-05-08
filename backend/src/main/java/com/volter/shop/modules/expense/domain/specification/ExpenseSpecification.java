@@ -1,7 +1,7 @@
 package com.volter.shop.modules.expense.domain.specification;
 
 import com.volter.shop.modules.expense.domain.model.Expense;
-import com.volter.shop.modules.expense.application.dto.filter.ExpenseFilter;
+import com.volter.shop.modules.expense.web.request.ExpenseFilterRequest;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -10,7 +10,7 @@ import java.util.List;
 
 public class ExpenseSpecification {
 
-    public static Specification<Expense> withFilters(ExpenseFilter filters) {
+    public static Specification<Expense> withFilters(ExpenseFilterRequest filters) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 

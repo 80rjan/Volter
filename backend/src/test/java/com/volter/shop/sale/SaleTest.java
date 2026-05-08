@@ -7,7 +7,7 @@ import com.volter.shop.modules.inventory.domain.model.enums.ItemStatus;
 import com.volter.shop.modules.inventory.domain.model.enums.types.GoldItemCarats;
 import com.volter.shop.modules.inventory.domain.model.types.GoldItem;
 import com.volter.shop.modules.sale.application.dto.dto.SaleFromForfeitedPawnDTO;
-import com.volter.shop.modules.sale.application.dto.request.SaleCreationRequest;
+import com.volter.shop.modules.sale.web.request.SaleCreationRequest;
 import com.volter.shop.modules.sale.application.dto.result.SaleSellResult;
 import com.volter.shop.modules.sale.domain.model.Sale;
 import com.volter.shop.modules.sale.domain.model.SaleTransaction;

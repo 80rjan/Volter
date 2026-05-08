@@ -1,6 +1,6 @@
 package com.volter.shop.modules.transaction.domain.model;
 
-import com.volter.shop.modules.alert.domain.model.RiskAlert;
+import com.volter.shop.modules.alert.domain.RiskAlert;
 import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
 import com.volter.shop.modules.staff.domain.model.Staff;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionCategory;
@@ -59,7 +59,7 @@ public abstract class Transaction {
     @Embedded
     @NotNull(message = "Transaction margin amount is required")
     @AttributeOverride(name = "amount", column = @Column(name = "margin_amount", nullable = false))
-    private Money marginAmount;
+    private Money marginAmount; // of which profit
 
     @NotNull(message = "Transaction margin type is required")
     @Enumerated(EnumType.STRING)

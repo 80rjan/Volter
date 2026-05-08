@@ -3,12 +3,12 @@ package com.volter.shop.modules.expense.application;
 
 import com.volter.shop.modules.cashregister.application.CashRegisterService;
 import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
-import com.volter.shop.modules.expense.application.dto.response.ExpenseSummaryResponse;
-import com.volter.shop.modules.expense.application.dto.filter.ExpenseFilter;
-import com.volter.shop.modules.expense.application.dto.request.ExpenseCreationRequest;
+import com.volter.shop.modules.expense.web.response.ExpenseSummaryResponse;
+import com.volter.shop.modules.expense.web.request.ExpenseFilterRequest;
+import com.volter.shop.modules.expense.web.request.ExpenseCreationRequest;
 import com.volter.shop.modules.expense.domain.model.Expense;
 import com.volter.shop.modules.expense.domain.model.enums.ExpenseType;
-import com.volter.shop.modules.expense.domain.repository.ExpenseRepository;
+import com.volter.shop.modules.expense.infrastructure.ExpenseRepository;
 import com.volter.shop.modules.expense.domain.specification.ExpenseSpecification;
 import com.volter.shop.modules.staff.application.StaffService;
 import com.volter.shop.modules.staff.domain.model.Staff;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@PreAuthorize("hasRole(T(com.volter.identity.domain.model.enums.RoleEnum).MANAGER || " +
+@PreAuthorize("hasRole(T(com.volter.identity.domain.model.enums.RoleEnum).MANAGER or " +
               "hasRole(T(com.volter.identity.domain.model.enums.RoleEnum).ADMIN))")
 public class ExpenseService {
 
@@ -39,13 +39,13 @@ public class ExpenseService {
     private final CashRegisterService cashRegisterService;
 
     @Transactional(readOnly = true)
-    public Page<Expense> getAll(ExpenseFilter filters, Pageable pageable) {
+    public Page<Expense> getAll(ExpenseFilterRequest filters, Pageable pageable) {
         Specification<Expense> spec = ExpenseSpecification.withFilters(filters);
         return expenseRepository.findAll(spec, pageable);
     }
 
     @Transactional(readOnly = true)
-    public ExpenseSummaryResponse getAllGrouped(ExpenseFilter filters) {
+    public ExpenseSummaryResponse getAllGrouped(ExpenseFilterRequest filters) {
         Specification<Expense> spec = ExpenseSpecification.withFilters(filters);
         List<Expense> expenses = expenseRepository.findAll(spec);
 

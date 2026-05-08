@@ -2,32 +2,32 @@ package com.volter.shop.modules.pawn.application;
 
 import com.volter.identity.application.IdentityUserService;
 import com.volter.identity.domain.model.IdentityUser;
-import com.volter.shop.modules.alert.application.dto.RiskAlertCreationRequest;
+import com.volter.shop.modules.alert.web.request.RiskAlertCreationRequest;
 import com.volter.shop.modules.cashregister.application.CashRegisterService;
 import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
 import com.volter.shop.modules.customer.domain.factory.CustomerFactory;
 import com.volter.shop.modules.customer.domain.model.Customer;
 import com.volter.shop.modules.customer.application.CustomerService;
-import com.volter.shop.modules.inventory.application.dtos.baseitem.response.ItemFactoryResult;
+import com.volter.shop.modules.inventory.web.response.baseitem.ItemFactoryResult;
 import com.volter.shop.modules.inventory.domain.factory.ItemFactory;
-import com.volter.shop.modules.pawn.application.dto.filter.PawnFilter;
-import com.volter.shop.modules.pawn.application.dto.request.*;
-import com.volter.shop.modules.pawn.application.dto.result.PawnModificationResult;
-import com.volter.shop.modules.pawn.application.dto.result.PawnRedemptionResult;
-import com.volter.shop.modules.pawn.application.dto.result.PawnRenewalResult;
+import com.volter.shop.modules.pawn.web.request.PawnFilterRequest;
+import com.volter.shop.modules.pawn.application.dto.PawnModificationResult;
+import com.volter.shop.modules.pawn.application.dto.PawnRedemptionResult;
+import com.volter.shop.modules.pawn.application.dto.PawnRenewalResult;
 import com.volter.shop.modules.pawn.domain.model.enums.PawnTransactionAction;
 import com.volter.shop.modules.pawn.domain.specification.PawnSpecification;
+import com.volter.shop.modules.pawn.web.request.*;
 import com.volter.shop.modules.sale.application.dto.dto.SaleFromForfeitedPawnDTO;
 import com.volter.shop.modules.sale.domain.model.enums.SaleTransactionAction;
 import com.volter.shop.shared.common.exceptions.ResourceNotFoundException;
 import com.volter.shop.modules.inventory.domain.model.Item;
 import com.volter.shop.modules.inventory.application.ItemService;
-import com.volter.shop.modules.alert.domain.model.RiskAlert;
+import com.volter.shop.modules.alert.domain.RiskAlert;
 import com.volter.shop.modules.alert.application.RiskAlertService;
-import com.volter.shop.modules.alert.domain.model.enums.RiskAlertSeverity;
-import com.volter.shop.modules.alert.domain.model.enums.RiskAlertType;
+import com.volter.shop.modules.alert.domain.enums.RiskAlertSeverity;
+import com.volter.shop.modules.alert.domain.enums.RiskAlertType;
 import com.volter.shop.modules.pawn.domain.model.Pawn;
-import com.volter.shop.modules.pawn.domain.repository.PawnRepository;
+import com.volter.shop.modules.pawn.infrastructure.PawnRepository;
 import com.volter.shop.modules.sale.domain.model.Sale;
 import com.volter.shop.modules.sale.application.SaleService;
 import com.volter.shop.modules.staff.domain.model.Staff;
@@ -38,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,7 +75,7 @@ public class PawnService {
      * Retrieves all pawns
      */
     @Transactional
-    public Page<Pawn> getAll(PawnFilter filter, Pageable pageable) {
+    public Page<Pawn> getAll(PawnFilterRequest filter, Pageable pageable) {
         Specification<Pawn> spec = PawnSpecification.withFilters(filter);
         return pawnRepository.findAll(spec, pageable);
     }
@@ -91,6 +92,12 @@ public class PawnService {
     @Transactional
     public List<Pawn> getByCustomerId(Long customerId) {
         return pawnRepository.findByCustomer_Id(customerId);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole(T(com.volter.identity.domain.model.enums.RoleEnum).MANAGER) or hasRole(T(com.volter.identity.domain.model.enums.RoleEnum).ADMIN)")
+    public Integer countByMonthAndYear(Integer month, Integer year) {
+        return pawnRepository.countByMonthAndYear(month, year);
     }
 
     /**
