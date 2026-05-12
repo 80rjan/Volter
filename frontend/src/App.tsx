@@ -1,12 +1,12 @@
 import { HashRouter, Routes, Route } from "react-router-dom";
-import Pawns from "./pages/Pawns.tsx";
-import Sales from "./pages/Sales.tsx";
-import Transactions from "./pages/Transactions.tsx";
-import MonthlyReport from "./pages/MonthlyReport.tsx";
-import YearlyReport from "./pages/YearlyReport.tsx";
-import PeriodReport from "./pages/PeriodReport.tsx";
-import Expenses from "./pages/Expenses.tsx";
-import Clients from "./pages/Clients.tsx";
+import Pawns from "./domains/pawns/Pawns.tsx";
+import Sales from "./domains/sales/Sales.tsx";
+import Transactions from "./domains/transactions/Transactions.tsx";
+import MonthlyReport from "./domains/reports/MonthlyReport.tsx";
+import YearlyReport from "./domains/reports/YearlyReport.tsx";
+import PeriodReport from "./domains/reports/PeriodReport.tsx";
+import Expenses from "./domains/expenses/Expenses.tsx";
+import Clients from "./domains/clients/Clients.tsx";
 
 export default function App() {
     return (
