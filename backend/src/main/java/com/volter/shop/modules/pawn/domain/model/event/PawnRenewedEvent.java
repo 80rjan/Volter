@@ -18,12 +18,12 @@ public class PawnRenewedEvent extends PawnEvent{
     @NotNull(message = "Maturity date change OV is required")
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "oldMaturityDate", column = @Column(name = "old_maturity_date", nullable = false)),
-            @AttributeOverride(name = "newMaturityDate", column = @Column(name = "new_maturity_date", nullable = false))
+            @AttributeOverride(name = "oldMaturityDate", column = @Column(name = "old_maturity_date", nullable = true)),
+            @AttributeOverride(name = "newMaturityDate", column = @Column(name = "new_maturity_date", nullable = true))
     })
     private MaturityDateChange maturityDateChange;
 
     @NotNull(message = "Interest paid is required")
-    @AttributeOverride(name = "amount", column = @Column(name = "renewed_interest_paid", nullable = false))
+    @AttributeOverride(name = "amount", column = @Column(name = "renewed_interest_paid", nullable = true))
     private Money interestPaid;
 }

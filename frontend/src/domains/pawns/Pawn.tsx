@@ -6,6 +6,8 @@ import ModalReadMorePawn from "./ModalReadMorePawn.tsx";
 import Loading from "../../shared/components/Loading.tsx";
 import ModalActions from "../../shared/components/ModalActions.tsx";
 import { PawnRow, PawnInfo } from "./types.ts";
+import { ClientRecord } from "../../shared/types.ts";
+import { API_BASE } from "../../shared/api/config.ts";
 
 interface Props {
     pawn: PawnRow;
@@ -14,14 +16,6 @@ interface Props {
     refreshCashReg: () => void;
 }
 
-const tableName = (category: string) => ({
-    Electronics: "electronics_pawn",
-    Gold: "gold_pawn",
-    Vehicle: "vehicle_pawn",
-    Watch: "watch_pawn",
-    Other: "other_pawn",
-}[category]);
-
 const getCat: Record<string, string> = {
     Electronics: "Електроника",
     Watch: "Часовници",
@@ -29,6 +23,38 @@ const getCat: Record<string, string> = {
     Gold: "Злато",
     Other: "Останато",
 };
+
+function mapDetailedToPawnInfo(r: any, daysLeft: number): PawnInfo {
+    const item = r.item ?? {};
+    const customer = r.customer ?? {};
+    const pawn = {
+        id: r.id,
+        description: item.description ?? '',
+        price_pawned: r.amount,
+        provision: r.interest,
+        price_to_redeem: r.amount + r.interest,
+        total_days: r.defaultDurationDays,
+        date_from: r.issueDate ?? '',
+        date_to: r.maturityDate ?? '',
+        'Days Left': daysLeft,
+        brand: item.brand,
+        model: item.model,
+        year: item.year,
+        weight: item.weightGrams !== undefined ? Number(item.weightGrams) : undefined,
+        carats: item.carats,
+        type: item.pieceType,
+    };
+    const client: ClientRecord = {
+        id: 0,
+        name: customer.name ?? '',
+        embg: customer.embg ?? '',
+        telephone: customer.phoneNumber ?? '',
+        telephone_2: customer.reservePhoneNumber ?? '',
+        city: customer.city ?? '',
+        date_joined: r.createdAt ?? '',
+    };
+    return { pawn, client, 'Days Left': daysLeft };
+}
 
 export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
     const [modalSuccessMsg, setModalSuccessMsg] = useState(false);
@@ -40,11 +66,10 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
     const [modalClosePawn, setModalClosePawn] = useState(false);
     const [modalContinuePawn, setModalContinuePawn] = useState(false);
 
-    const continuePawn = (id: number, category: string, provision: number, description: string, carryOverDays: number) => {
+    // category and carryOverDays params kept for ModalActions compatibility but not sent to API
+    const continuePawn = (id: number, _category: string, provision: number, description: string, _carryOverDays: number) => {
         setLoading(true);
-        const table = tableName(category);
-        if (!table) return console.error("Invalid category:", category);
-        axios.put(`http://localhost:3000/continuePawn`, { id, tableName: table, provision, description, carryOverDays })
+        axios.post(`${API_BASE}/pawns/${id}/renew`, { interest: provision, transactionDescription: description })
             .then(() => {
                 setSuccessMsg("Успешно продолжен залог");
                 setInfoMsg(`Додадени се ${provision.toLocaleString("de-DE")} во каса!`);
@@ -55,11 +80,9 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
             .finally(() => setLoading(false));
     };
 
-    const closePawn = (id: number, category: string, priceClosed: number, description: string) => {
+    const closePawn = (id: number, _category: string, priceClosed: number, description: string) => {
         setLoading(true);
-        const table = tableName(category);
-        if (!table) return console.error("Invalid category:", category);
-        axios.put(`http://localhost:3000/closePawn`, { id, tableName: table, priceClosed, description })
+        axios.post(`${API_BASE}/pawns/${id}/redeem`, { paidAmount: priceClosed, transactionDescription: description })
             .then(() => {
                 setSuccessMsg("Успешно затворен залог");
                 setInfoMsg(`Додадени се ${priceClosed.toLocaleString("de-DE")} во каса!`);
@@ -70,11 +93,9 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
             .finally(() => setLoading(false));
     };
 
-    const movePawnToSale = (id: number, category: string) => {
+    const movePawnToSale = (id: number, _category: string) => {
         setLoading(true);
-        const table = tableName(category);
-        if (!table) return console.error("Invalid category:", category);
-        axios.put(`http://localhost:3000/changePawnToSale`, { id, tableName: table })
+        axios.post(`${API_BASE}/pawns/${id}/forfeit`, { transactionDescription: "Премести во продажба" })
             .then(() => { setSuccessMsg("Успешно пренесен залог во продажба"); setModalSuccessMsg(true); })
             .catch(error => console.error("Error moving pawn to sale:", error))
             .finally(() => setLoading(false));
@@ -84,10 +105,10 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
         if (pawnInfo != null) setModalReadMore(true);
     }, [pawnInfo]);
 
-    const fetchPawn = (clientId: number, category: string, pawnId: number) => {
+    const fetchPawn = (_clientId: number, _category: string, pawnId: number) => {
         setLoading(true);
-        axios.get(`http://localhost:3000/getPawn?clientId=${clientId}&category=${category}&pawnId=${pawnId}`)
-            .then(res => setPawnInfo({ ...res.data.pawnInfo, "Days Left": pawn["Days Left"] }))
+        axios.get(`${API_BASE}/pawns/${pawnId}`)
+            .then(res => setPawnInfo(mapDetailedToPawnInfo(res.data, pawn["Days Left"])))
             .catch(error => console.error("Error fetching pawn:", error))
             .finally(() => setLoading(false));
     };
@@ -103,7 +124,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
             <p className="text-xs">{Number(pawn["Item Cost"]).toLocaleString("de-DE")}</p>
             <p className="text-xs font-semibold italic">{Number(pawn.Provision).toLocaleString("de-DE")}</p>
             <p className={`text-xs font-semibold ${pawn["Days Left"] < 0 ? "text-red-500" : "text-green"}`}>{pawn["Days Left"]}</p>
-            <p className="text-xs">{pawn["Valid Until"].substring(0, 10)}</p>
+            <p className="text-xs">{String(pawn["Valid Until"]).substring(0, 10)}</p>
             {loading ? (
                 <Loading width={30} height={30} />
             ) : (

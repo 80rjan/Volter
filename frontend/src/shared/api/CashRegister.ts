@@ -1,12 +1,8 @@
 import axios from "axios";
 import { CashRegisterData } from "../types";
+import { API_BASE } from "./config";
 
 export const fetchCashRegisterApi = async (): Promise<CashRegisterData> => {
-    if (window.electronAPI) {
-        const res = await window.electronAPI.invoke('get-cash-register');
-        return res as CashRegisterData;
-    } else {
-        const res = await axios.get(`http://localhost:3000/cashRegister`);
-        return res.data.cashReg as CashRegisterData;
-    }
+    const res = await axios.get(`${API_BASE}/cash-register`);
+    return res.data as CashRegisterData;
 };

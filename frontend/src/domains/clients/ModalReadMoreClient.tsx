@@ -4,6 +4,7 @@ import { UserRound, X, DollarSign, Sigma, History } from "lucide-react";
 import axios from "axios";
 import Loading from "../../shared/components/Loading.tsx";
 import { ClientRow } from "./types.ts";
+import { API_BASE } from "../../shared/api/config.ts";
 
 interface Props {
     client: ClientRow;
@@ -30,10 +31,10 @@ export default function ModalReadMoreClient({ client, updateTelephones, closeMod
 
     const updateTelephoneNumbers = () => {
         setLoadingTelephoneUpdate(true);
-        axios.post("http://localhost:3000/clients/updateTelephones", {
-            clientId: client.Id,
-            telephone1: telephones.telephone1,
-            telephone2: telephones.telephone2,
+        // TODO: No customer update endpoint in Spring Boot backend yet
+        axios.post(`${API_BASE}/customers/${client.Id}/telephones`, {
+            phoneNumber: telephones.telephone1,
+            reservePhoneNumber: telephones.telephone2,
         })
             .then(() => {
                 updateTelephones(telephones.telephone1, telephones.telephone2);
@@ -45,9 +46,10 @@ export default function ModalReadMoreClient({ client, updateTelephones, closeMod
 
     useEffect(() => {
         setLoading(true);
-        axios.get("http://localhost:3000/clients/details?clientId=" + client.Id)
-            .then(res => { setPawns(res.data.pawns); setTransactions(res.data.transactions); })
-            .catch(err => console.error("Error fetching client details:", err))
+        // TODO: No customer details endpoint in Spring Boot backend yet
+        axios.get(`${API_BASE}/customers/${client.Id}/details`)
+            .then(res => { setPawns(res.data.pawns ?? []); setTransactions(res.data.transactions ?? []); })
+            .catch(() => { setPawns([]); setTransactions([]); })
             .finally(() => setLoading(false));
     }, []);
 

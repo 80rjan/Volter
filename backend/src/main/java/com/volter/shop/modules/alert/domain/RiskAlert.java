@@ -21,14 +21,14 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(
-        indexes = {
-                @Index(name = "idx_risk_alert_created_at", columnList = "created_at DESC"),
-                @Index(name = "idx_risk_alert_read_by_manager_created_at", columnList = "read_by_manager, created_at DESC"),
-                @Index(name = "idx_risk_alert_type_created_at", columnList = "type, created_at DESC"),
-                @Index(name = "idx_risk_alert_severity_created_at", columnList = "severity, created_at DESC"),
-        }
-)
+//@Table(
+//        indexes = {
+//                @Index(name = "idx_risk_alert_created_at", columnList = "created_at DESC"),
+//                @Index(name = "idx_risk_alert_read_by_manager_created_at", columnList = "read_by_manager, created_at DESC"),
+//                @Index(name = "idx_risk_alert_type_created_at", columnList = "type, created_at DESC"),
+//                @Index(name = "idx_risk_alert_severity_created_at", columnList = "severity, created_at DESC"),
+//        }
+//)
 public class RiskAlert {
 
     @Id

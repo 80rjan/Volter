@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Handshake, Tag, Sigma, CalendarClock, Plus, Minus, Coins, Percent, HandCoins } from "lucide-react";
+import { Sigma, CalendarClock, Plus, Minus, Percent, HandCoins } from "lucide-react";
 import ModalAdjustCashRegister from "./ModalAdjustCashRegister.tsx";
 import Loading from "./Loading.tsx";
 import { CashRegisterData } from "../types.ts";
+import { API_BASE } from "../api/config.ts";
 
 interface Props {
     refreshDependency?: any;
@@ -12,15 +13,15 @@ interface Props {
 }
 
 export default function CashRegister({ refreshDependency, refreshDependencyAdjustPawn, refreshTransactions }: Props) {
-    const [cashReg, setCashReg] = useState<Partial<CashRegisterData> & { profit?: number }>({});
+    const [cashReg, setCashReg] = useState<Partial<CashRegisterData>>({});
     const [showModalInsert, setShowModalInsert] = useState(false);
     const [showModalRemove, setShowModalRemove] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const fetchCashRegister = () => {
         setLoading(true);
-        axios.get(`http://localhost:3000/cashRegister`)
-            .then(res => setCashReg({ ...res.data.cashReg, profit: res.data.profit }))
+        axios.get(`${API_BASE}/cash-register`)
+            .then(res => setCashReg(res.data))
             .catch(error => console.error("Error fetching cash register", error))
             .finally(() => setLoading(false));
     };
@@ -38,60 +39,30 @@ export default function CashRegister({ refreshDependency, refreshDependencyAdjus
     return (
         <div className="flex justify-between items-center px-4 py-2 rounded-t-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] bg-white border-2 border-black/40 border-b-0">
             <div className={textWrapper}>
-                <Handshake size={24} />
+                <Sigma size={24} />
                 {loading ? <Loading width={30} height={30} /> : (
-                    <>
-                        <p className={val(true)}>{Number(cashReg.money_pawns).toLocaleString("de-DE")}</p>
-                        <p className={val()}>/</p>
-                        <p className={val()}>{Number(cashReg.num_pawns).toLocaleString("de-DE")}</p>
-                    </>
+                    <p className={val(true)}>{Number(cashReg.currentBalance ?? 0).toLocaleString("de-DE")}</p>
                 )}
             </div>
             <div className={textWrapper}>
                 <Percent size={24} />
                 {loading ? <Loading width={30} height={30} /> : (
-                    <>
-                        <p className={val(true)}>{Number(cashReg.total_provision).toLocaleString("de-DE")}</p>
-                        <p className={val()}>/</p>
-                        <p className={val()}>{(Math.round(Number(cashReg.total_provision) / Number(cashReg.money_pawns) * 100 * 100) / 100 || 0).toLocaleString("de-DE")}</p>
-                    </>
-                )}
-            </div>
-            <div className={textWrapper}>
-                <Coins size={24} />
-                {loading ? <Loading width={30} height={30} /> : (
-                    <p className={val(true)}>{Number(cashReg.gold_grams).toLocaleString("de-DE")} g</p>
-                )}
-            </div>
-            <div className={textWrapper}>
-                <Tag size={24} />
-                {loading ? <Loading width={30} height={30} /> : (
-                    <>
-                        <p className={val(true)}>{Number(cashReg.money_sale_items).toLocaleString("de-DE")}</p>
-                        <p className={val()}>/</p>
-                        <p className={val()}>{Number(cashReg.num_sale_items).toLocaleString("de-DE")}</p>
-                    </>
+                    <p className={val(true)}>{Number(cashReg.expectedPawnInterest ?? 0).toLocaleString("de-DE")}</p>
                 )}
             </div>
             <div className={textWrapper}>
                 <HandCoins size={24} />
                 {loading ? <Loading width={30} height={30} /> : (
-                    <p className={val(true)}>{Number(cashReg.profit).toLocaleString("de-DE")}</p>
-                )}
-            </div>
-            <div className={textWrapper}>
-                <Sigma size={24} />
-                {loading ? <Loading width={30} height={30} /> : (
-                    <p className={val(true)}>{Number(cashReg.register_money).toLocaleString("de-DE")}</p>
+                    <p className={val(true)}>{Number(cashReg.openingBalance ?? 0).toLocaleString("de-DE")}</p>
                 )}
             </div>
             <div className={textWrapper}>
                 <CalendarClock size={24} />
                 {loading ? <Loading width={30} height={30} /> : (
                     <>
-                        <p className={val(true)}>{Object.keys(cashReg).length > 0 && cashReg.last_updated?.substring(0, 10)}</p>
+                        <p className={val(true)}>{cashReg.updatedAt?.substring(0, 10)}</p>
                         <p className={val()}>/</p>
-                        <p className={val()}>{Object.keys(cashReg).length > 0 && cashReg.last_updated?.substring(11, 16)}</p>
+                        <p className={val()}>{cashReg.updatedAt?.substring(11, 16)}</p>
                     </>
                 )}
             </div>

@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import axios from "axios";
+import { API_BASE } from "../api/config";
 
 export default function GoldPriceLive() {
     const [pricePerGram, setPricePerGram] = useState<number | null>(null);
 
     const fetchGoldPrice = async () => {
         try {
-            const res = await axios.get("http://localhost:3000/goldPriceLive");
+            // TODO: No gold price endpoint in Spring Boot backend yet
+            const res = await axios.get(`${API_BASE}/gold-price-live`);
             setPricePerGram(res.data.goldPricePerGram);
-        } catch (err) {
-            console.error("Error fetching gold price:", err);
+        } catch {
+            // Silently fail until backend endpoint is implemented
         }
     };
 
@@ -28,7 +30,7 @@ export default function GoldPriceLive() {
                         {(pricePerGram * multiplier).toFixed(2)}€
                         <span className="font-normal text-sm"> / {(pricePerGram * multiplier * 61.5).toFixed(0)} den</span>
                     </div>
-                ) : "Loading..."}
+                ) : "—"}
             </div>
         </div>
     );

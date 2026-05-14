@@ -20,10 +20,10 @@ public class PawnForfeitedEvent extends PawnEvent{
     private LocalDate maturityDate;
 
     @Embedded
-    @AttributeOverride(name = "amount", column = @Column(name = "unpaid_amount", nullable = false))
+    @AttributeOverride(name = "amount", column = @Column(name = "unpaid_amount", nullable = true))
     private Money unpaidAmount;
 
     @Embedded
-    @AttributeOverride(name = "amount", column = @Column(name = "unpaid_interest", nullable = false))
+    @AttributeOverride(name = "amount", column = @Column(name = "unpaid_interest", nullable = true))
     private Money unpaidInterest;
 }

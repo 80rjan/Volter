@@ -20,7 +20,7 @@ public class PawnTransaction extends Transaction {
 
     @NotNull(message = "Transaction action is required")
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "pawn_action", nullable = true)
     private PawnTransactionAction action;
 
     @ManyToOne(fetch = FetchType.LAZY)

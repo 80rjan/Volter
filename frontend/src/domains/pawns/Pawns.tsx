@@ -7,6 +7,43 @@ import ModalAddNewPawn from "./ModalAddNewPawn.tsx";
 import CashRegister from "../../shared/components/CashRegister.tsx";
 import Loading from "../../shared/components/Loading.tsx";
 import { PawnRow as PawnRowType } from "./types.ts";
+import { API_BASE } from "../../shared/api/config.ts";
+
+const ITEM_TYPE_TO_CATEGORY: Record<string, PawnRowType['Category']> = {
+    GOLD: 'Gold', ELECTRONIC: 'Electronics', VEHICLE: 'Vehicle', WATCH: 'Watch', OTHER: 'Other',
+};
+
+const CATEGORY_TO_ITEM_TYPE: Record<string, string> = {
+    Electronics: 'ELECTRONIC', Gold: 'GOLD', Watch: 'WATCH', Vehicle: 'VEHICLE', Other: 'OTHER',
+};
+
+const SORT_FIELD: Record<string, string> = {
+    'Valid Until': 'maturityDate',
+    Name: 'customerName',
+    'Client Id': 'customerId',
+    Category: 'item.itemType',
+    About: 'item.description',
+    'Item Cost': 'amount',
+    Provision: 'interest',
+    'Days Left': 'maturityDate',
+};
+
+function mapPawnResponse(r: any): PawnRowType {
+    const today = new Date();
+    const daysLeft = Math.floor((new Date(r.maturityDate).getTime() - today.getTime()) / 86400000);
+    return {
+        Id: r.id,
+        'Client Id': r.customerId,
+        Name: r.customerName,
+        Category: ITEM_TYPE_TO_CATEGORY[r.item?.itemType] ?? 'Other',
+        About: r.item?.description ?? '',
+        'Item Cost': r.amount,
+        Provision: r.interest,
+        'Days Left': daysLeft,
+        'Valid Until': r.maturityDate,
+        'Total Days': r.defaultDurationDays,
+    };
+}
 
 const filterSelectOptions = [
     { value: "Gold", label: "Залог злато" },
@@ -24,7 +61,6 @@ function SortIcon({ dir }: { dir: number }) {
 
 export default function Pawns() {
     const [allPawns, setAllPawns] = useState<PawnRowType[]>([]);
-    const [summary, setSummary] = useState<any>({});
     const [orderBy, setOrderBy] = useState("Valid Until");
     const orderDirectionArr = useRef([0, 0, 0, 0, 0, 0, 1]);
     const [orderDirection, setOrderDirection] = useState("ASC");
@@ -34,8 +70,8 @@ export default function Pawns() {
     const [searchByCategory, setSearchByCategory] = useState("");
     const [modalAddNewPawn, setModalAddNewPawn] = useState(false);
     const [refresh, setRefresh] = useState(false);
-    const offset = useRef(0);
-    const limit = 60;
+    const page = useRef(0);
+    const size = 60;
     const [isLastPage, setIsLastPage] = useState(false);
     const scrollablePawnsRef = useRef<HTMLDivElement>(null);
     const [loading, setLoading] = useState(false);
@@ -44,19 +80,30 @@ export default function Pawns() {
     const [refreshCashReg, setRefreshCashReg] = useState(false);
     const fetchedPawnIds = useRef(new Set<string>());
 
-    const fetchPawns = (limit: number, off: number, order: string, direction: string, name: string, embg: string, tel: string, cat: string, isLoading: boolean) => {
+    const fetchPawns = (pg: number, order: string, direction: string, name: string, embg: string, tel: string, cat: string, isLoading: boolean) => {
         if (isFetching) return;
         setIsFetching(true);
         setLoading(isLoading);
         isFetchingRef.current = true;
-        axios.get(`http://localhost:3000?limit=${limit}&offset=${off}&orderBy=${order}&orderDirection=${direction}&searchByName=${name}&searchByEmbg=${embg}&searchByTel=${tel}&searchByCategory=${cat}`)
+
+        const params = new URLSearchParams({
+            page: String(pg),
+            size: String(size),
+            sort: `${SORT_FIELD[order] ?? 'maturityDate'},${direction}`,
+            active: 'true',
+        });
+        if (name) params.set('customerName', name);
+        if (embg) params.set('customerEmbg', embg);
+        if (tel) params.set('customerPhoneNumber', tel);
+        if (cat) params.set('itemType', CATEGORY_TO_ITEM_TYPE[cat] ?? cat);
+
+        axios.get(`${API_BASE}/pawns?${params}`)
             .then(res => {
-                setSummary(res.data.summary);
-                const pawns: PawnRowType[] = res.data.pawns;
+                const pawns: PawnRowType[] = (res.data.content ?? []).map(mapPawnResponse);
                 const newUnique = pawns.filter(p => !fetchedPawnIds.current.has(`${p.Category}_${p.Id}`));
                 newUnique.forEach(p => fetchedPawnIds.current.add(`${p.Category}_${p.Id}`));
                 setAllPawns(prev => [...prev, ...newUnique]);
-                setIsLastPage(pawns.length < limit);
+                setIsLastPage(res.data.last ?? true);
             })
             .catch(error => console.error("Error fetching pawns:", error))
             .finally(() => { setLoading(false); isFetchingRef.current = false; setIsFetching(false); });
@@ -66,8 +113,8 @@ export default function Pawns() {
         const el = scrollablePawnsRef.current!;
         const handleScroll = () => {
             if (el.scrollHeight - el.scrollTop - el.clientHeight <= el.scrollHeight * 0.3 && !isLastPage && !isFetchingRef.current) {
-                offset.current += limit;
-                fetchPawns(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, searchByCategory, false);
+                page.current += 1;
+                fetchPawns(page.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, searchByCategory, false);
             }
         };
         el.addEventListener("scroll", handleScroll);
@@ -77,8 +124,8 @@ export default function Pawns() {
     useEffect(() => {
         fetchedPawnIds.current.clear();
         setAllPawns([]);
-        offset.current = 0;
-        fetchPawns(limit, 0, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, searchByCategory, true);
+        page.current = 0;
+        fetchPawns(0, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, searchByCategory, true);
     }, [refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, searchByCategory]);
 
     const handleOrder = (by: string, index: number) => {
@@ -88,8 +135,6 @@ export default function Pawns() {
         setOrderDirection(newDir.includes(-1) ? "DESC" : "ASC");
         setOrderBy(by);
     };
-
-    const hasSearch = searchByTel.length > 0 || searchByEmbg.length > 0 || searchByName.length > 0 || searchByCategory.length > 0;
 
     const headerItems: [string, string, number][] = [
         ["Ид", "Client Id", 0], ["Име", "Name", 1], ["Категорија", "Category", 2],
@@ -147,25 +192,6 @@ export default function Pawns() {
                             />
                         ))}
                     </div>
-
-                    {hasSearch && (
-                        <div className="flex justify-between px-4 py-2 mt-auto shadow-[0_-2px_6px_rgba(0,0,0,0.2)] text-xs font-medium">
-                            <div className="flex gap-2 items-center">
-                                <span className="text-[#444] font-normal whitespace-nowrap">Бр. залози:</span>
-                                {loading ? <Loading width={20} height={20} /> : Number(summary["Num Pawns"]).toLocaleString("de-DE")}
-                            </div>
-                            <div className="flex gap-2 items-center">
-                                <span className="text-[#444] font-normal whitespace-nowrap">Исплатени средства:</span>
-                                {loading ? <Loading width={20} height={20} /> : Number(summary["Money Pawns"]).toLocaleString("de-DE")}
-                            </div>
-                            <div className="flex gap-2 items-center">
-                                <span className="text-[#444] font-normal whitespace-nowrap">Очекуван приход:</span>
-                                {loading ? <Loading width={20} height={20} /> : Number(summary["Provision"]).toLocaleString("de-DE")}
-                                <span className="text-[#444]">/</span>
-                                {loading ? <Loading width={20} height={20} /> : <span>{((summary["Provision"] / summary["Money Pawns"]) * 100 || 0).toFixed(2)}%</span>}
-                            </div>
-                        </div>
-                    )}
                 </div>
 
                 <CashRegister refreshDependency={refresh} refreshDependencyAdjustPawn={refreshCashReg} />

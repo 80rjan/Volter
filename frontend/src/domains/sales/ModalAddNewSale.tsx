@@ -3,6 +3,7 @@ import { X, BookmarkPlus, CheckCheck } from 'lucide-react';
 import { useState } from "react";
 import axios from "axios";
 import Loading from "../../shared/components/Loading.tsx";
+import { API_BASE } from "../../shared/api/config.ts";
 
 interface Props {
     closeModal: () => void;
@@ -10,10 +11,13 @@ interface Props {
 }
 
 export default function ModalAddNewSale({ closeModal, refresh }: Props) {
-    const [formData, setFormData] = useState({ price_bought: 0, description: '' });
+    const [formData, setFormData] = useState({
+        purchasePrice: '', description: '',
+        name: '', embg: '', telephone: '', telephone_2: '', city: '',
+    });
     const [loading, setLoading] = useState(false);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
@@ -21,7 +25,24 @@ export default function ModalAddNewSale({ closeModal, refresh }: Props) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        axios.post('http://localhost:3000/sales/insertSale', formData)
+        axios.post(`${API_BASE}/sales`, {
+            purchasePrice: Number(formData.purchasePrice),
+            transactionDescription: formData.description,
+            item: {
+                referenceStrategy: "NEW",
+                itemType: "OTHER",
+                description: formData.description,
+                category: "OTHER",
+            },
+            customer: {
+                referenceStrategy: "NEW",
+                name: formData.name,
+                embg: formData.embg,
+                phoneNumber: formData.telephone,
+                reservePhoneNumber: formData.telephone_2 || null,
+                city: formData.city,
+            },
+        })
             .then(() => { refresh(); closeModal(); })
             .catch(err => console.error('Error adding sale:', err))
             .finally(() => setLoading(false));
@@ -29,6 +50,13 @@ export default function ModalAddNewSale({ closeModal, refresh }: Props) {
 
     const inputClass = "border-none rounded-sm text-base p-2 shadow-[0_0_4px_rgba(0,0,0,0.2)] h-fit";
     const labelClass = "text-[#666] text-sm -ml-1";
+
+    const field = (label: string, name: string, type = "text", required = true) => (
+        <div key={name} className="flex flex-col gap-1">
+            <p className={labelClass}>{label}</p>
+            <input name={name} type={type} className={inputClass} onChange={handleChange} required={required} />
+        </div>
+    );
 
     return ReactDom.createPortal(
         <>
@@ -43,15 +71,20 @@ export default function ModalAddNewSale({ closeModal, refresh }: Props) {
                         <X size={32} />
                     </button>
                 </div>
-                <form className="flex flex-col items-center gap-8" onSubmit={handleSubmit}>
-                    <div className="flex gap-8">
-                        <div className="flex flex-col gap-1">
-                            <p className={labelClass}>Вредност на предметот</p>
-                            <input name="price_bought" type="number" className={inputClass} onChange={handleInputChange} required />
+                <form className="flex flex-col items-center gap-6" onSubmit={handleSubmit}>
+                    <div className="flex gap-8 items-start">
+                        <div className="flex flex-col gap-2">
+                            <p className="font-medium mb-1">Податоци за предметот</p>
+                            {field("Вредност на предметот", "purchasePrice", "number")}
+                            {field("Опис", "description")}
                         </div>
-                        <div className="flex flex-col gap-1">
-                            <p className={labelClass}>Опис</p>
-                            <input name="description" className={inputClass} onChange={handleInputChange} required />
+                        <div className="flex flex-col gap-2">
+                            <p className="font-medium mb-1">Податоци за клиентот</p>
+                            {field("Ime", "name")}
+                            {field("Ембг", "embg")}
+                            {field("Телефон 1", "telephone")}
+                            {field("Телефон 2", "telephone_2", "text", false)}
+                            {field("Град", "city")}
                         </div>
                     </div>
                     <div className="flex gap-4 items-center">

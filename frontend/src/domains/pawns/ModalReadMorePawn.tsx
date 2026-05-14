@@ -12,6 +12,7 @@ import DogovorZaRacenZalog from "./documents/DogovorZaRacenZalog.tsx";
 import Loading from "../../shared/components/Loading.tsx";
 import AneksDogovorZaZaem from "./documents/AneksDogovorZaZaem.tsx";
 import { PawnInfo } from "./types.ts";
+import { API_BASE } from "../../shared/api/config.ts";
 
 interface Props {
     category: string;
@@ -81,29 +82,42 @@ export default function ModalReadMorePawn({ category, pawnInfo, closeModal, clos
 
     const handleUpdatePawn = () => {
         setIsLoading(true);
-        const tableName: Record<string, string> = {
-            Electronics: "electronics_pawn", Watch: "watch_pawn", Vehicle: "vehicle_pawn", Gold: "gold_pawn", Other: "other_pawn",
+        const payload: any = {
+            amount: editPawn.current.pricePawned,
+            interest: editPawn.current.provision,
+            durationDays: editPawn.current.totalDays,
+            itemModificationRequest: { description: editPawn.current.description },
+            transactionDescription: editPawn.current.description,
         };
-        axios.put(`http://localhost:3000/updatePawn`, {
-            tableName: tableName[category], id: pawn.id,
-            pricePawned: editPawn.current.pricePawned,
-            provision: editPawn.current.provision,
-            description: editPawn.current.description,
-            goldGramsDiff: editPawn.current.goldGramsDiff,
-            totalDays: editPawn.current.totalDays,
-        })
+        if (category === 'Gold' && editPawn.current.goldGramsDiff !== 0) {
+            payload.itemModificationRequest.weightGrams = (pawn.weight ?? 0) + editPawn.current.goldGramsDiff;
+        }
+        axios.put(`${API_BASE}/pawns/${pawn.id}`, payload)
             .then(res => {
-                const data = res.data.pawn;
-                const newDateToStr = new Date(new Date(pawn.date_to).getTime() + (data.total_days - pawn.total_days) * 86400000).toISOString();
-                const newDaysLeft = pawn["Days Left"] + (data.total_days - pawn.total_days);
-                oldPawn["About"] = data.description;
-                oldPawn["Item Cost"] = data.price_pawned;
-                oldPawn["Provision"] = data.provision;
-                oldPawn["Total Days"] = data.total_days;
+                const data = res.data;
+                const newTotalDays = data.defaultDurationDays;
+                const newMaturityDate = data.maturityDate;
+                const today = new Date();
+                const newDaysLeft = Math.floor((new Date(newMaturityDate).getTime() - today.getTime()) / 86400000);
+                const updatedPawn = {
+                    ...pawn,
+                    description: data.item?.description ?? pawn.description,
+                    price_pawned: data.amount,
+                    provision: data.interest,
+                    price_to_redeem: data.amount + data.interest,
+                    total_days: newTotalDays,
+                    date_to: newMaturityDate,
+                    "Days Left": newDaysLeft,
+                    weight: data.item?.weightGrams !== undefined ? Number(data.item.weightGrams) : pawn.weight,
+                };
+                oldPawn["About"] = updatedPawn.description;
+                oldPawn["Item Cost"] = updatedPawn.price_pawned;
+                oldPawn["Provision"] = updatedPawn.provision;
+                oldPawn["Total Days"] = updatedPawn.total_days;
                 oldPawn["Days Left"] = newDaysLeft;
-                oldPawn["Valid Until"] = newDateToStr;
-                editPawn.current = { ...editPawn.current, totalDays: data.total_days, goldGramsDiff: 0 };
-                setPawn({ ...data, date_to: newDateToStr, "Days Left": newDaysLeft });
+                oldPawn["Valid Until"] = newMaturityDate;
+                editPawn.current = { ...editPawn.current, totalDays: newTotalDays, goldGramsDiff: 0 };
+                setPawn(updatedPawn);
             })
             .catch(err => console.error("Error updating pawn " + err))
             .finally(() => { setIsEditing(false); setIsLoading(false); refreshCashReg(); });

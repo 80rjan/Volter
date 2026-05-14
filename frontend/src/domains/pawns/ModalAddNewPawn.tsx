@@ -1,9 +1,10 @@
 import ReactDom from "react-dom";
 import { X, CopyPlus, CheckCheck, User, Database } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import axios from "axios";
 import { Autocomplete, TextField } from "@mui/material";
 import Loading from "../../shared/components/Loading.tsx";
+import { API_BASE } from "../../shared/api/config.ts";
 
 interface Props {
     closeModal: () => void;
@@ -16,6 +17,7 @@ interface FormData {
     telephone: string;
     telephone_2: string;
     city: string;
+    existingCustomerId: number | null;
     brand: string;
     model: string;
     year: string;
@@ -25,10 +27,22 @@ interface FormData {
     total_days: string;
     description: string;
     weight: string;
-    carat: string;
+    carats: string;
     type: string;
     date: string;
     category: string;
+    vehicleType: string;
+    registrationNumber: string;
+    mileage: string;
+    numberOfKeys: string;
+    serviceHistoryAvailable: boolean;
+    registrationExpiryDate: string;
+    material: string;
+    originalBoxIncluded: boolean;
+    originalPapersIncluded: boolean;
+    warrantyCardIncluded: boolean;
+    functional: boolean;
+    serviceRequired: boolean;
     [key: string]: any;
 }
 
@@ -43,6 +57,12 @@ interface ClientOption {
 
 const inputClass = "border-none rounded text-base p-2 shadow-[0_0_4px_rgba(0,0,0,0.2)] h-fit";
 const selectClass = "border-none! shadow-[0_0_4px_rgba(0,0,0,0.2)] rounded p-1";
+const checkRow = (label: string, name: string, value: boolean, onChange: (n: string, v: any) => void) => (
+    <div key={name} className="flex flex-col gap-1">
+        <p className="-ml-1 text-[#666]">{label}</p>
+        <input type="checkbox" checked={value} onChange={e => onChange(name, e.target.checked)} className="w-5 h-5 cursor-pointer" />
+    </div>
+);
 
 function ProvisionFields({ formData, handleInputChange }: { formData: FormData; handleInputChange: (name: string, value: any) => void }) {
     return (
@@ -140,7 +160,17 @@ function GoldInputs({ handleInputChange, formData, date }: { handleInputChange: 
     return (
         <>
             <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Тежина (во грамови)</p><input className={inputClass} name="weight" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" step="0.001" required /></div>
-            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Каратажа (број)</p><input className={inputClass} name="carats" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" required /></div>
+            <div className="flex flex-col gap-1">
+                <p className="-ml-1 text-[#666]">Каратажа</p>
+                <select className={selectClass} name="carats" onChange={e => handleInputChange(e.target.name, e.target.value)} required>
+                    <option value=""></option>
+                    <option value="CARAT_14">14k</option>
+                    <option value="CARAT_18">18k</option>
+                    <option value="CARAT_21">21k</option>
+                    <option value="CARAT_22">22k</option>
+                    <option value="CARAT_24">24k</option>
+                </select>
+            </div>
             <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Тип на злато</p><input className={inputClass} name="type" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
             <PriceField formData={formData} handleInputChange={handleInputChange} />
             <ProvisionFields formData={formData} handleInputChange={handleInputChange} />
@@ -155,6 +185,12 @@ function VehicleInputs({ handleInputChange, formData, date }: { handleInputChang
             <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Бренд</p><input className={inputClass} name="brand" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
             <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Модел</p><input className={inputClass} name="model" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
             <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Година</p><input className={inputClass} name="year" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" required /></div>
+            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Тип на возило</p><input className={inputClass} name="vehicleType" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
+            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Рег. број</p><input className={inputClass} name="registrationNumber" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
+            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Километража</p><input className={inputClass} name="mileage" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" required /></div>
+            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Број на клучеви</p><input className={inputClass} name="numberOfKeys" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" required /></div>
+            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Рег. важи до</p><input className={inputClass} type="date" name="registrationExpiryDate" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
+            {checkRow("Сервисна историја", "serviceHistoryAvailable", formData.serviceHistoryAvailable, handleInputChange)}
             <PriceField formData={formData} handleInputChange={handleInputChange} />
             <ProvisionFields formData={formData} handleInputChange={handleInputChange} />
             <DaysAndDesc handleInputChange={handleInputChange} date={date} />
@@ -166,7 +202,14 @@ function WatchInputs({ handleInputChange, formData, date }: { handleInputChange:
     return (
         <>
             <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Бренд</p><input className={inputClass} name="brand" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
+            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Модел</p><input className={inputClass} name="model" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
+            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Материјал</p><input className={inputClass} name="material" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
             <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Година</p><input className={inputClass} name="year" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" required /></div>
+            {checkRow("Оригинална кутија", "originalBoxIncluded", formData.originalBoxIncluded, handleInputChange)}
+            {checkRow("Оригинални документи", "originalPapersIncluded", formData.originalPapersIncluded, handleInputChange)}
+            {checkRow("Гарантна картичка", "warrantyCardIncluded", formData.warrantyCardIncluded, handleInputChange)}
+            {checkRow("Функционален", "functional", formData.functional, handleInputChange)}
+            {checkRow("Потребен сервис", "serviceRequired", formData.serviceRequired, handleInputChange)}
             <PriceField formData={formData} handleInputChange={handleInputChange} />
             <ProvisionFields formData={formData} handleInputChange={handleInputChange} />
             <DaysAndDesc handleInputChange={handleInputChange} date={date} />
@@ -188,11 +231,16 @@ export default function ModalAddNewPawn({ closeModal, refresh }: Props) {
     const [clients, setClients] = useState<ClientOption[]>([]);
     const [formData, setFormData] = useState<FormData>({
         name: "", embg: "", telephone: "", telephone_2: "", city: "",
+        existingCustomerId: null,
         brand: "", model: "", year: "", price_pawned: "",
         provision: 0, provisionPercent: 0, total_days: "", description: "",
-        weight: "", carat: "", type: "",
+        weight: "", carats: "", type: "",
         date: new Date().toISOString().split("T")[0],
-        category: "electronics_pawn",
+        category: "ELECTRONIC",
+        vehicleType: "", registrationNumber: "", mileage: "", numberOfKeys: "",
+        serviceHistoryAvailable: false, registrationExpiryDate: "",
+        material: "", originalBoxIncluded: false, originalPapersIncluded: false,
+        warrantyCardIncluded: false, functional: true, serviceRequired: false,
     });
     const offset = useRef(0);
     const limit = 5;
@@ -209,22 +257,20 @@ export default function ModalAddNewPawn({ closeModal, refresh }: Props) {
         if (value) {
             setFormData(prev => ({
                 ...prev,
+                existingCustomerId: value.id,
                 name: value.name, embg: value.embg,
                 telephone: value.telephone, telephone_2: value.telephone_2,
                 city: value.city,
             }));
+        } else {
+            setFormData(prev => ({ ...prev, existingCustomerId: null }));
         }
     };
 
-    const fetchClients = (limit: number, offset: number, search: string) => {
-        axios.get(`http://localhost:3000/clientsAutocomplete?limit=${limit}&offset=${offset}&search=${search}`)
-            .then(res => {
-                if (res.data.length > 0) {
-                    offset === 0 ? setClients(res.data) : setClients(prev => [...prev, ...res.data]);
-                    setIsLastPage(res.data.length < limit);
-                }
-            })
-            .catch(error => console.error("Error fetching clients:", error));
+    // TODO: No customer search endpoint in Spring Boot backend yet
+    const fetchClients = (_limit: number, _offset: number, _search: string) => {
+        setClients([]);
+        setIsLastPage(true);
     };
 
     const handleScroll = (event: React.UIEvent<HTMLUListElement>) => {
@@ -238,24 +284,87 @@ export default function ModalAddNewPawn({ closeModal, refresh }: Props) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        axios.post(`http://localhost:3000/insertPawn`, formData)
+
+        const customerReferenceRequest = formData.existingCustomerId
+            ? { referenceStrategy: "EXISTING", customerId: formData.existingCustomerId }
+            : {
+                referenceStrategy: "NEW",
+                name: formData.name,
+                embg: formData.embg,
+                phoneNumber: formData.telephone,
+                reservePhoneNumber: formData.telephone_2 || null,
+                city: formData.city,
+            };
+
+        let itemReferenceRequest: any = {
+            referenceStrategy: "NEW",
+            itemType: formData.category,
+            description: formData.description,
+        };
+
+        switch (formData.category) {
+            case "ELECTRONIC":
+                itemReferenceRequest = { ...itemReferenceRequest, brand: formData.brand, year: Number(formData.year) };
+                break;
+            case "GOLD":
+                itemReferenceRequest = {
+                    ...itemReferenceRequest,
+                    weightGrams: Number(formData.weight),
+                    carats: formData.carats,
+                    pieceType: formData.type,
+                };
+                break;
+            case "VEHICLE":
+                itemReferenceRequest = {
+                    ...itemReferenceRequest,
+                    brand: formData.brand,
+                    model: formData.model,
+                    year: Number(formData.year),
+                    vehicleType: formData.vehicleType,
+                    registrationNumber: formData.registrationNumber,
+                    mileage: Number(formData.mileage),
+                    numberOfKeys: Number(formData.numberOfKeys),
+                    serviceHistoryAvailable: formData.serviceHistoryAvailable,
+                    registrationExpiryDate: formData.registrationExpiryDate,
+                };
+                break;
+            case "WATCH":
+                itemReferenceRequest = {
+                    ...itemReferenceRequest,
+                    brand: formData.brand,
+                    model: formData.model,
+                    year: Number(formData.year),
+                    material: formData.material,
+                    originalBoxIncluded: formData.originalBoxIncluded,
+                    originalPapersIncluded: formData.originalPapersIncluded,
+                    warrantyCardIncluded: formData.warrantyCardIncluded,
+                    functional: formData.functional,
+                    serviceRequired: formData.serviceRequired,
+                };
+                break;
+        }
+
+        axios.post(`${API_BASE}/pawns`, {
+            amount: Number(formData.price_pawned),
+            interest: formData.provision,
+            defaultDurationDays: Number(formData.total_days),
+            issueDate: formData.date,
+            customerReferenceRequest,
+            itemReferenceRequest,
+        })
             .then(() => { closeModal(); refresh(); })
             .catch(error => console.error("Error adding pawn:", error))
             .finally(() => setLoading(false));
     };
 
-    useEffect(() => {
-        fetchClients(limit, offset.current, autocompleteValue);
-    }, []);
-
     const renderCategoryInputs = () => {
         const props = { handleInputChange, formData, date: formData.date };
         switch (formData.category) {
-            case "electronics_pawn": return <ElectronicsInputs {...props} />;
-            case "gold_pawn": return <GoldInputs {...props} />;
-            case "vehicle_pawn": return <VehicleInputs {...props} />;
-            case "watch_pawn": return <WatchInputs {...props} />;
-            case "other_pawn": return <OtherInputs {...props} />;
+            case "ELECTRONIC": return <ElectronicsInputs {...props} />;
+            case "GOLD": return <GoldInputs {...props} />;
+            case "VEHICLE": return <VehicleInputs {...props} />;
+            case "WATCH": return <WatchInputs {...props} />;
+            case "OTHER": return <OtherInputs {...props} />;
         }
     };
 
@@ -340,11 +449,11 @@ export default function ModalAddNewPawn({ closeModal, refresh }: Props) {
                                 value={formData.category}
                                 onChange={e => handleInputChange(e.target.name, e.target.value)}
                             >
-                                <option value="electronics_pawn">Електроника</option>
-                                <option value="gold_pawn">Злато</option>
-                                <option value="vehicle_pawn">Возила</option>
-                                <option value="watch_pawn">Часовници</option>
-                                <option value="other_pawn">Останато</option>
+                                <option value="ELECTRONIC">Електроника</option>
+                                <option value="GOLD">Злато</option>
+                                <option value="VEHICLE">Возила</option>
+                                <option value="WATCH">Часовници</option>
+                                <option value="OTHER">Останато</option>
                             </select>
                             {renderCategoryInputs()}
                         </div>

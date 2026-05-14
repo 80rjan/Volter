@@ -15,10 +15,10 @@ import lombok.experimental.SuperBuilder;
 public class PawnRedeemedEvent extends PawnEvent{
 
     @Embedded
-    @AttributeOverride(name = "amount", column = @Column(name = "total_amount_paid", nullable = false))
+    @AttributeOverride(name = "amount", column = @Column(name = "total_amount_paid", nullable = true))
     private Money totalAmountPaid;
 
     @Embedded
-    @AttributeOverride(name = "amount", column = @Column(name = "redeemed_interest_paid", nullable = false))
+    @AttributeOverride(name = "amount", column = @Column(name = "redeemed_interest_paid", nullable = true))
     private Money interestPaid;
 }

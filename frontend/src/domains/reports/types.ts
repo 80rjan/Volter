@@ -1,6 +1,11 @@
 export interface MonthlyReportRow {
-  Id: number;
-  Year: number;
-  Month: number;
-  [key: string]: number | string;
+    id: number;
+    year: number;
+    month: number;
+    turnover: number;
+    cashOut: number;
+    revenue: number;
+    grossProfit: number;
+    expenses: number;
+    netProfit: number;
 }

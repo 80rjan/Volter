@@ -6,6 +6,7 @@ import CashRegister from "../../shared/components/CashRegister.tsx";
 import Loading from "../../shared/components/Loading.tsx";
 import ClientRow from "./Client.tsx";
 import { ClientRow as ClientRowType } from "./types.ts";
+import { API_BASE } from "../../shared/api/config.ts";
 
 function SortIcon({ dir }: { dir: number }) {
     return dir === 0 ? <Minus size={14} /> : dir === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />;
@@ -34,14 +35,15 @@ export default function Clients() {
         setIsFetching(true);
         setLoading(isLoading);
         isFetchingRef.current = true;
-        axios.get(`http://localhost:3000/clients?limit=${limit}&offset=${off}&orderBy=${order}&orderDirection=${direction}&searchByName=${name}&searchByEmbg=${embg}&searchByTel=${tel}`)
+        // TODO: No customer list endpoint in Spring Boot backend yet
+        axios.get(`${API_BASE}/customers`, { params: { page: Math.floor(off / limit), size: limit, name, embg, phoneNumber: tel } })
             .then(res => {
-                const newUnique = res.data.filter((c: ClientRowType) => !fetchedClientIds.current.has(c.Id));
+                const newUnique = (res.data.content ?? []).filter((c: ClientRowType) => !fetchedClientIds.current.has(c.Id));
                 newUnique.forEach((c: ClientRowType) => fetchedClientIds.current.add(c.Id));
                 setAllClients(prev => [...prev, ...newUnique]);
-                setIsLastPage(res.data.length < limit);
+                setIsLastPage(res.data.last ?? true);
             })
-            .catch(error => console.error("Error fetching clients:", error))
+            .catch(() => setIsLastPage(true))
             .finally(() => { setLoading(false); isFetchingRef.current = false; setIsFetching(false); });
     };
 

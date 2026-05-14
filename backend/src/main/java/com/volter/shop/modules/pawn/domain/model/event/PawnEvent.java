@@ -23,6 +23,7 @@ import java.util.List;
 @Table
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "event_type", discriminatorType = DiscriminatorType.STRING)
+// DISCRIMINATOR: for the children nullable = false is not allowed because of single table inheritance
 public abstract class PawnEvent {
 
     @Id

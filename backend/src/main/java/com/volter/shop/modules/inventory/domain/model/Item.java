@@ -21,14 +21,14 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @SuperBuilder
-@Table(
-        indexes = {
-                @Index(name = "idx_item_item_type", columnList = "item_type"),
-                @Index(name = "idx_item_item_origin_type", columnList = "item_origin_type"),
-                @Index(name = "idx_item_item_status", columnList = "item_status"),
-                @Index(name = "idx_item_created_at_desc", columnList = "created_at DESC")
-        }
-)
+//@Table(
+//        indexes = {
+//                @Index(name = "idx_item_item_type", columnList = "item_type"),
+//                @Index(name = "idx_item_item_origin_type", columnList = "item_origin_type"),
+//                @Index(name = "idx_item_item_status", columnList = "item_status"),
+//                @Index(name = "idx_item_created_at_desc", columnList = "created_at DESC")
+//        }
+//)
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "item_type")
 public class Item {

@@ -7,11 +7,11 @@ import java.math.RoundingMode;
 
 @Embeddable
 public record Compensation(
-        Money baseSalary,
+        Integer baseSalary,
         BigDecimal bonusPercent
 ) {
     public Compensation {
-        if (baseSalary.isLessThan(new Money(0))) {
+        if (baseSalary < 0) {
             throw new IllegalArgumentException("Base salary cannot be negative");
         }
         if (bonusPercent.compareTo(BigDecimal.ZERO) < 0 || bonusPercent.compareTo(BigDecimal.valueOf(100)) > 0) {
@@ -20,12 +20,13 @@ public record Compensation(
     }
 
     public Integer getBonusAmount() {
-        return baseSalary.multiply(
-                bonusPercent.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
-        ).amount();
+        return baseSalary *
+                bonusPercent
+                        .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
+                        .intValue();
     }
 
     public Integer calculateTotalCompensation() {
-        return baseSalary.amount() + getBonusAmount();
+        return baseSalary + getBonusAmount();
     }
 }

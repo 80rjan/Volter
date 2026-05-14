@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useState } from "react";
+import { API_BASE } from "../../shared/api/config.ts";
 import { Euro, Ellipsis } from "lucide-react";
 import ModalReadMoreSale from "./ModalReadMoreSale.tsx";
 import Loading from "../../shared/components/Loading.tsx";
@@ -19,7 +20,7 @@ export default function Sale({ sale, refresh, isOdd }: Props) {
 
     const sellItem = (id: number, priceSold: number, description: string) => {
         setLoading(true);
-        axios.put(`http://localhost:3000/sales/sellItem`, { id, priceSold, description })
+        axios.post(`${API_BASE}/sales/${id}/sell`, { soldPrice: priceSold, transactionDescription: description })
             .catch(error => console.error("Error selling item:", error))
             .finally(() => { setLoading(false); setModalSellItem(false); refresh(); });
     };

@@ -7,6 +7,22 @@ import SaleRow from "./Sale.tsx";
 import CashRegister from "../../shared/components/CashRegister.tsx";
 import Loading from "../../shared/components/Loading.tsx";
 import { SaleRow as SaleRowType } from "./types.ts";
+import { API_BASE } from "../../shared/api/config.ts";
+
+const SORT_FIELD: Record<string, string> = {
+    About: 'item.description',
+    'Item Cost': 'purchasePrice.amount',
+    'Date Bought': 'createdAt',
+};
+
+function mapSaleResponse(r: any): SaleRowType {
+    return {
+        Id: r.id,
+        About: r.item?.description ?? '',
+        'Item Cost': r.purchasePrice,
+        'Date Bought': '',
+    };
+}
 
 function SortIcon({ dir }: { dir: number }) {
     return dir === 0 ? <Minus size={14} /> : dir === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />;
@@ -19,8 +35,8 @@ export default function Sales() {
     const [orderDirection, setOrderDirection] = useState("DESC");
     const [modalAddNewSale, setModalAddNewSale] = useState(false);
     const [refresh, setRefresh] = useState(false);
-    const offset = useRef(0);
-    const limit = 60;
+    const page = useRef(0);
+    const size = 60;
     const [isLastPage, setIsLastPage] = useState(false);
     const scrollableSalesRef = useRef<HTMLDivElement>(null);
     const [loading, setLoading] = useState(false);
@@ -28,17 +44,24 @@ export default function Sales() {
     const [isFetching, setIsFetching] = useState(false);
     const fetchedSaleIds = useRef(new Set<number>());
 
-    const fetchSales = (limit: number, off: number, order: string, direction: string, isLoading: boolean) => {
+    const fetchSales = (pg: number, order: string, direction: string, isLoading: boolean) => {
         if (isFetching) return;
         setIsFetching(true);
         setLoading(isLoading);
         isFetchingRef.current = true;
-        axios.get(`http://localhost:3000/sales?limit=${limit}&offset=${off}&orderBy=${order}&orderDirection=${direction}`)
+        const params = new URLSearchParams({
+            page: String(pg),
+            size: String(size),
+            sort: `${SORT_FIELD[order] ?? 'createdAt'},${direction}`,
+            active: 'true',
+        });
+        axios.get(`${API_BASE}/sales?${params}`)
             .then(res => {
-                const newUnique = res.data.filter((s: SaleRowType) => !fetchedSaleIds.current.has(s.Id));
-                newUnique.forEach((s: SaleRowType) => fetchedSaleIds.current.add(s.Id));
+                const sales: SaleRowType[] = (res.data.content ?? []).map(mapSaleResponse);
+                const newUnique = sales.filter(s => !fetchedSaleIds.current.has(s.Id));
+                newUnique.forEach(s => fetchedSaleIds.current.add(s.Id));
                 setAllSales(prev => [...prev, ...newUnique]);
-                setIsLastPage(res.data.length < limit);
+                setIsLastPage(res.data.last ?? true);
             })
             .catch(error => console.error("Error fetching sales:", error))
             .finally(() => { setLoading(false); isFetchingRef.current = false; setIsFetching(false); });
@@ -48,19 +71,19 @@ export default function Sales() {
         const el = scrollableSalesRef.current!;
         const handleScroll = () => {
             if (el.scrollHeight - el.scrollTop - el.clientHeight <= el.scrollHeight * 0.3 && !isLastPage && !isFetchingRef.current) {
-                offset.current += limit;
-                fetchSales(limit, offset.current, orderBy, orderDirection, false);
+                page.current += 1;
+                fetchSales(page.current, orderBy, orderDirection, false);
             }
         };
         el.addEventListener("scroll", handleScroll);
         return () => el.removeEventListener("scroll", handleScroll);
-    }, [isLastPage, refresh]);
+    }, [isLastPage, refresh, orderBy, orderDirection]);
 
     useEffect(() => {
         fetchedSaleIds.current.clear();
         setAllSales([]);
-        offset.current = 0;
-        fetchSales(limit, 0, orderBy, orderDirection, true);
+        page.current = 0;
+        fetchSales(0, orderBy, orderDirection, true);
     }, [refresh, orderBy, orderDirection]);
 
     const handleOrder = (by: string, index: number) => {

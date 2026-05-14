@@ -20,18 +20,18 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @ToString
-@Table(
-        indexes = {
-                @Index(name = "idx_customer_embg", columnList = "embg"),
-                @Index(name = "idx_customer_phone_number", columnList = "phoneNumber, reservePhoneNumber"),
-                @Index(name = "idx_customer_risk_level", columnList = "riskLevel")
-        },
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_customer_embg", columnNames = "embg"),
-                @UniqueConstraint(name = "uk_customer_phone_number", columnNames = "phoneNumber"),
-                @UniqueConstraint(name = "uk_customer_reserve_phone_number", columnNames = "reservePhoneNumber")
-        }
-)
+//@Table(
+//        indexes = {
+//                @Index(name = "idx_customer_embg", columnList = "embg"),
+//                @Index(name = "idx_customer_phone_number", columnList = "phoneNumber, reservePhoneNumber"),
+//                @Index(name = "idx_customer_risk_level", columnList = "riskLevel")
+//        },
+//        uniqueConstraints = {
+//                @UniqueConstraint(name = "uk_customer_embg", columnNames = "embg"),
+//                @UniqueConstraint(name = "uk_customer_phone_number", columnNames = "phoneNumber"),
+//                @UniqueConstraint(name = "uk_customer_reserve_phone_number", columnNames = "reservePhoneNumber")
+//        }
+//)
 public class Customer {
 
     @Id

@@ -22,7 +22,7 @@ public class CashRegisterTransaction extends Transaction {
 
     @NotNull(message = "Transaction action is required")
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "cash_register_action", nullable = true)
     private CashRegisterTransactionAction action;
 
     @Override

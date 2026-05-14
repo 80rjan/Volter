@@ -41,10 +41,10 @@ public class Staff {
 
     // Reference to identity user
     @NotNull(message = "Identity user ID is required")
-    @Column(nullable = false, unique = true)    // todo: this in unique index in @Table
+    @Column(nullable = false)    // todo: this in unique index in @Table
     private Long identityUserId;
 
-    @NotNull(message = "Staff base salary is required")
+    @NotNull(message = "Staff base salary and bonus percent is required")
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "baseSalary", column = @Column(name = "base_salary", nullable = false)),

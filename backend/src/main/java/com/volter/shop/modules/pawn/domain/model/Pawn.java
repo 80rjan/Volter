@@ -33,19 +33,19 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(
-        indexes = {
-                @Index(name = "idx_pawn_status", columnList = "status"),
-
-                @Index(name = "idx_pawn_active_maturity_date", columnList = "active, maturity_date"),
-                @Index(name = "idx_pawn_active_issue_date_desc", columnList = "active, issue_date DESC"),
-                @Index(name = "idx_pawn_status_maturity_date", columnList = "status, maturity_date"),
-                @Index(name = "idx_pawn_customer_id_active", columnList = "customer_id, active")
-        },
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_pawn_item_active", columnNames = {"item_id", "active"})     // one active pawn per item
-        }
-)
+//@Table(
+//        indexes = {
+//                @Index(name = "idx_pawn_status", columnList = "status"),
+//
+//                @Index(name = "idx_pawn_active_maturity_date", columnList = "active, maturity_date"),
+//                @Index(name = "idx_pawn_active_issue_date_desc", columnList = "active, issue_date DESC"),
+//                @Index(name = "idx_pawn_status_maturity_date", columnList = "status, maturity_date"),
+//                @Index(name = "idx_pawn_customer_id_active", columnList = "customer_id, active")
+//        },
+//        uniqueConstraints = {
+//                @UniqueConstraint(name = "uk_pawn_item_active", columnNames = {"item_id", "active"})     // one active pawn per item
+//        }
+//)
 public class Pawn {
 
     @Id

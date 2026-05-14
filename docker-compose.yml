@@ -1,50 +1,60 @@
 services:
-  db:
+  postgres:
     image: postgres:16-alpine
     container_name: volter_db
-    restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: borjan123
+      POSTGRES_USER: volter_user
+      POSTGRES_PASSWORD: volter123
       POSTGRES_DB: volter
       TZ: Europe/Skopje
-    command: postgres -c timezone=Europe/Skopje
+      PGTZ: Europe/Skopje
     ports:
       - "5432:5432"
     volumes:
-      - db_:/var/lib/postgresql/data
+      - volter_pgdata:/var/lib/postgresql/data
+      - ./backend/init-scripts:/docker-entrypoint-initdb.d
+    command:
+      - "postgres"
+      - "-c"
+      - "timezone=Europe/Skopje"
+      - "-c"
+      - "log_timezone=Europe/Skopje"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U volter_user -d volter"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: volter_backend
-    restart: unless-stopped
-    env_file:
-      - ./backend/.env
-    depends_on:
-      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/volter
+      SPRING_DATASOURCE_USERNAME: volter_user
+      SPRING_DATASOURCE_PASSWORD: volter123
+      JWT_CONFIG_SECRET: zXNc4+RJ95DIa5F95Kt2vonGZuaAfAWv+IJDEfPQ/mI=
+      ALLOWED_ORIGINS: http://localhost:5173
     ports:
-      - "3000:3000"
-    volumes:
-      - ./backend:/app/backend
-      - /app/backend/node_modules
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: volter_frontend
-    restart: unless-stopped
-    environment:
-      VITE_API_URL: http://backend:3000
-    depends_on:
-      - backend
     ports:
       - "5173:5173"
-    volumes:
-      - ./frontend:/app/frontend
-      - /app/frontend/node_modules
+    depends_on:
+      - backend
+    restart: unless-stopped
 
 volumes:
-  db_: {}
+  volter_pgdata:
+    driver: local

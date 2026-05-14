@@ -3,6 +3,7 @@ import { X, CircleHelp, CheckCheck, CircleCheckBig } from 'lucide-react';
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Loading from './Loading.tsx';
+import { API_BASE } from "../api/config.ts";
 
 interface Props {
     closeModal: () => void;
@@ -23,7 +24,7 @@ export default function ModalAdjustCashRegister({ closeModal, isInsert, refresh 
 
     const insert = (amount: string, description: string) => {
         setLoading(true);
-        axios.put(`http://localhost:3000/cashRegister/insert`, { amount, description })
+        axios.put(`${API_BASE}/cash-register/deposit`, { depositAmount: Number(amount), transactionDescription: description })
             .then(() => {
                 setSuccessMsg("Успешен внес на пари");
                 setInfoMsg(`Додадени се ${Number(amount).toLocaleString("de-DE")} во каса!`);
@@ -36,7 +37,7 @@ export default function ModalAdjustCashRegister({ closeModal, isInsert, refresh 
 
     const remove = (amount: string, description: string) => {
         setLoading(true);
-        axios.put(`http://localhost:3000/cashRegister/remove`, { amount, description })
+        axios.put(`${API_BASE}/cash-register/withdraw`, { withdrawAmount: Number(amount), transactionDescription: description })
             .then(() => {
                 setSuccessMsg("Успешен излез на пари");
                 setInfoMsg(`Земени се ${Number(amount).toLocaleString("de-DE")} од каса!`);

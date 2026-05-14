@@ -19,7 +19,7 @@ public class SaleTransaction extends Transaction {
 
     @NotNull(message = "Transaction action is required")
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "sale_action", nullable = true)
     private SaleTransactionAction action;
 
     @ManyToOne(fetch = FetchType.LAZY)
