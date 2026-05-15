@@ -11,9 +11,9 @@ import com.volter.identity.domain.repository.IdentityUserRepository;
 import com.volter.identity.domain.repository.ShopRepository;
 import com.volter.identity.security.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 

@@ -23,7 +23,8 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@PreAuthorize("hasRole(T(com.volter.identity.domain.model.enums.RoleEnum).MANAGER) or hasRole(T(com.volter.identity.domain.model.enums.RoleEnum).ADMIN)")
+@PreAuthorize("hasRole(T(com.volter.identity.domain.model.enums.RoleEnum).MANAGER) or " +
+        "hasRole(T(com.volter.identity.domain.model.enums.RoleEnum).ADMIN)")
 public class MonthlyReportService {
 
     private final MonthlyReportRepository monthlyReportRepository;

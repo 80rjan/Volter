@@ -3,8 +3,12 @@ package com.volter.shop;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
 
 @SpringBootApplication(scanBasePackages = "com.volter")
+@EnableCaching
+@EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
 public class VolterApplication {
 
     public static void main(String[] args) {
@@ -20,6 +24,7 @@ public class VolterApplication {
         setPropertyIfPresent(dotenv, "SPRING_DATASOURCE_USERNAME");
         setPropertyIfPresent(dotenv, "SPRING_DATASOURCE_PASSWORD");
         setPropertyIfPresent(dotenv, "JWT_CONFIG_SECRET");
+        setPropertyIfPresent(dotenv, "GOLD_API_KEY");
 
 
         SpringApplication.run(VolterApplication.class, args);

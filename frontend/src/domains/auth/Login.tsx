@@ -1,29 +1,55 @@
 // @ts-ignore
 import logo from "../../assets/volter-zalozna-kukja-3D-slika.png";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { LogIn } from "lucide-react";
 import Loading from "../../shared/components/Loading.tsx";
 import { API_BASE } from "../../shared/api/config.ts";
 
+interface Shop {
+    id: number;
+    name: string;
+}
+
 export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [shopId, setShopId] = useState<number | "">("");
+    const [shops, setShops] = useState<Shop[]>([]);
+    const [shopsLoading, setShopsLoading] = useState(true);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        axios.get<Shop[]>(`${API_BASE}/shops`)
+            .then(res => setShops(res.data))
+            .catch(() => setError("Не може да се вчитаат продавниците"))
+            .finally(() => setShopsLoading(false));
+    }, []);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
         setLoading(true);
-        axios.post(`${API_BASE}/auth/login`, { username, password })
+        axios.post(`${API_BASE}/auth/login`, { username, password, shopId: shopId || null })
             .then(res => {
                 localStorage.setItem("token", res.data.token);
+                axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
                 navigate("/");
             })
-            .catch(() => setError("Погрешно корисничко име или лозинка"))
+            .catch((err) => {
+                console.log(err)
+                if (axios.isAxiosError(err)) {
+                    if (err.response?.status === 403) {
+                        setError("Немате пристап до оваа продавница");
+                        return;
+                    }
+                }
+
+                setError("Погрешно корисничко име или лозинка");
+            })
             .finally(() => setLoading(false));
     };
 
@@ -59,13 +85,34 @@ export default function Login() {
                         />
                     </div>
 
+                    <div className="flex flex-col gap-1">
+                        <p className={labelClass}>Продавница</p>
+                        {shopsLoading ? (
+                            <div className="flex justify-center py-2">
+                                <Loading width={24} height={24} />
+                            </div>
+                        ) : (
+                            <select
+                                className={`${inputClass} bg-white cursor-pointer`}
+                                value={shopId}
+                                onChange={e => setShopId(e.target.value ? Number(e.target.value) : "")}
+                                required
+                            >
+                                <option value="" disabled>Избери продавница</option>
+                                {shops.map(shop => (
+                                    <option key={shop.id} value={shop.id}>{shop.name}</option>
+                                ))}
+                            </select>
+                        )}
+                    </div>
+
                     {error && (
                         <p className="text-red-500 text-sm text-center -mt-1">{error}</p>
                     )}
 
                     <button
                         type="submit"
-                        disabled={loading}
+                        disabled={loading || shopsLoading}
                         className="flex justify-center items-center gap-2 mt-1 py-2.5 rounded bg-green text-white text-lg font-semibold shadow-[0_0_8px_rgba(0,0,0,0.15)] transition-all duration-300 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                         {loading

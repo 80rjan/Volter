@@ -15,6 +15,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -48,7 +49,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
-                        .requestMatchers("/api/auth/**").permitAll()    // login, register
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/shops").permitAll()
+                        .requestMatchers("/error").permitAll()
 
                         // Admin-only endpoints
                         .requestMatchers("/api/staff/**").hasRole("ADMIN")
@@ -69,6 +72,16 @@ public class SecurityConfig {
         http.addFilterAfter(tenantFilter, JwtRequestFilter.class);
 
         return http.build();
+    }
+
+    // Prevent TenantFilter from being auto-registered in the main servlet filter chain.
+    // It must only run inside the Spring Security chain (after JwtRequestFilter sets auth).
+    // todo: check what is with this?
+    @Bean
+    public FilterRegistrationBean<TenantFilter> tenantFilterRegistration(TenantFilter tenantFilter) {
+        FilterRegistrationBean<TenantFilter> registration = new FilterRegistrationBean<>(tenantFilter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean

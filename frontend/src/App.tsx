@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import Pawns from "./domains/pawns/Pawns.tsx";
 import Sales from "./domains/sales/Sales.tsx";
 import Transactions from "./domains/transactions/Transactions.tsx";
@@ -9,19 +9,24 @@ import Expenses from "./domains/expenses/Expenses.tsx";
 import Clients from "./domains/clients/Clients.tsx";
 import Login from "./domains/auth/Login.tsx";
 
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+    if (!localStorage.getItem('token')) return <Navigate to="/login" replace />;
+    return <>{children}</>;
+}
+
 export default function App() {
     return (
         <HashRouter>
             <Routes>
                 <Route path="/login" element={<Login />} />
-                <Route path="/" element={<Pawns />} />
-                <Route path="/sales" element={<Sales />} />
-                <Route path="/transactions" element={<Transactions />} />
-                <Route path="/clients" element={<Clients />} />
-                <Route path="/expenses" element={<Expenses />} />
-                <Route path="/report" element={<PeriodReport />} />
-                <Route path="/monthlyReport" element={<MonthlyReport />} />
-                <Route path="/yearlyReport" element={<YearlyReport />} />
+                <Route path="/" element={<ProtectedRoute><Pawns /></ProtectedRoute>} />
+                <Route path="/sales" element={<ProtectedRoute><Sales /></ProtectedRoute>} />
+                <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
+                <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
+                <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
+                <Route path="/report" element={<ProtectedRoute><PeriodReport /></ProtectedRoute>} />
+                <Route path="/monthlyReport" element={<ProtectedRoute><MonthlyReport /></ProtectedRoute>} />
+                <Route path="/yearlyReport" element={<ProtectedRoute><YearlyReport /></ProtectedRoute>} />
             </Routes>
         </HashRouter>
     );

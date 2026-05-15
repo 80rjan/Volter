@@ -68,7 +68,7 @@ export default function Expenses() {
                 const newUnique = expenses.filter(e => !fetchedExpenseIds.current.has(e.id));
                 newUnique.forEach(e => fetchedExpenseIds.current.add(e.id));
                 setAllExpenses(prev => [...prev, ...newUnique]);
-                setIsLastPage(res.data.last ?? true);
+                setIsLastPage(res.data.page ? res.data.page.number >= res.data.page.totalPages - 1 : true);
             })
             .catch(error => console.error("Error fetching expenses:", error))
             .finally(() => { setLoading(false); isFetchingRef.current = false; setIsFetching(false); });

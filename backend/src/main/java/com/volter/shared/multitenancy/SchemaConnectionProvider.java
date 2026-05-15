@@ -31,8 +31,9 @@ public class SchemaConnectionProvider
     public Connection getConnection(String tenantIdentifier) throws SQLException {
         Connection conn = dataSource.getConnection();
         // "shop_skopje, public" means: look in shop_skopje first, fall back to public
-        conn.createStatement()
-                .execute("SET search_path TO " + tenantIdentifier + ", public");
+        try (var stmt = conn.createStatement()) {
+            stmt.execute("SET search_path TO " + tenantIdentifier + ", public");
+        }
         return conn;
     }
 
@@ -40,7 +41,9 @@ public class SchemaConnectionProvider
     public void releaseConnection(String tenantIdentifier,
                                   Connection connection) throws SQLException {
         // Always reset before returning to pool
-        connection.createStatement().execute("SET search_path TO public");
+        try (var stmt = connection.createStatement()) {
+            stmt.execute("SET search_path TO public");
+        }
         connection.close();
     }
 

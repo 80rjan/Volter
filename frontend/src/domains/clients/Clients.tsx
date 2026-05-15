@@ -41,7 +41,7 @@ export default function Clients() {
                 const newUnique = (res.data.content ?? []).filter((c: ClientRowType) => !fetchedClientIds.current.has(c.Id));
                 newUnique.forEach((c: ClientRowType) => fetchedClientIds.current.add(c.Id));
                 setAllClients(prev => [...prev, ...newUnique]);
-                setIsLastPage(res.data.last ?? true);
+                setIsLastPage(res.data.page ? res.data.page.number >= res.data.page.totalPages - 1 : true);
             })
             .catch(() => setIsLastPage(true))
             .finally(() => { setLoading(false); isFetchingRef.current = false; setIsFetching(false); });

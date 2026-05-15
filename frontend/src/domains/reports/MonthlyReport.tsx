@@ -75,7 +75,7 @@ export default function MonthlyReport() {
                 const newUnique = reports.filter(r => !fetchedReportIds.current.has(r.id));
                 newUnique.forEach(r => fetchedReportIds.current.add(r.id));
                 setAllReports(prev => [...prev, ...newUnique]);
-                setIsLastPage(res.data.last ?? true);
+                setIsLastPage(res.data.page ? res.data.page.number >= res.data.page.totalPages - 1 : true);
             })
             .catch(error => console.error("Error fetching monthly reports:", error))
             .finally(() => { setLoading(false); isFetchingRef.current = false; setIsFetching(false); });
