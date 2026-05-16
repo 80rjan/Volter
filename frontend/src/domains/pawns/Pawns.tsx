@@ -38,7 +38,7 @@ export default function Pawns() {
         refreshDependency, refreshCashRegDependency,
     } = usePawns();
 
-    const inputClass = "border-none rounded text-xs font-medium px-2 py-2 w-full shadow-sm";
+    const inputClass = "bg-white border-none rounded text-xs font-medium px-2 py-2 w-full shadow-sm";
 
     return (
         <div className="h-screen grid grid-cols-[max(15%,240px)_auto]">

@@ -17,7 +17,7 @@ public class OtherItemResponseData implements ItemResponseData {
     @NotBlank(message = "Description is required")
     private String description;
 
-    @NotBlank(message = "Brand is required")
+    @NotBlank(message = "Category is required")
     private String category;
 
     @Override

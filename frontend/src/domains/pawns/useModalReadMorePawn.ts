@@ -47,7 +47,7 @@ export function useModalReadMorePawn(initialPawn: PawnDetailed, oldPawnRow: Pawn
             transactionDescription: editRef.current.description,
         };
         if (pawn.item.itemType === 'GOLD' && editRef.current.goldGramsDiff !== 0) {
-            payload.itemModificationRequest.weightGrams =
+            payload.itemModificationRequest.goldWeightGrams =
                 Number((pawn.item as GoldItemDetailed).weightGrams) + editRef.current.goldGramsDiff;
         }
         axios.put(`${API_BASE}/pawns/${pawn.id}`, payload)

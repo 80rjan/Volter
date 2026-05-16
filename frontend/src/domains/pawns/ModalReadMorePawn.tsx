@@ -180,7 +180,7 @@ export default function ModalReadMorePawn({ pawnDetailed, closeModal, closePawn,
     return ReactDom.createPortal(
         <>
             <div className="fixed inset-0 bg-black/70 z-[1000]" />
-            <div className="flex flex-col items-center fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#eee] z-[1000] p-4 pb-8 px-8 rounded-lg min-w-fit max-w-[92%] max-h-[90vh] overflow-y-auto scrollbar-thin">
+            <div className="flex flex-col items-center fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#eee] z-[1000] p-4 pb-8 px-8 rounded-lg min-w-fit w-[90%] max-h-[90vh] overflow-y-auto scrollbar-thin">
                 <X size={32} className="ml-auto close-x-btn" onClick={closeModal as any} />
                 {!modalPrintDocument ? (
                     <>
