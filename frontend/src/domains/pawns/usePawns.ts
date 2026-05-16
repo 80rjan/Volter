@@ -25,12 +25,31 @@ export const SORT_FIELD: Record<string, string> = {
 function mapPawnResponse(r: any): PawnRowType {
     const today = new Date();
     const daysLeft = Math.floor((new Date(r.maturityDate).getTime() - today.getTime()) / 86400000);
+
+    var about:string = "";
+    switch (r.item.itemType) {
+        case 'GOLD':
+            about = `${r.item.pieceType ?? ''} ${r.item.weightGrams ?? ''}гр ${r.item.carats ?? ''}к`.trim();
+            break;
+        case 'ELECTRONIC':
+            about = `${r.item.brand ?? ''} ${r.item.category ?? ''} ${r.item.year ?? ''}`.trim();
+            break;
+        case 'VEHICLE':
+            about = `${r.item.brand ?? ''} ${r.item.model ?? ''} ${r.item.year ?? ''}`.trim();
+            break;
+        case 'WATCH':
+            about = `${r.item.brand ?? ''} ${r.item.model ?? ''} ${r.item.material ?? ''}`.trim();
+            break;
+        case 'OTHER':
+            about = `${r.item.category ?? ''} ${r.item.material ?? ''}`.trim();
+            break;
+    }
     return {
         Id: r.id,
         'Client Id': r.customerId,
         Name: r.customerName,
         Category: ITEM_TYPE_TO_CATEGORY[r.item?.itemType] ?? 'Other',
-        About: r.item?.description ?? '',
+        About: about,
         'Item Cost': r.amount,
         Provision: r.interest,
         'Days Left': daysLeft,

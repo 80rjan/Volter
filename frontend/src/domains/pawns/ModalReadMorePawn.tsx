@@ -1,243 +1,270 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import type { ReactNode } from "react";
 import ReactDom from "react-dom";
-import axios from "axios";
 import {
     UserRound, Euro, RotateCcw, X, CircleDollarSign, Printer,
     UserPen, Check, ArrowLeft, ArrowDownToLine, Laptop, Watch, Car, Coins
 } from 'lucide-react';
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 import DogovorZaZaem from "./documents/DogovorZaZaem.tsx";
 import DogovorZaRacenZalog from "./documents/DogovorZaRacenZalog.tsx";
-import Loading from "../../shared/components/Loading.tsx";
 import AneksDogovorZaZaem from "./documents/AneksDogovorZaZaem.tsx";
-import { PawnInfo } from "./types.ts";
-import { API_BASE } from "../../shared/api/config.ts";
+import Loading from "../../shared/components/Loading.tsx";
+import {
+    PawnDetailed, PawnRow,
+    GoldItemDetailed, ElectronicItemDetailed, WatchItemDetailed, VehicleItemDetailed, OtherItemDetailed,
+} from "./types.ts";
+import { useModalReadMorePawn } from "./useModalReadMorePawn.ts";
+
+const ITEM_TYPE_TO_CATEGORY: Record<string, string> = {
+    GOLD: 'Gold', ELECTRONIC: 'Electronics', VEHICLE: 'Vehicle', WATCH: 'Watch', OTHER: 'Other',
+};
+const CAT_LABEL: Record<string, string> = {
+    Gold: "Злато", Electronics: "Електроника", Watch: "Часовници", Vehicle: "Возила", Other: "Останато",
+};
+const CAT_ICON: Record<string, ReactNode> = {
+    Electronics: <Laptop size={28} />, Watch: <Watch size={28} />, Vehicle: <Car size={28} />,
+    Gold: <Coins size={28} />, Other: <CircleDollarSign size={28} />,
+};
+const RISK_LEVEL: Record<string, { label: string; cls: string }> = {
+    LOW: { label: 'Низок', cls: 'text-green font-semibold' },
+    MEDIUM: { label: 'Среден', cls: 'text-yellow-600 font-semibold' },
+    HIGH: { label: 'Висок', cls: 'text-red-500 font-semibold' },
+};
+const PAWN_STATUS: Record<string, string> = {
+    ACTIVE: 'Активен', REDEEMED: 'Подигнат', FORFEITED: 'Истечен', RENEWED: 'Продолжен',
+};
+const ITEM_STATUS: Record<string, string> = {
+    IN_PAWN: "Во залог" , REDEEMED: 'Подигнат', FOR_SALE: 'За продажба', SOLD: 'Продаден',
+};
 
 interface Props {
-    category: string;
-    pawnInfo: PawnInfo;
+    pawnDetailed: PawnDetailed;
     closeModal: (e: React.MouseEvent) => void;
     closePawn: () => void;
     continuePawn: () => void;
     movePawnToSale: () => void;
-    oldPawn: any;
+    oldPawnRow: PawnRow;
     refreshCashReg: () => void;
 }
 
-export default function ModalReadMorePawn({ category, pawnInfo, closeModal, closePawn, continuePawn, movePawnToSale, oldPawn, refreshCashReg }: Props) {
-    const [modalPrintDocument, setModalPrintDocument] = React.useState(false);
-    const [clientAddress, setClientAddress] = React.useState("");
-    const [idCard, setIdCard] = React.useState("");
-    const [pawnDescription, setPawnDescription] = React.useState("");
-    const client = pawnInfo.client;
-    const [pawn, setPawn] = useState({ ...pawnInfo.pawn, "Days Left": pawnInfo["Days Left"] });
-    const [isDownloading, setIsDownloading] = React.useState(false);
-    const hiddenDocRefLoan = React.useRef<HTMLDivElement>(null);
-    const hiddenDocRefPawn = React.useRef<HTMLDivElement>(null);
-    const hiddenDocRefAnnexLoan = React.useRef<HTMLDivElement>(null);
-    const [isEditing, setIsEditing] = React.useState(false);
-    const editPawn = React.useRef({
-        pricePawned: pawn.price_pawned,
-        provision: pawn.provision,
-        description: pawn.description,
-        goldGramsDiff: 0,
-        totalDays: pawn.total_days,
-    });
-    const [isLoading, setIsLoading] = React.useState(false);
-    const [whichDocToPrint, setWhichDocToPrint] = React.useState("insert");
+type Field = { label: string; value: ReactNode };
 
-    const getCat: Record<string, string> = {
-        Electronics: "Електроника", Watch: "Часовници", Vehicle: "Возила", Gold: "Злато", Other: "Останато",
-    };
-    const getCatIcon: Record<string, React.ReactNode> = {
-        Electronics: <Laptop size={32} />, Watch: <Watch size={32} />, Vehicle: <Car size={32} />,
-        Gold: <Coins size={32} />, Other: <CircleDollarSign size={32} />,
-    };
+export default function ModalReadMorePawn({ pawnDetailed, closeModal, closePawn, continuePawn, movePawnToSale, oldPawnRow, refreshCashReg }: Props) {
+    const [clientAddress, setClientAddress] = useState("");
+    const [idCard, setIdCard] = useState("");
+    const [pawnDescription, setPawnDescription] = useState("");
 
-    const handlePrintDoc = async (ref: React.RefObject<HTMLDivElement | null>, isLoan: boolean, isAnnex: boolean) => {
-        setIsDownloading(true);
-        const element = ref.current;
-        if (!element) return;
-        const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-        try {
-            const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-            const imgData = canvas.toDataURL("image/png");
-            const imgWidth = 210;
-            const pageHeight = 297;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            let heightLeft = imgHeight;
-            let position = 0;
-            pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-            while (heightLeft > pageHeight) {
-                position -= pageHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-            }
-            pdf.save(`${isAnnex ? "Aneks_za_dogovor_za_zaem" : isLoan ? "Dogovor_za_zaem" : "Dogovor_za_racen_zalog"}.pdf`);
-        } catch (error) { console.error(error); }
-        finally { setIsDownloading(false); }
-    };
+    const {
+        pawn, isEditing, setIsEditing, cancelEdit,
+        isLoading, isDownloading,
+        modalPrintDocument, setModalPrintDocument,
+        whichDocToPrint, setWhichDocToPrint,
+        editRef,
+        hiddenDocRefLoan, hiddenDocRefPawn, hiddenDocRefAnnexLoan,
+        handleUpdatePawn, handlePrintDoc,
+    } = useModalReadMorePawn(pawnDetailed, oldPawnRow, refreshCashReg);
 
-    const handleUpdatePawn = () => {
-        setIsLoading(true);
-        const payload: any = {
-            amount: editPawn.current.pricePawned,
-            interest: editPawn.current.provision,
-            durationDays: editPawn.current.totalDays,
-            itemModificationRequest: { description: editPawn.current.description },
-            transactionDescription: editPawn.current.description,
-        };
-        if (category === 'Gold' && editPawn.current.goldGramsDiff !== 0) {
-            payload.itemModificationRequest.weightGrams = (pawn.weight ?? 0) + editPawn.current.goldGramsDiff;
-        }
-        axios.put(`${API_BASE}/pawns/${pawn.id}`, payload)
-            .then(res => {
-                const data = res.data;
-                const newTotalDays = data.defaultDurationDays;
-                const newMaturityDate = data.maturityDate;
-                const today = new Date();
-                const newDaysLeft = Math.floor((new Date(newMaturityDate).getTime() - today.getTime()) / 86400000);
-                const updatedPawn = {
-                    ...pawn,
-                    description: data.item?.description ?? pawn.description,
-                    price_pawned: data.amount,
-                    provision: data.interest,
-                    price_to_redeem: data.amount + data.interest,
-                    total_days: newTotalDays,
-                    date_to: newMaturityDate,
-                    "Days Left": newDaysLeft,
-                    weight: data.item?.weightGrams !== undefined ? Number(data.item.weightGrams) : pawn.weight,
-                };
-                oldPawn["About"] = updatedPawn.description;
-                oldPawn["Item Cost"] = updatedPawn.price_pawned;
-                oldPawn["Provision"] = updatedPawn.provision;
-                oldPawn["Total Days"] = updatedPawn.total_days;
-                oldPawn["Days Left"] = newDaysLeft;
-                oldPawn["Valid Until"] = newMaturityDate;
-                editPawn.current = { ...editPawn.current, totalDays: newTotalDays, goldGramsDiff: 0 };
-                setPawn(updatedPawn);
-            })
-            .catch(err => console.error("Error updating pawn " + err))
-            .finally(() => { setIsEditing(false); setIsLoading(false); refreshCashReg(); });
-    };
+    const category = ITEM_TYPE_TO_CATEGORY[pawn.item.itemType] ?? 'Other';
+    const { customer, item } = pawn;
+    const risk = RISK_LEVEL[customer.riskLevel] ?? { label: customer.riskLevel, cls: '' };
 
-    const detailInput = "w-full text-base p-1 border-2 border-green rounded";
-    const detailSelect = "w-full text-base p-1 border-2 border-green rounded";
+    const inp = "w-full text-base p-1 border-2 border-green rounded";
+    const sel = "w-full text-base p-1 border-2 border-green rounded";
+    const bool = (v: boolean) => <p>{v ? "Да" : "Не"}</p>;
+    const dateStr = (v: string | null | undefined) => <p>{v ? String(v).substring(0, 10) : "—"}</p>;
 
-    const pawnDetailRow = (label: string, value: React.ReactNode) => (
-        <span className="flex flex-col gap-0 font-medium">
-            <p className="font-normal text-[#666] -ml-1">{label}</p>
-            {value}
-        </span>
-    );
+    const pawnFields: Field[] = [
+        { label: "Шифра:", value: <p>{pawn.id}</p> },
+        { label: "Статус:", value: <p>{PAWN_STATUS[pawn.status] ?? pawn.status}</p> },
+        { label: "Опис:", value: isEditing
+            ? <input type="text" defaultValue={item.description} onChange={e => { editRef.current.description = e.target.value; }} className={inp} />
+            : <p>{item.description}</p> },
+        { label: "Вредност:", value: isEditing
+            ? <input type="number" defaultValue={pawn.amount} onChange={e => { editRef.current.amount = Number(e.target.value); }} className={inp} />
+            : <p>{Number(pawn.amount).toLocaleString("de-DE")}</p> },
+        { label: "Провизија:", value: isEditing
+            ? <input type="number" step="0.001" defaultValue={pawn.interest} onChange={e => { editRef.current.interest = Number(e.target.value); }} className={inp} />
+            : <p>{Number(pawn.interest).toLocaleString("de-DE")} <span className="text-[#444] text-sm">/ {(Math.round(pawn.interest / pawn.amount * 10000) / 100).toLocaleString("de-DE")}%</span></p> },
+        { label: "Цена за подигање:", value: <p>{Number(pawn.amount + pawn.interest).toLocaleString("de-DE")}</p> },
+        { label: "Дневна провизија %:", value: <p>{(Math.round(pawn.interest / pawn.amount * 10000 / pawn.defaultDurationDays) / 100).toLocaleString("de-DE")}%</p> },
+        { label: "Денови валидно:", value: isEditing
+            ? <select defaultValue={pawn.defaultDurationDays} onChange={e => { editRef.current.defaultDurationDays = Number(e.target.value); }} className={sel}><option value={15}>15</option><option value={30}>30</option></select>
+            : <p>{pawn.defaultDurationDays}</p> },
+        { label: "Валидно од:", value: dateStr(pawn.issueDate) },
+        { label: "Валидно до:", value: dateStr(pawn.maturityDate) },
+        { label: "Преостанато:", value: <p>{pawn.daysLeft} ден.</p> },
+        { label: "Внесено на:", value: dateStr(pawn.createdAt) },
+        { label: "Ажурирано на:", value: dateStr(pawn.updatedAt) },
+    ];
 
-    const renderDetails = () => {
-        const common = [
-            pawnDetailRow("Шифра на залог:", <p>{Number(pawn.id).toLocaleString("de-DE")}</p>),
-            pawnDetailRow("Опис:", isEditing
-                ? <input type="text" defaultValue={pawn.description} onChange={e => editPawn.current.description = e.target.value} className={detailInput} />
-                : <p>{pawn.description}</p>),
-            pawnDetailRow("Вредност на залогот:", isEditing
-                ? <input type="number" defaultValue={pawn.price_pawned} onChange={e => editPawn.current.pricePawned = Number(e.target.value)} className={detailInput} />
-                : <p>{Number(pawn.price_pawned).toLocaleString("de-DE")}</p>),
-            pawnDetailRow("Рата за продолжување:", isEditing
-                ? <input type="number" step="0.001" defaultValue={pawn.provision} onChange={e => editPawn.current.provision = Number(e.target.value)} className={detailInput} />
-                : <p>{Number(pawn.provision).toLocaleString("de-DE")}</p>),
-            pawnDetailRow("Цена за подигање:", <p>{Number(pawn.price_to_redeem).toLocaleString("de-DE")}</p>),
-            pawnDetailRow("Провизија:", <p>{(Math.round((pawn.provision / pawn.price_pawned * 100) * 100) / 100).toLocaleString("de-DE")}%</p>),
-            pawnDetailRow("Дневна провизија:", <p>{(Math.round((pawn.provision / pawn.price_pawned * 100) / pawn.total_days * 100) / 100).toLocaleString("de-DE")}%</p>),
-            pawnDetailRow("Денови валидно:", isEditing
-                ? <select defaultValue={pawn.total_days} onChange={e => editPawn.current.totalDays = Number(e.target.value)} className={detailSelect}><option value={15}>15</option><option value={30}>30</option></select>
-                : <p>{pawn.total_days}</p>),
-            pawnDetailRow("Валидно од:", <p>{pawn.date_from.substring(0, 10)}</p>),
-            pawnDetailRow("Валидно до:", <p>{pawn.date_to.substring(0, 10)}</p>),
-            pawnDetailRow("Преостанато:", <p>{pawn["Days Left"]}</p>),
+    const itemFields = (): Field[] => {
+        const common: Field[] = [
+            { label: "Статус на предмет:", value: <p>{ITEM_STATUS[item.itemStatus] ?? item.itemStatus}</p> },
+            { label: "Внесено:", value: dateStr(item.createdAt) },
+            { label: "Ажурирано:", value: dateStr(item.updatedAt) },
         ];
 
-        const catSpecific: React.ReactNode[] = [];
-        if (category === 'Electronics' || category === 'Watch') {
-            catSpecific.push(pawnDetailRow("Бренд:", <p>{pawn.brand}</p>));
-            catSpecific.push(pawnDetailRow("Година:", <p>{pawn.year}</p>));
-        } else if (category === 'Vehicle') {
-            catSpecific.push(pawnDetailRow("Бренд:", <p>{pawn.brand}</p>));
-            catSpecific.push(pawnDetailRow("Модел:", <p>{pawn.model}</p>));
-            catSpecific.push(pawnDetailRow("Година:", <p>{pawn.year}</p>));
-        } else if (category === 'Gold') {
-            catSpecific.push(pawnDetailRow("Тип:", <p>{pawn.type}</p>));
-            catSpecific.push(pawnDetailRow("Тежина во грам:", isEditing
-                ? <input type="number" step="0.001" defaultValue={pawn.weight} onChange={e => editPawn.current.goldGramsDiff = Number((Number(e.target.value) - (pawn.weight ?? 0)).toFixed(3))} className={detailInput} />
-                : <p>{Number(pawn.weight).toLocaleString("de-DE")}</p>));
-            catSpecific.push(pawnDetailRow("Каратажа:", <p>{pawn.carats}</p>));
-            catSpecific.push(pawnDetailRow("Цена по грам:", <p>{Number(Math.round(pawn.price_pawned / (pawn.weight ?? 1))).toLocaleString("de-DE")}</p>));
+        if (category === 'Gold') {
+            const g = item as GoldItemDetailed;
+            return [
+                { label: "Тип на предмет:", value: <p>{g.pieceType}</p> },
+                { label: "Каратажа:", value: <p>{g.carats.split('_')[1]}</p> },
+                { label: "Тежина (г):", value: isEditing
+                    ? <input type="number" step="0.001" defaultValue={g.weightGrams} onChange={e => { editRef.current.goldGramsDiff = Number((Number(e.target.value) - Number(g.weightGrams)).toFixed(3)); }} className={inp} />
+                    : <p>{Number(g.weightGrams).toLocaleString("de-DE")}</p> },
+                { label: "Цена по грам:", value: <p>{Number(g.pricePerGram).toLocaleString("de-DE")}</p> },
+                ...common,
+            ];
         }
-
-        return [...catSpecific, ...common];
+        if (category === 'Electronics') {
+            const e = item as ElectronicItemDetailed;
+            return [
+                { label: "Бренд:", value: <p>{e.brand}</p> },
+                { label: "Категорија:", value: <p>{e.category}</p> },
+                { label: "Година:", value: <p>{e.year}</p> },
+                ...common,
+            ];
+        }
+        if (category === 'Watch') {
+            const w = item as WatchItemDetailed;
+            return [
+                { label: "Бренд:", value: <p>{w.brand}</p> },
+                { label: "Модел:", value: <p>{w.model}</p> },
+                { label: "Материјал:", value: <p>{w.material}</p> },
+                { label: "Година:", value: <p>{w.year}</p> },
+                { label: "Оригинална кутија:", value: bool(w.originalBoxIncluded) },
+                { label: "Оригинална документ.:", value: bool(w.originalPapersIncluded) },
+                { label: "Гарантна карта:", value: bool(w.warrantyCardIncluded) },
+                { label: "Истек на гаранција:", value: dateStr(w.warrantyExpirationDate) },
+                { label: "Функционален:", value: bool(w.functional) },
+                { label: "Потребен сервис:", value: bool(w.serviceRequired) },
+                ...common,
+            ];
+        }
+        if (category === 'Vehicle') {
+            const v = item as VehicleItemDetailed;
+            return [
+                { label: "Бренд:", value: <p>{v.brand}</p> },
+                { label: "Модел:", value: <p>{v.model}</p> },
+                { label: "Година:", value: <p>{v.year}</p> },
+                { label: "Рег. таблица:", value: <p>{v.registrationNumber}</p> },
+                { label: "Тип на возило:", value: <p>{v.vehicleType}</p> },
+                { label: "Километража:", value: <p>{Number(v.mileage).toLocaleString("de-DE")} км</p> },
+                { label: "Историја сервис:", value: bool(v.serviceHistoryAvailable) },
+                { label: "Последен сервис:", value: dateStr(v.lastServiceDate) },
+                { label: "Истек регистрација:", value: dateStr(v.registrationExpiryDate) },
+                { label: "Број на клучеви:", value: <p>{v.numberOfKeys}</p> },
+                ...common,
+            ];
+        }
+        const o = item as OtherItemDetailed;
+        return [
+            { label: "Категорија:", value: <p>{o.category}</p> },
+            ...common,
+        ];
     };
 
-    const actionBtnClass = "flex items-center gap-4 rounded px-8 py-2 text-xl text-white w-max transition-all duration-400 hover:scale-105 shadow-[0_2px_8px_rgba(0,0,0,0.3)] disabled:cursor-not-allowed disabled:opacity-40";
+    const actionBtn = "flex items-center gap-4 rounded px-8 py-2 text-xl text-white w-max transition-all duration-400 hover:scale-105 shadow-[0_2px_8px_rgba(0,0,0,0.3)] disabled:cursor-not-allowed disabled:opacity-40";
+
+    const FieldList = ({ fields }: { fields: Field[] }) => (
+        <div className="grid grid-cols-3 gap-x-8 gap-y-1">
+            {fields.map(({ label, value }) => (
+                <span key={label} className="flex flex-col font-medium">
+                    <p className="font-normal text-[#666] text-xs">{label}</p>
+                    {value}
+                </span>
+            ))}
+        </div>
+    );
 
     return ReactDom.createPortal(
         <>
             <div className="fixed inset-0 bg-black/70 z-[1000]" />
-            <div className="flex flex-col items-center fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#eee] z-[1000] p-4 pb-8 px-8 rounded-lg min-w-fit max-w-[90%]">
+            <div className="flex flex-col items-center fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#eee] z-[1000] p-4 pb-8 px-8 rounded-lg min-w-fit max-w-[92%] max-h-[90vh] overflow-y-auto scrollbar-thin">
                 <X size={32} className="ml-auto close-x-btn" onClick={closeModal as any} />
                 {!modalPrintDocument ? (
                     <>
-                        <div className="flex w-full justify-around items-stretch" style={{ gap: isEditing ? '4rem' : '0' }}>
-                            {/* Client */}
-                            <div className="flex flex-col gap-4">
-                                <div className="flex items-center gap-2 text-2xl font-semibold">
-                                    <UserRound size={32} />
-                                    {client.name} <span className="text-base font-normal mt-1">({client.date_joined.split("T")[0]})</span>
+                        <div className="flex w-full justify-around items-start gap-10">
+                            {/* Customer */}
+                            <div className="flex flex-col gap-3 min-w-56">
+                                <div className="flex items-start gap-2 text-2xl font-semibold">
+                                    <UserRound size={28} className="mt-1 shrink-0" />
+                                    <div>
+                                        <p>{customer.name}</p>
+                                        <p className="text-xs font-normal text-[#666]">Клиент од {String(pawn.createdAt).substring(0, 10)}</p>
+                                    </div>
                                 </div>
                                 <div className="flex flex-col gap-1">
-                                    {[['Шифра на клиент:', String(client.id)], ['Ембг:', client.embg], ['Телефон 1:', client.telephone]].map(([lbl, val]) => (
-                                        <span key={lbl} className="flex flex-col gap-0 font-medium">
-                                            <p className="font-normal text-[#666] -ml-1">{lbl}</p>
+                                    {([
+                                        ["ЕМБГ:", customer.embg],
+                                        ["Телефон 1:", customer.phoneNumber],
+                                        ...(customer.reservePhoneNumber ? [["Телефон 2:", customer.reservePhoneNumber]] : []),
+                                        ["Адреса:", customer.address],
+                                        ["Град:", customer.city],
+                                    ] as [string, string][]).map(([lbl, val]) => (
+                                        <span key={lbl} className="flex flex-col font-medium">
+                                            <p className="font-normal text-[#666] text-xs">{lbl}</p>
                                             <p>{val}</p>
                                         </span>
                                     ))}
-                                    {client.telephone_2 && client.telephone_2.trim() !== "" && (
-                                        <span className="flex flex-col gap-0 font-medium">
-                                            <p className="font-normal text-[#666] -ml-1">Телефон 2:</p>
-                                            <p>{client.telephone_2}</p>
-                                        </span>
-                                    )}
-                                    <span className="flex flex-col gap-0 font-medium">
-                                        <p className="font-normal text-[#666] -ml-1">Град:</p>
-                                        <p>{client.city}</p>
+                                    <span className="flex flex-col font-medium">
+                                        <p className="font-normal text-[#666] text-xs">Ниво на ризик:</p>
+                                        <p className={risk.cls}>{risk.label}</p>
                                     </span>
                                 </div>
-                            </div>
-                            <div className="w-px bg-black/20 rounded-full" />
-                            {/* Pawn */}
-                            <div className="flex flex-col gap-4">
-                                <div className="flex items-center gap-2 text-2xl font-semibold">
-                                    {getCatIcon[category]}{getCat[category]}
+                                <div className="border-t border-black/20 pt-2 flex flex-col gap-1">
+                                    <p className="text-xs font-semibold text-[#444] mb-1">Статистики</p>
+                                    {([
+                                        ["Вкупно залози:", customer.totalPawnCount],
+                                        ["Вкупно продажби:", customer.totalSaleCount],
+                                        ["Навремени продолж.:", customer.onTimeRenewalCount],
+                                        ["Доцни продолж.:", customer.lateRenewalCount],
+                                        ["Просечно задоцн. (ден.):", Number(customer.avgDaysLate ?? 0).toFixed(1)],
+                                        ["Подигања:", customer.redeemCount],
+                                        ["Запленувања:", customer.forfeitCount],
+                                    ] as [string, string | number][]).map(([lbl, val]) => (
+                                        <div key={lbl} className="flex justify-between gap-4">
+                                            <p className="text-xs text-[#666]">{lbl}</p>
+                                            <p className="text-xs font-semibold">{val}</p>
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className="grid gap-1 gap-x-8 [grid-auto-flow:column] [grid-template-rows:repeat(4,max-content)] w-max">
-                                    {renderDetails()}
+                            </div>
+
+                            <div className="w-px bg-black/20 rounded-full self-stretch" />
+
+                            {/* Pawn + Item */}
+                            <div className="flex flex-col gap-4 flex-1">
+                                <div className="flex items-center gap-2 text-2xl font-semibold">
+                                    {CAT_ICON[category]} {CAT_LABEL[category]}
+                                </div>
+                                <div className="flex flex-col gap-2 ">
+                                    <p className="text-sm underline font-bold text-[#444]">Залог</p>
+                                    <FieldList fields={pawnFields} />
+                                </div>
+                                <div className="flex flex-col gap-2 border-t border-black/20 pt-2">
+                                    <p className="text-sm underline font-bold text-[#444]">Предмет</p>
+                                    <FieldList fields={itemFields()} />
                                 </div>
                             </div>
                         </div>
+
                         <div className="flex gap-8 mt-8">
                             {isEditing ? (
                                 <div className="flex gap-4 items-center">
-                                    <button disabled={isLoading} className={`${actionBtnClass} bg-[#444]`} onClick={() => { editPawn.current = { pricePawned: pawn.price_pawned, provision: pawn.provision, description: pawn.description, goldGramsDiff: 0, totalDays: pawn.total_days }; setIsEditing(false); }}>
+                                    <button disabled={isLoading} className={`${actionBtn} bg-[#444]`} onClick={cancelEdit}>
                                         <ArrowLeft size={32} /> Врати се назад
                                     </button>
-                                    <button disabled={isLoading} className={`${actionBtnClass} bg-green`} onClick={handleUpdatePawn}>
+                                    <button disabled={isLoading} className={`${actionBtn} bg-green`} onClick={handleUpdatePawn}>
                                         <Check size={32} /> Потврди промени
                                     </button>
                                     {isLoading && <Loading width={40} height={40} />}
                                 </div>
                             ) : (
                                 <>
-                                    <button className={`${actionBtnClass} bg-[#444]`} onClick={() => { closePawn(); closeModal({} as any); }}><X size={32} /> Затвори Залог</button>
-                                    <button className={`${actionBtnClass} bg-cta`} onClick={() => { continuePawn(); closeModal({} as any); }}><RotateCcw size={32} /> Продолжи Залог</button>
-                                    <button className={`${actionBtnClass} bg-green`} onClick={() => { movePawnToSale(); closeModal({} as any); }}><Euro size={32} /> Премести Залог во Продажба</button>
+                                    <button className={`${actionBtn} bg-[#444]`} onClick={() => { closePawn(); closeModal({} as any); }}><X size={32} /> Затвори Залог</button>
+                                    <button className={`${actionBtn} bg-cta`} onClick={() => { continuePawn(); closeModal({} as any); }}><RotateCcw size={32} /> Продолжи Залог</button>
+                                    <button className={`${actionBtn} bg-green`} onClick={() => { movePawnToSale(); closeModal({} as any); }}><Euro size={32} /> Премести Залог во Продажба</button>
                                     <UserPen size={40} color="#444" className="cursor-pointer transition-all duration-400 hover:scale-110" onClick={() => setIsEditing(true)} />
                                     <Printer size={40} color="#444" className="cursor-pointer transition-all duration-400 hover:scale-110" onClick={() => setModalPrintDocument(true)} />
                                 </>
@@ -247,13 +274,13 @@ export default function ModalReadMorePawn({ category, pawnInfo, closeModal, clos
                 ) : (
                     <>
                         <div style={{ height: "0px", overflow: "hidden" }}>
-                            <DogovorZaZaem ref={hiddenDocRefLoan} fullName={client.name} city={client.city} address={clientAddress} embg={client.embg} idCard={idCard} telephone={client.telephone} moneyGiven={pawn.price_pawned} pawnDays={pawn.total_days} dateFrom={pawn.date_from.substring(0, 10)} dateTo={pawn.date_to.substring(0, 10)} />
+                            <DogovorZaZaem ref={hiddenDocRefLoan} fullName={customer.name} city={customer.city} address={clientAddress} embg={customer.embg} idCard={idCard} telephone={customer.phoneNumber} moneyGiven={pawn.amount} pawnDays={pawn.defaultDurationDays} dateFrom={String(pawn.issueDate).substring(0, 10)} dateTo={String(pawn.maturityDate).substring(0, 10)} />
                         </div>
                         <div style={{ height: "0px", overflow: "hidden" }}>
-                            <DogovorZaRacenZalog ref={hiddenDocRefPawn} fullName={client.name} city={client.city} address={clientAddress} embg={client.embg} idCard={idCard} telephone={client.telephone} moneyGiven={pawn.price_pawned} pawnDays={pawn.total_days} dateFrom={pawn.date_from.substring(0, 10)} dateTo={pawn.date_to.substring(0, 10)} pawnInfo={pawnDescription} />
+                            <DogovorZaRacenZalog ref={hiddenDocRefPawn} fullName={customer.name} city={customer.city} address={clientAddress} embg={customer.embg} idCard={idCard} telephone={customer.phoneNumber} moneyGiven={pawn.amount} pawnDays={pawn.defaultDurationDays} dateFrom={String(pawn.issueDate).substring(0, 10)} dateTo={String(pawn.maturityDate).substring(0, 10)} pawnInfo={pawnDescription} />
                         </div>
                         <div style={{ height: "0px", overflow: "hidden" }}>
-                            <AneksDogovorZaZaem ref={hiddenDocRefAnnexLoan} fullName={client.name} city={client.city} address={clientAddress} embg={client.embg} idCard={idCard} telephone={client.telephone} moneyGiven={pawn.price_pawned} pawnDays={pawn.total_days} dateFrom={pawn.date_from.substring(0, 10)} dateTo={pawn.date_to.substring(0, 10)} />
+                            <AneksDogovorZaZaem ref={hiddenDocRefAnnexLoan} fullName={customer.name} city={customer.city} address={clientAddress} embg={customer.embg} idCard={idCard} telephone={customer.phoneNumber} moneyGiven={pawn.amount} pawnDays={pawn.defaultDurationDays} dateFrom={String(pawn.issueDate).substring(0, 10)} dateTo={String(pawn.maturityDate).substring(0, 10)} />
                         </div>
                         <form className="flex flex-col gap-1 mt-4">
                             <span className="flex flex-row gap-4 items-center text-xl">
@@ -278,8 +305,8 @@ export default function ModalReadMorePawn({ category, pawnInfo, closeModal, clos
                                 <input onChange={e => setIdCard(e.target.value)} className="text-base p-1 border-2 border-green rounded" />
                             </span>
                             <div className="flex gap-8 mt-4">
-                                <button onClick={() => setModalPrintDocument(false)} className={`${actionBtnClass} bg-[#444]`}><ArrowLeft size={32} /> Врати се назад</button>
-                                <button type="button" className={`${actionBtnClass} bg-green`} onClick={() => {
+                                <button type="button" onClick={() => setModalPrintDocument(false)} className={`${actionBtn} bg-[#444]`}><ArrowLeft size={32} /> Врати се назад</button>
+                                <button type="button" className={`${actionBtn} bg-green`} onClick={() => {
                                     (async () => {
                                         try {
                                             if (whichDocToPrint === "insert") {

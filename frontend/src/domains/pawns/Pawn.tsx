@@ -5,8 +5,7 @@ import ModalShowMessagePawn from "./ModalShowMessagePawn.tsx";
 import ModalReadMorePawn from "./ModalReadMorePawn.tsx";
 import Loading from "../../shared/components/Loading.tsx";
 import ModalActions from "../../shared/components/ModalActions.tsx";
-import { PawnRow, PawnInfo } from "./types.ts";
-import { ClientRecord } from "../../shared/types.ts";
+import { PawnRow, PawnDetailed } from "./types.ts";
 import { API_BASE } from "../../shared/api/config.ts";
 
 interface Props {
@@ -24,36 +23,22 @@ const getCat: Record<string, string> = {
     Other: "Останато",
 };
 
-function mapDetailedToPawnInfo(r: any, daysLeft: number): PawnInfo {
-    const item = r.item ?? {};
-    const customer = r.customer ?? {};
-    const pawn = {
+function mapToPawnDetailed(r: any, daysLeft: number): PawnDetailed {
+    return {
         id: r.id,
-        description: item.description ?? '',
-        price_pawned: r.amount,
-        provision: r.interest,
-        price_to_redeem: r.amount + r.interest,
-        total_days: r.defaultDurationDays,
-        date_from: r.issueDate ?? '',
-        date_to: r.maturityDate ?? '',
-        'Days Left': daysLeft,
-        brand: item.brand,
-        model: item.model,
-        year: item.year,
-        weight: item.weightGrams !== undefined ? Number(item.weightGrams) : undefined,
-        carats: item.carats,
-        type: item.pieceType,
+        amount: r.amount,
+        interest: r.interest,
+        issueDate: r.issueDate ?? '',
+        maturityDate: r.maturityDate ?? '',
+        defaultDurationDays: r.defaultDurationDays,
+        status: r.status ?? '',
+        active: r.active ?? true,
+        createdAt: r.createdAt ?? '',
+        updatedAt: r.updatedAt ?? '',
+        customer: r.customer ?? {},
+        item: r.item ?? {},
+        daysLeft,
     };
-    const client: ClientRecord = {
-        id: 0,
-        name: customer.name ?? '',
-        embg: customer.embg ?? '',
-        telephone: customer.phoneNumber ?? '',
-        telephone_2: customer.reservePhoneNumber ?? '',
-        city: customer.city ?? '',
-        date_joined: r.createdAt ?? '',
-    };
-    return { pawn, client, 'Days Left': daysLeft };
 }
 
 export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
@@ -61,7 +46,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
     const [modalReadMore, setModalReadMore] = useState(false);
     const [successMsg, setSuccessMsg] = useState("");
     const [infoMsg, setInfoMsg] = useState("");
-    const [pawnInfo, setPawnInfo] = useState<PawnInfo | null>(null);
+    const [pawnDetailed, setPawnDetailed] = useState<PawnDetailed | null>(null);
     const [loading, setLoading] = useState(false);
     const [modalClosePawn, setModalClosePawn] = useState(false);
     const [modalContinuePawn, setModalContinuePawn] = useState(false);
@@ -102,13 +87,13 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
     };
 
     useEffect(() => {
-        if (pawnInfo != null) setModalReadMore(true);
-    }, [pawnInfo]);
+        if (pawnDetailed != null) setModalReadMore(true);
+    }, [pawnDetailed]);
 
     const fetchPawn = (_clientId: number, _category: string, pawnId: number) => {
         setLoading(true);
         axios.get(`${API_BASE}/pawns/${pawnId}`)
-            .then(res => setPawnInfo(mapDetailedToPawnInfo(res.data, pawn["Days Left"])))
+            .then(res => setPawnDetailed(mapToPawnDetailed(res.data, pawn["Days Left"])))
             .catch(error => console.error("Error fetching pawn:", error))
             .finally(() => setLoading(false));
     };
@@ -117,7 +102,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
 
     return (
         <div style={{ background: isOdd ? "#f0f0f0" : "#ffffff" }} className={`grid place-items-center text-center ${cols} border-b border-black/20 svg-hover`}>
-            <p className="text-xs">{pawn["Client Id"]}</p>
+            <p className="text-xs">{pawn.Id}</p>
             <p className={`text-xs font-semibold ${pawn["Days Left"] < 0 ? "text-red-500" : ""}`}>{pawn.Name.toUpperCase()}</p>
             <p className="text-xs">{getCat[pawn.Category]}</p>
             <p className="text-xs">{pawn.About}</p>
@@ -183,15 +168,14 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
                 />
             )}
 
-            {modalReadMore && pawnInfo && (
+            {modalReadMore && pawnDetailed && (
                 <ModalReadMorePawn
-                    category={pawn.Category}
-                    pawnInfo={pawnInfo}
+                    pawnDetailed={pawnDetailed}
                     closeModal={(e: React.MouseEvent) => { e.stopPropagation(); setModalReadMore(false); }}
                     closePawn={() => setModalClosePawn(true)}
                     continuePawn={() => setModalContinuePawn(true)}
                     movePawnToSale={() => movePawnToSale(pawn.Id, pawn.Category)}
-                    oldPawn={pawn}
+                    oldPawnRow={pawn}
                     refreshCashReg={refreshCashReg}
                 />
             )}

@@ -38,13 +38,13 @@ export default function Pawns() {
         refreshDependency, refreshCashRegDependency,
     } = usePawns();
 
-    const inputClass = "border-none rounded text-sm font-medium w-1/5 p-2 shadow-[0_0_8px_rgba(0,0,0,0.2)]";
+    const inputClass = "border-none rounded text-xs font-medium px-2 py-2 w-full shadow-sm";
 
     return (
         <div className="h-screen grid grid-cols-[max(15%,240px)_auto]">
             <Nav />
             <div className="flex flex-col px-8 pt-2 gap-3 flex-1 overflow-hidden">
-                <div className="flex justify-between w-full">
+                <div className="flex justify-between w-full gap-6">
                     <select
                         className={inputClass}
                         style={{ color: searchByCategory === "" ? "#888" : "#000" }}
@@ -57,7 +57,7 @@ export default function Pawns() {
                     <input className={inputClass} type="search" placeholder="Пребарувај по ембг" onChange={e => setSearchByEmbg(e.target.value)} />
                     <input className={inputClass} type="search" placeholder="Пребарувај по телефон" onChange={e => setSearchByTel(e.target.value)} />
                     <button
-                        className="flex items-center gap-2 bg-green h-fit text-white rounded px-5 py-2 text-sm shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 group"
+                        className="flex items-center gap-2 bg-green h-full text-white rounded px-5 py-2 whitespace-nowrap text-xs font-semibold shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 group"
                         onClick={() => setModalAddNewPawn(true)}
                     >
                         <Plus size={16} color="white" strokeWidth={3} className="transition-transform duration-500 group-hover:rotate-90" />
