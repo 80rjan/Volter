@@ -5,6 +5,6 @@ import jakarta.validation.constraints.NotNull;
 
 public record PawnRedemptionRequest(
         @NotNull(message = "Paid amount in request needed") Integer paidAmount,
-        @NotBlank(message = "Transaction description in request needed") String transactionDescription
+        String transactionDescription
 ) {
 }

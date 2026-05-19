@@ -316,24 +316,24 @@ class PawnServiceTest {
     void testGetAllMaturingWithinDays_Success() {
         LocalDate expectedDate = LocalDate.now().plusDays(7);
         List<Pawn> maturingPawns = List.of(pawn, mock(Pawn.class));
-        when(pawnRepository.findByPeriod_MaturityDateBefore(expectedDate)).thenReturn(maturingPawns);
+        when(pawnRepository.findByPeriod_MaturityDateBeforeOrEqual(expectedDate)).thenReturn(maturingPawns);
 
         List<Pawn> result = pawnService.getAllMaturingWithinDays(7);
 
         assertEquals(2, result.size());
-        verify(pawnRepository).findByPeriod_MaturityDateBefore(expectedDate);
+        verify(pawnRepository).findByPeriod_MaturityDateBeforeOrEqual(expectedDate);
     }
 
     @Test
     @DisplayName("getAllMaturingWithinDays() with 0 days should check today")
     void testGetAllMaturingWithinDays_ZeroDays() {
         LocalDate today = LocalDate.now();
-        when(pawnRepository.findByPeriod_MaturityDateBefore(today)).thenReturn(List.of(pawn));
+        when(pawnRepository.findByPeriod_MaturityDateBeforeOrEqual(today)).thenReturn(List.of(pawn));
 
         List<Pawn> result = pawnService.getAllMaturingWithinDays(0);
 
         assertEquals(1, result.size());
-        verify(pawnRepository).findByPeriod_MaturityDateBefore(today);
+        verify(pawnRepository).findByPeriod_MaturityDateBeforeOrEqual(today);
     }
 
     // ========== GET BY CUSTOMER ID TESTS ==========

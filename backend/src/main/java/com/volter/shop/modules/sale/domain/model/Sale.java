@@ -83,7 +83,7 @@ public class Sale {
     private Item item;
 
     @Builder.Default
-    @OneToMany(mappedBy = "sale", cascade = {CascadeType.PERSIST}, orphanRemoval = false)
+    @OneToMany(mappedBy = "sale", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
     private List<SaleTransaction> transactions = new ArrayList<>();
 
     @PrePersist

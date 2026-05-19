@@ -59,7 +59,7 @@ public class Expense {
     private Staff staff;
 
     @Builder.Default
-    @OneToMany(mappedBy = "expense", cascade = {CascadeType.PERSIST}, orphanRemoval = false)
+    @OneToMany(mappedBy = "expense", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
     private List<ExpenseTransaction> transactions = new ArrayList<>();
 
     @PrePersist

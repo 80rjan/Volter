@@ -105,7 +105,7 @@ public class Pawn {
     private Item item;
 
     @Builder.Default
-    @OneToMany(mappedBy = "pawn", cascade = {CascadeType.PERSIST}, orphanRemoval = false, fetch = FetchType.LAZY)       // immutable, no update
+    @OneToMany(mappedBy = "pawn", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false, fetch = FetchType.LAZY)
     private List<PawnTransaction> transactions = new ArrayList<>();
 
     @Builder.Default

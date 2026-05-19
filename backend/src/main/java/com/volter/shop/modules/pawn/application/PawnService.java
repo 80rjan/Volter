@@ -83,7 +83,7 @@ public class PawnService {
     @Transactional
     public List<Pawn> getAllMaturingWithinDays(int days) {
         LocalDate date = LocalDate.now().plusDays(days);
-        return pawnRepository.findByPeriod_MaturityDateBefore(date);
+        return pawnRepository.findByPeriod_MaturityDateBeforeOrEqual(date);
     }
 
     /**

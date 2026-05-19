@@ -78,7 +78,7 @@ public class CashRegisterSession {
     private CashRegisterSessionDiscrepancyType discrepancyType;
 
     @Builder.Default
-    @OneToMany(mappedBy = "cashRegisterSession", cascade = CascadeType.PERSIST, orphanRemoval = false)
+    @OneToMany(mappedBy = "cashRegisterSession", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
     private List<Transaction> transactions = new ArrayList<>();     // todo: transactions aggregate? no transaction cash reg
 
     @NotNull(message = "Cash register session cash register is required")
@@ -160,7 +160,7 @@ public class CashRegisterSession {
                 .build();
         this.transactions.add(transaction);
 
-        return new CashRegisterSessionCloseResult(this.discrepancy, this.discrepancyType);    // return discrepancy and its direction to know if there is a cash shortage or overage in the session and create a alert
+        return new CashRegisterSessionCloseResult(this.discrepancy, this.discrepancyType, transaction);    // return discrepancy and its direction to know if there is a cash shortage or overage in the session and create a alert
     }
 
     public void withdraw(Money amount, String transactionDescription) {

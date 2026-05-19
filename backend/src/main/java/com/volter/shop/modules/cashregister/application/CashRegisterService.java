@@ -1,5 +1,11 @@
 package com.volter.shop.modules.cashregister.application;
 
+import com.volter.shop.modules.alert.application.RiskAlertService;
+import com.volter.shop.modules.alert.domain.RiskAlert;
+import com.volter.shop.modules.alert.domain.enums.RiskAlertSeverity;
+import com.volter.shop.modules.alert.domain.enums.RiskAlertType;
+import com.volter.shop.modules.cashregister.application.dto.CashRegisterSessionCloseResult;
+import com.volter.shop.modules.cashregister.domain.model.enums.CashRegisterSessionDiscrepancyType;
 import com.volter.shop.modules.cashregister.web.request.CashRegisterSessionCloseRequest;
 import com.volter.shop.modules.cashregister.web.request.CashRegisterSessionDepositRequest;
 import com.volter.shop.modules.cashregister.web.request.CashRegisterSessionOpenRequest;
@@ -22,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +41,12 @@ public class CashRegisterService {
     @Lazy
     @Autowired
     private PawnService pawnService;
+    @Autowired
+    private RiskAlertService riskAlertService;
+
+    public List<CashRegister> getAll() {
+        return cashRegisterRepository.findAll();
+    }
 
     @Transactional
     public CashRegister getById(Long id) {
@@ -112,9 +125,29 @@ public class CashRegisterService {
         Staff staff = staffService.getCurrentStaff();
 
         CashRegisterSession session = getOpenSessionByStaff(staff.getId());
-        session.close(new Money(request.closingBalance()), staff);
+        CashRegisterSessionCloseResult closeResult = session.close(new Money(request.closingBalance()), staff);
 
-        return cashRegisterSessionRepository.save(session);
+        CashRegisterSession resultSession = cashRegisterSessionRepository.saveAndFlush(session);  // flush forces persist() on closeTransaction so its ID is set before risk alert references it
+        
+        if (!closeResult.discrepancyType().equals(CashRegisterSessionDiscrepancyType.NONE)) {
+            RiskAlert riskAlert = RiskAlert.builder()
+                    .type(RiskAlertType.CASH_REGISTER_DISCREPANCY)
+                    .severity(RiskAlertSeverity.MEDIUM)
+                    .metadata(Map.of(
+                            "sessionId", session.getId(),
+                            "staffId", staff.getId(),
+                            "discrepancyAmount", closeResult.discrepancy().amount(),
+                            "discrepancyType", closeResult.discrepancyType().name()
+                    ))
+                    .summary("Cash register session closed with discrepancy")
+                    .transaction(closeResult.closeTransaction())
+                    .manager(staff.getManager() == null ? staff : staff.getManager())        // if null then manager did it himself
+                    .build();
+
+            riskAlertService.save(riskAlert);
+        }
+
+        return resultSession;
     }
 
     @Transactional

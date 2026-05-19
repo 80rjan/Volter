@@ -14,8 +14,8 @@ public interface PawnRepository extends JpaRepository<Pawn, Long>,
 
     List<Pawn> findByCustomer_Id(Long customerId);
 
-    @Query("SELECT p FROM Pawn p WHERE p.period.maturityDate <= :date")
-    List<Pawn> findByPeriod_MaturityDateBefore(@Param("date") LocalDate date);
+    @Query("SELECT p FROM Pawn p WHERE p.period.maturityDate <= :date AND p.active = true")
+    List<Pawn> findByPeriod_MaturityDateBeforeOrEqual(@Param("date") LocalDate date);
 
     @Query("SELECT COUNT(p) FROM Pawn p WHERE MONTH(p.createdAt) = :month AND YEAR(p.createdAt) = :year")
     Integer countByMonthAndYear(@Param("month") Integer month, @Param("year") Integer year);
