@@ -1,38 +1,18 @@
 package com.volter.shop.modules.inventory.infrastructure.mapper;
 
-import com.volter.shop.modules.inventory.web.response.baseitem.ItemResponseData;
-import com.volter.shop.modules.inventory.web.response.types.electronic.ElectronicItemResponseData;
-import com.volter.shop.modules.inventory.web.response.types.gold.GoldItemResponseData;
-import com.volter.shop.modules.inventory.web.response.types.other.OtherItemResponseData;
-import com.volter.shop.modules.inventory.web.response.types.vehicle.VehicleItemResponseData;
-import com.volter.shop.modules.inventory.web.response.types.watch.WatchItemResponseData;
+import com.volter.shop.modules.inventory.application.dto.ItemResponse;
+import com.volter.shop.modules.inventory.application.dto.ItemStatusHistoryResponse;
 import com.volter.shop.modules.inventory.domain.model.Item;
-import com.volter.shop.modules.inventory.domain.model.types.*;
+import com.volter.shop.modules.inventory.domain.model.ItemStatusHistory;
 import org.mapstruct.Mapper;
-import org.mapstruct.Named;
-import org.mapstruct.SubclassExhaustiveStrategy;
-import org.mapstruct.SubclassMapping;
+import org.mapstruct.Mapping;
 
-@Mapper(
-        componentModel = "spring",
-        subclassExhaustiveStrategy = SubclassExhaustiveStrategy.RUNTIME_EXCEPTION
-)
-public abstract class ItemMapper {
+@Mapper(componentModel = "spring")
+public interface ItemMapper {
 
-    @SubclassMapping(source = GoldItem.class,       target = GoldItemResponseData.class)
-    @SubclassMapping(source = ElectronicItem.class, target = ElectronicItemResponseData.class)
-    @SubclassMapping(source = WatchItem.class,      target = WatchItemResponseData.class)
-    @SubclassMapping(source = VehicleItem.class,    target = VehicleItemResponseData.class)
-    @SubclassMapping(source = OtherItem.class,      target = OtherItemResponseData.class)
-    @Named("toBaseResponse")
-    public abstract ItemResponseData toResponseData(Item item);
+    ItemResponse toResponse(Item item);
 
-    public abstract GoldItemResponseData       toGoldResponseData(GoldItem item);
-    public abstract ElectronicItemResponseData toElectronicResponseData(ElectronicItem item);
-    public abstract WatchItemResponseData      toWatchResponseData(WatchItem item);
-    public abstract VehicleItemResponseData    toVehicleResponseData(VehicleItem item);
-    public abstract OtherItemResponseData      toOtherResponseData(OtherItem item);
-
+    @Mapping(target = "itemId", source = "history.item.id")
+    @Mapping(target = "changedByStaffName", source = "changedByStaffName")
+    ItemStatusHistoryResponse toResponse(ItemStatusHistory history, String changedByStaffName);
 }
-
-

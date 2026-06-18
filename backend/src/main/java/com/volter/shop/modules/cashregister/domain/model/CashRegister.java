@@ -1,37 +1,39 @@
 package com.volter.shop.modules.cashregister.domain.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import java.time.OffsetDateTime;
 
-@Builder
+/**
+ * A physical cash drawer/terminal in the shop. Money flows through it during
+ * {@link CashRegisterSession}s.
+ */
 @Entity
+@Table(name = "cash_register")
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Builder
 public class CashRegister {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "Cash register code is required")
-    @Column(nullable = false)
+    @NotBlank(message = "Cash register code is required")
+    @Column(name = "code", nullable = false, length = 64)
     private String code;
 
-    @NotNull(message = "Cash register created at is required")
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false)
+    private OffsetDateTime createdAt;
 
-    @OneToMany(mappedBy = "cashRegister", fetch = FetchType.LAZY)
-    private List<CashRegisterSession> sessions;
-
-    @PrePersist
-    public void onCreate() {
-        this.createdAt = LocalDateTime.now();
+    public static CashRegister create(String code) {
+        return CashRegister.builder()
+                .code(code)
+                .build();
     }
-
 }

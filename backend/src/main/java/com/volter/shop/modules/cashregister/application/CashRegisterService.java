@@ -1,176 +1,228 @@
 package com.volter.shop.modules.cashregister.application;
 
-import com.volter.shop.modules.alert.application.RiskAlertService;
-import com.volter.shop.modules.alert.domain.RiskAlert;
-import com.volter.shop.modules.alert.domain.enums.RiskAlertSeverity;
-import com.volter.shop.modules.alert.domain.enums.RiskAlertType;
-import com.volter.shop.modules.cashregister.application.dto.CashRegisterSessionCloseResult;
-import com.volter.shop.modules.cashregister.domain.model.enums.CashRegisterSessionDiscrepancyType;
-import com.volter.shop.modules.cashregister.web.request.CashRegisterSessionCloseRequest;
-import com.volter.shop.modules.cashregister.web.request.CashRegisterSessionDepositRequest;
-import com.volter.shop.modules.cashregister.web.request.CashRegisterSessionOpenRequest;
-import com.volter.shop.modules.cashregister.web.request.CashRegisterSessionWithdrawRequest;
-import com.volter.shop.modules.cashregister.domain.model.CashRegister;
-import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
-import com.volter.shop.modules.cashregister.infrastructure.CashRegisterRepository;
-import com.volter.shop.modules.cashregister.infrastructure.CashRegisterSessionRepository;
+import com.volter.shop.modules.cashregister.application.dto.*;
+import com.volter.shop.modules.cashregister.domain.model.*;
+import com.volter.shop.modules.cashregister.domain.model.enums.CashRegisterSessionStatus;
+import com.volter.shop.modules.cashregister.domain.repository.*;
+import com.volter.identity.modules.staff.application.StaffService;
+import com.volter.shop.modules.cashregister.domain.specification.CashRegisterSessionSpecification;
+import com.volter.shop.modules.cashregister.domain.specification.DiscrepancySpecification;
 import com.volter.shop.modules.pawn.application.PawnService;
-import com.volter.shop.modules.pawn.domain.model.Pawn;
-import com.volter.shop.shared.common.exceptions.ResourceNotFoundException;
-import com.volter.shop.modules.staff.domain.model.Staff;
-import com.volter.shop.modules.staff.application.StaffService;
+import com.volter.shop.modules.transaction.application.TransactionService;
+import com.volter.shop.modules.transaction.domain.model.Transaction;
+import com.volter.shop.modules.transaction.domain.model.enums.TransactionType;
 import com.volter.shop.shared.valueobject.Money;
+import com.volter.shared.web.exception.BusinessRuleException;
+import com.volter.shared.web.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CashRegisterService {
 
     private final CashRegisterRepository cashRegisterRepository;
-    private final CashRegisterSessionRepository cashRegisterSessionRepository;
+    private final CashRegisterSessionRepository sessionRepository;
+    private final CashRegisterTransactionRepository cashTxRepository;
+    private final CashRegisterSessionDiscrepancyRepository discrepancyRepository;
+    private final TransactionService transactionService;
+
+    // todo: fix this so that no lazy is needed and no bean cycle exists.
+    // @Lazy breaks the CashRegisterService <-> PawnService bean cycle: PawnService depends on
+    // CashRegisterService for the session-balance invariant (applyTransaction), and this one
+    // read-only call (openSession's expected-interest seed) is the only edge back. Inject a
+    // lazy proxy so the cycle is resolved on first use rather than at construction.
+    @Lazy
+    private final PawnService pawnService;
     private final StaffService staffService;
 
-    @Lazy
-    @Autowired
-    private PawnService pawnService;
-    @Autowired
-    private RiskAlertService riskAlertService;
+    // ----- registers -----
 
-    public List<CashRegister> getAll() {
+    /**
+     * List all cash registers.
+     */
+    @Transactional(readOnly = true)
+    public List<CashRegister> listRegisters() {
         return cashRegisterRepository.findAll();
     }
 
-    @Transactional
-    public CashRegister getById(Long id) {
-        return cashRegisterRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Cash register with ID " + id + " not found")
+    /**
+     * Create a new cash register, if code doesn't exist.
+     */
+    public CashRegister createRegister(CashRegisterCreateRequest request) {
+        if (cashRegisterRepository.existsByCode(request.code())) {
+            throw new BusinessRuleException("Cash register code already exists: " + request.code());
+        }
+        return cashRegisterRepository.save(CashRegister.create(request.code()));
+    }
+
+    // ----- sessions -----
+
+    /**
+     * List sessions operated by staff members below the manager in the management tree
+     * (recursive), narrowed by the filter.
+     */
+    @Transactional(readOnly = true)
+    public Page<CashRegisterSession> listSessions(Long managerStaffId, SessionFilterRequest filter, Pageable pageable) {
+        List<Long> staffIds = staffService.findSubordinateStaffIds(managerStaffId);
+        staffIds.add(managerStaffId); // include own sessions as well
+        return sessionRepository.findAll(
+                CashRegisterSessionSpecification.matches(filter)
+                        .and(CashRegisterSessionSpecification.staffIdIn(staffIds)),
+                pageable);
+    }
+
+    /**
+     * Get a cash register session by ID, throwing if not found.
+     * Only allow the staff member that operates the session to fetch it, or its manager in the management tree.
+     */
+    @Transactional(readOnly = true)
+    public CashRegisterSession getSession(Long id, Long staffId) {
+        CashRegisterSession session = loadSession(id);
+        if (!Objects.equals(session.getStaffId(), staffId) && !staffService.isManagerOf(staffId, session.getStaffId())) {
+            throw new AccessDeniedException("Cannot access session operated by another staff member");
+        }
+
+        return session;
+    }
+
+    /**
+     * Open a new cash register session for the given register.
+     * A register can only have one OPEN session at a time.
+     * Expected interest is calculated as the total interest amount of all pawn contracts due today.
+     */
+    public CashRegisterSession openSession(Long registerId, SessionOpenRequest request, Long staffId) {
+        CashRegister register = loadRegister(registerId);
+        sessionRepository.findByCashRegister_IdAndStatus(registerId, CashRegisterSessionStatus.OPEN)
+                .ifPresent(s -> { throw new BusinessRuleException("Cash register with id " + registerId + " already has an OPEN session"); });
+
+        Money expectedInterest = new Money(
+            pawnService.listDueInDays(0).stream().mapToInt(p -> p.getInterestAmount().amount()).sum()
         );
+
+        CashRegisterSession session = CashRegisterSession.open(register, staffId, request.openingBalance(), expectedInterest);
+        return sessionRepository.save(session);
     }
 
-    @Transactional
-    public CashRegisterSession getSessionById(Long id) {
-        return cashRegisterSessionRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Cash register session with ID " + id + " not found")
-        );
-    }
+    /**
+     * Close a cash register session for the given cash register.
+     * A register can have at most one OPEN session, which is the one to be closed.
+     * Only the staff member that has opened the session can close it.
+     * Closing balance is counted by the caller and provided in the request.
+     * If there is discrepancy between the counted closing balance and the expected, a discrepancy record is created and linked to the session.
+     */
+    public CashRegisterSession closeSession(Long registerId, SessionCloseRequest request, Long staffId) {
+        CashRegisterSession session = sessionRepository.findByCashRegister_IdAndStatus(registerId, CashRegisterSessionStatus.OPEN)
+                .orElseThrow(() -> new BusinessRuleException("No OPEN session found for cash register with id " + registerId));
 
-    @Transactional
-    public CashRegister getReferenceById(Long id) {
-        return cashRegisterRepository.getReferenceById(id);
-    }
+        if (!Objects.equals(session.getStaffId(), staffId)) {
+            throw new AccessDeniedException("Only the operator of the session can close it");
+        }
 
-    @Transactional
-    public CashRegister save(CashRegister cashRegister) {
-        return cashRegisterRepository.save(cashRegister);
-    }
-
-    @Transactional
-    public CashRegisterSession saveSession(CashRegisterSession session) {
-        return cashRegisterSessionRepository.save(session);
-    }
-
-    @Transactional
-    public CashRegisterSession getOpenSessionByStaff(Long staffId) {
-        CashRegisterSession session = cashRegisterSessionRepository.findOpenSessionByStaffId(staffId);
-        if (session == null) {
-            throw new ResourceNotFoundException("No open cash register session found for staff with ID " + staffId);
+        CashRegisterSessionDiscrepancy discrepancy = session.close(request.countedClosingBalance());
+        if (discrepancy != null) {
+            discrepancyRepository.save(discrepancy);
         }
         return session;
     }
 
-    @Transactional
-    public CashRegisterSession getOpenSessionByStaff() {
-        Staff staff = staffService.getCurrentStaff();
-        CashRegisterSession session = cashRegisterSessionRepository.findOpenSessionByStaffId(staff.getId());
-        if (session == null) {
-            throw new ResourceNotFoundException("No open cash register session found for staff with ID " + staff.getId());
+    // ----- manual cash register transactions -----
+
+    /**
+     * Record a cash register transaction (cash inflow or outflow) for a session.
+     * Cash register session is allowed to have negative balance, so no checks are made for that.
+     * Transactions cannot be recorded on a CLOSED session.
+     * The parent transaction is recorded, as well as the cash register transaction linked to it.
+     */
+    public CashRegisterTransaction recordTransaction(Long sessionId,
+                                                     CashRegisterTransactionRecordRequest request,
+                                                     Long staffId) {
+        CashRegisterSession session = loadSession(sessionId);
+        if (!session.isOpen()) {
+            throw new BusinessRuleException("Cannot record transaction on a closed session");
+        }
+        Transaction tx = transactionService.record(
+                staffId, session, TransactionType.CASH_REGISTER,
+                new Money(request.amount()), request.direction(), request.description());
+        applyTransaction(tx);
+        return cashTxRepository.save(CashRegisterTransaction.record(tx, request.action()));
+    }
+
+    /**
+     * Moves a recorded transaction's money through its cash register session balance.
+     */
+    public void applyTransaction(Transaction transaction) {
+        CashRegisterSession session = transaction.getCashRegisterSession();
+        if (transaction.isInflow()) {
+            session.deposit(transaction.getAmount());
+        } else {
+            session.withdraw(transaction.getAmount());
+        }
+    }
+
+    // ----- discrepancies -----
+
+    /**
+     * Discrepancies from sessions operated by staff below the given manager in the
+     * management tree (recursive), narrowed by the filter.
+     */
+    @Transactional(readOnly = true)
+    public Page<CashRegisterSessionDiscrepancy> listDiscrepancies(Long managerStaffId, DiscrepancyFilterRequest filter, Pageable pageable) {
+        List<Long> staffIds = staffService.findSubordinateStaffIds(managerStaffId);
+        staffIds.add(managerStaffId);    // include own sessions as well
+        return discrepancyRepository.findAll(
+                DiscrepancySpecification.matches(filter)
+                        .and(DiscrepancySpecification.staffIdIn(staffIds)),
+                pageable);
+    }
+
+    /**
+     * Resolve a cash register session discrepancy.
+     * Once resolved, the discrepancy is marked as such and cannot be modified further.
+     * The adjustment is made only by the manager of the staff member who made the discrepancy.
+     */
+    public CashRegisterSessionDiscrepancy resolveDiscrepancy(Long id, DiscrepancyResolveRequest request, Long staffId) {
+        CashRegisterSessionDiscrepancy discrepancy = discrepancyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Discrepancy not found: " + id));
+        if (discrepancy.isResolved()) {
+            throw new BusinessRuleException("Discrepancy is already resolved");
+        }
+
+        Long operatorStaffId = discrepancy.getSession().getStaffId();
+        if (!staffService.isManagerOf(staffId, operatorStaffId)) {
+            throw new AccessDeniedException("Only the manager of the staff member who caused the discrepancy can resolve it");
+        }
+
+        discrepancy.resolve(staffId, request.resolutionNote());
+        return discrepancy;
+    }
+
+    // ----- internal helpers used by other modules -----
+
+    public CashRegisterSession requireOpenSession(Long sessionId) {
+        CashRegisterSession session = loadSession(sessionId);
+        if (!session.isOpen()) {
+            throw new BusinessRuleException("Session " + sessionId + " is not OPEN");
         }
         return session;
     }
 
-    @Transactional
-    @PreAuthorize("hasAuthority(T(com.volter.identity.domain.model.enums.PermissionEnum)" +
-            ".CASH_REGISTER_SESSION_OPEN.permission)")
-    public CashRegisterSession openSession(CashRegisterSessionOpenRequest request) {
-        Staff staff = staffService.getCurrentStaff();
-
-        if (cashRegisterSessionRepository.existsByStaffIdAndStatusOpen(staff.getId()))
-            throw new IllegalStateException("Staff with ID " + staff.getId() + " already has an open cash register session");
-
-        CashRegister cashRegister = getById(request.cashRegisterId());
-        List<Pawn> maturingPawns = pawnService.getAllMaturingWithinDays(0);
-
-        CashRegisterSession session = CashRegisterSession.create(
-                new Money(request.openingBalance()),
-                cashRegister,
-                staff,
-                maturingPawns
-        );
-
-        return cashRegisterSessionRepository.save(session);
+    private CashRegister loadRegister(Long id) {
+        return cashRegisterRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cash register not found: " + id));
     }
 
-    @Transactional
-    @PreAuthorize("hasAuthority(T(com.volter.identity.domain.model.enums.PermissionEnum)" +
-            ".CASH_REGISTER_SESSION_CLOSE.permission)")
-    public CashRegisterSession closeSession(CashRegisterSessionCloseRequest request) {
-        Staff staff = staffService.getCurrentStaff();
-
-        CashRegisterSession session = getOpenSessionByStaff(staff.getId());
-        CashRegisterSessionCloseResult closeResult = session.close(new Money(request.closingBalance()), staff);
-
-        CashRegisterSession resultSession = cashRegisterSessionRepository.saveAndFlush(session);  // flush forces persist() on closeTransaction so its ID is set before risk alert references it
-        
-        if (!closeResult.discrepancyType().equals(CashRegisterSessionDiscrepancyType.NONE)) {
-            RiskAlert riskAlert = RiskAlert.builder()
-                    .type(RiskAlertType.CASH_REGISTER_DISCREPANCY)
-                    .severity(RiskAlertSeverity.MEDIUM)
-                    .metadata(Map.of(
-                            "sessionId", session.getId(),
-                            "staffId", staff.getId(),
-                            "discrepancyAmount", closeResult.discrepancy().amount(),
-                            "discrepancyType", closeResult.discrepancyType().name()
-                    ))
-                    .summary("Cash register session closed with discrepancy")
-                    .transaction(closeResult.closeTransaction())
-                    .manager(staff.getManager() == null ? staff : staff.getManager())        // if null then manager did it himself
-                    .build();
-
-            riskAlertService.save(riskAlert);
-        }
-
-        return resultSession;
-    }
-
-    @Transactional
-    @PreAuthorize("hasAuthority(T(com.volter.identity.domain.model.enums.PermissionEnum)" +
-            ".CASH_REGISTER_DEPOSIT.permission)")
-    public CashRegisterSession deposit(CashRegisterSessionDepositRequest request) {
-        Staff staff = staffService.getCurrentStaff();
-        CashRegisterSession cashRegisterSession = getOpenSessionByStaff(staff.getId());
-
-        cashRegisterSession.deposit(new Money(request.depositAmount()), request.transactionDescription());
-
-        return cashRegisterSessionRepository.save(cashRegisterSession);
-    }
-
-    @Transactional
-    @PreAuthorize("hasAuthority(T(com.volter.identity.domain.model.enums.PermissionEnum)" +
-            ".CASH_REGISTER_WITHDRAW.permission)")
-    public CashRegisterSession withdraw(CashRegisterSessionWithdrawRequest request) {
-        Staff staff = staffService.getCurrentStaff();
-        CashRegisterSession cashRegisterSession = getOpenSessionByStaff(staff.getId());
-
-        cashRegisterSession.withdraw(new Money(request.withdrawAmount()), request.transactionDescription());
-
-        return cashRegisterSessionRepository.save(cashRegisterSession);
+    private CashRegisterSession loadSession(Long id) {
+        return sessionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cash register session not found: " + id));
     }
 }

@@ -1,16 +1,14 @@
 package com.volter.shop.modules.expense.infrastructure.mapper;
 
-import com.volter.shop.modules.expense.web.response.ExpenseResponse;
+import com.volter.shop.modules.expense.application.dto.ExpenseResponse;
 import com.volter.shop.modules.expense.domain.model.Expense;
-import com.volter.shop.shared.valueobject.Money;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
-public abstract class ExpenseMapper {
+public interface ExpenseMapper {
 
-    public abstract ExpenseResponse toResponse(Expense expense);
-
-     protected Integer map(Money money) {
-        return money != null ? money.amount() : null;
-    }
+    @Mapping(target = "amount", expression = "java(expense.getAmount() == null ? null : expense.getAmount().amount())")
+    @Mapping(target = "staffName", source = "staffName")
+    ExpenseResponse toResponse(Expense expense, String staffName);
 }

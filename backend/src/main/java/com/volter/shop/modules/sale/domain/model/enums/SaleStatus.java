@@ -1,8 +1,7 @@
 package com.volter.shop.modules.sale.domain.model.enums;
 
 public enum SaleStatus {
-    LISTED,
+    AVAILABLE,
     SOLD,
-    CANCELLED,
-    REFUNDED
+    CANCELED
 }

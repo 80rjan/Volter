@@ -2,32 +2,47 @@ package com.volter.shop.modules.sale.domain.model;
 
 import com.volter.shop.modules.sale.domain.model.enums.SaleTransactionAction;
 import com.volter.shop.modules.transaction.domain.model.Transaction;
-import com.volter.shop.modules.transaction.domain.model.enums.TransactionCategory;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
+/**
+ * Subtype link giving a base {@link Transaction} its sale meaning, tying it to a
+ * {@link Sale} and the action that produced it (listing creation or the sale
+ * itself). One-to-one with the transaction.
+ */
 @Entity
-@DiscriminatorValue("SALE")
+@Table(name = "sale_transaction")
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@SuperBuilder
-public class SaleTransaction extends Transaction {
+@Builder
+public class SaleTransaction {
 
-    @NotNull(message = "Transaction action is required")
-    @Enumerated(EnumType.STRING)
-    @Column(name = "sale_action", nullable = true)
-    private SaleTransactionAction action;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sale_id", nullable = true, foreignKey = @ForeignKey(name = "fk_transaction_sale"))
+    @NotNull(message = "Transaction is required")
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "transaction_id", nullable = false, unique = true, foreignKey = @ForeignKey(name = "fk_sale_tx_transaction"))
+    private Transaction transaction;
+
+    @NotNull(message = "Sale is required")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "sale_id", nullable = false, foreignKey = @ForeignKey(name = "fk_sale_tx_sale"))
     private Sale sale;
 
-    @Override
-    public TransactionCategory getCategory() {
-        return TransactionCategory.SALE;
+    @NotNull(message = "Action is required")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "action", nullable = false)
+    private SaleTransactionAction action;
+
+    public static SaleTransaction record(Transaction transaction, Sale sale, SaleTransactionAction action) {
+        return SaleTransaction.builder()
+                .transaction(transaction)
+                .sale(sale)
+                .action(action)
+                .build();
     }
 }

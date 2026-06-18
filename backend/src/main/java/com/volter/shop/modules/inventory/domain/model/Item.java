@@ -1,89 +1,118 @@
 package com.volter.shop.modules.inventory.domain.model;
 
-import com.volter.shop.modules.inventory.web.request.baseitem.ItemModificationRequest;
 import com.volter.shop.modules.inventory.domain.model.enums.ItemOriginType;
 import com.volter.shop.modules.inventory.domain.model.enums.ItemStatus;
 import com.volter.shop.modules.inventory.domain.model.enums.ItemType;
-import com.volter.shop.modules.pawn.domain.model.Pawn;
-import com.volter.shop.modules.sale.domain.model.Sale;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.OffsetDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
+/**
+ * A physical item handled by the shop. A single table holds every item type;
+ * the type-specific data (carats, weight, brand, plate, ...) lives in the
+ * flexible {@code attributes} JSON column, keyed by {@link #type}.
+ */
 @Entity
+@Table(name = "item")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
-@SuperBuilder
-//@Table(
-//        indexes = {
-//                @Index(name = "idx_item_item_type", columnList = "item_type"),
-//                @Index(name = "idx_item_item_origin_type", columnList = "item_origin_type"),
-//                @Index(name = "idx_item_item_status", columnList = "item_status"),
-//                @Index(name = "idx_item_created_at_desc", columnList = "created_at DESC")
-//        }
-//)
-@Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "item_type")
+@AllArgsConstructor
+@Builder
 public class Item {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "Item type is required")
     @Enumerated(EnumType.STRING)
-    @Column(name = "item_type", insertable = false, updatable = false, nullable = false)
-    private ItemType itemType;
+    @Column(name = "type", nullable = false)
+    private ItemType type;
 
-    @NotNull(message = "Item origin type is required")
+    @NotNull(message = "Item origin is required")
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ItemOriginType itemOriginType;
+    @Column(name = "origin", nullable = false, length = 50)
+    private ItemOriginType origin;
 
     @NotNull(message = "Item status is required")
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ItemStatus itemStatus;
+    @Column(name = "status", nullable = false)
+    private ItemStatus status;
 
-    @NotBlank(message = "Item description is required")
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @NotNull(message = "Item creation timestamp is required")
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-    @NotNull(message = "Item update timestamp is required")
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
-
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "attributes", columnDefinition = "jsonb")
     @Builder.Default
-    @OneToMany(mappedBy = "item", cascade = {}, orphanRemoval = false)
-    private List<Pawn> pawns = new ArrayList<>();
+    private Map<String, Object> attributes = new HashMap<>();
 
-    @Builder.Default
-    @OneToMany(mappedBy = "item", cascade = {}, orphanRemoval = false)
-    private List<Sale> sales = new ArrayList<>();
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false)
+    private OffsetDateTime createdAt;
 
-    @PrePersist
-    public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
-        createdAt = now;
-        updatedAt = now;
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private OffsetDateTime updatedAt;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
+
+    // ----- attributes -----
+
+    public Object attribute(String key) {
+        return attributes == null ? null : attributes.get(key);
     }
 
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now();
+    public void putAttribute(String key, Object value) {
+        if (attributes == null) {
+            attributes = new HashMap<>();
+        }
+        attributes.put(key, value);
     }
 
-    public void modify(ItemModificationRequest request) {
-        this.description = request.description();
+    public void describe(String description) {
+        this.description = description;
+    }
+
+    // ----- status transitions -----
+
+    /**
+     * Moves the item to {@code newStatus} and returns the history record for the
+     * change. The caller (service) is responsible for persisting the history.
+     */
+    public ItemStatusHistory changeStatus(ItemStatus newStatus, Long staffId) {
+        ItemStatus previous = this.status;
+        this.status = newStatus;
+        return ItemStatusHistory.of(this, staffId, previous, newStatus);
+    }
+
+    public ItemStatusHistory markInPawn(Long staffId) {
+        return changeStatus(ItemStatus.IN_PAWN, staffId);
+    }
+
+    public ItemStatusHistory markRedeemed(Long staffId) {
+        return changeStatus(ItemStatus.REDEEMED, staffId);
+    }
+
+    public ItemStatusHistory markInSale(Long staffId) {
+        return changeStatus(ItemStatus.IN_SALE, staffId);
+    }
+
+    public ItemStatusHistory markSold(Long staffId) {
+        return changeStatus(ItemStatus.SOLD, staffId);
+    }
+
+    public boolean isAvailableForPawn() {
+        return status == ItemStatus.REDEEMED || status == ItemStatus.IN_SALE;
     }
 }

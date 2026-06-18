@@ -1,37 +1,48 @@
 package com.volter.shop.modules.pawn.domain.model;
 
 import com.volter.shop.modules.pawn.domain.model.enums.PawnTransactionAction;
-import com.volter.shop.modules.pawn.domain.model.event.PawnEvent;
 import com.volter.shop.modules.transaction.domain.model.Transaction;
-import com.volter.shop.modules.transaction.domain.model.enums.TransactionCategory;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
+/**
+ * Subtype link giving a base {@link Transaction} its pawn meaning, tying it to a
+ * {@link PawnContract} and the action that produced it (creation, redemption,
+ * forfeiture or extension). One-to-one with the transaction.
+ */
 @Entity
-@DiscriminatorValue("PAWN")
+@Table(name = "pawn_transaction")
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@SuperBuilder
-public class PawnTransaction extends Transaction {
+@Builder
+public class PawnTransaction {
 
-    @NotNull(message = "Transaction action is required")
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotNull(message = "Transaction is required")
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "transaction_id", nullable = false, unique = true, foreignKey = @ForeignKey(name = "fk_pawn_tx_transaction"))
+    private Transaction transaction;
+
+    @NotNull(message = "Pawn contract is required")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "pawn_contract_id", nullable = false, foreignKey = @ForeignKey(name = "fk_pawn_tx_pawn_contract"))
+    private PawnContract pawnContract;
+
+    @NotNull(message = "Action is required")
     @Enumerated(EnumType.STRING)
-    @Column(name = "pawn_action", nullable = true)
+    @Column(name = "action", nullable = false)
     private PawnTransactionAction action;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pawn_id", nullable = true, foreignKey = @ForeignKey(name = "fk_transaction_pawn"))
-    private Pawn pawn;
-
-    @OneToOne(mappedBy = "transaction", fetch = FetchType.EAGER)
-    private PawnEvent pawnEvent;
-
-    @Override
-    public TransactionCategory getCategory() {
-        return TransactionCategory.PAWN;
+    public static PawnTransaction record(Transaction transaction, PawnContract pawnContract, PawnTransactionAction action) {
+        return PawnTransaction.builder()
+                .transaction(transaction)
+                .pawnContract(pawnContract)
+                .action(action)
+                .build();
     }
 }

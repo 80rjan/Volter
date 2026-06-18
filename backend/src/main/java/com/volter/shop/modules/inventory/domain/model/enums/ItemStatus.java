@@ -3,6 +3,6 @@ package com.volter.shop.modules.inventory.domain.model.enums;
 public enum ItemStatus {
     IN_PAWN,
     REDEEMED,
-    FOR_SALE,
+    IN_SALE,
     SOLD
 }

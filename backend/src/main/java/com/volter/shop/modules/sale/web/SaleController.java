@@ -1,47 +1,78 @@
 package com.volter.shop.modules.sale.web;
 
 import com.volter.shop.modules.sale.application.SaleService;
-import com.volter.shop.modules.sale.web.request.SaleFilterRequest;
-import com.volter.shop.modules.sale.web.request.SaleCreationRequest;
-import com.volter.shop.modules.sale.web.request.SaleSellRequest;
-import com.volter.shop.modules.sale.web.response.SaleDetailedResponse;
-import com.volter.shop.modules.sale.web.response.SaleResponse;
-import com.volter.shop.modules.sale.domain.model.Sale;
+import com.volter.shop.modules.sale.application.dto.*;
 import com.volter.shop.modules.sale.infrastructure.mapper.SaleMapper;
+import com.volter.shared.security.StaffPrincipal;
+import com.volter.shared.web.PageResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * REST endpoint for managing sales.
+ * Sales of each status can be returned, depending on the status filter (no restrictions).
+ * Also, sales are returned regardless of who created them, because they're per shop (no restrictions).
+ */
 @RestController
+@RequestMapping("/sales")
 @RequiredArgsConstructor
-@RequestMapping("${api.base.path}/sales")
 public class SaleController {
 
     private final SaleService saleService;
     private final SaleMapper saleMapper;
 
+    /**
+     * List sales with optional filters.
+     */
     @GetMapping
-    public ResponseEntity<Page<SaleResponse>> getAll(SaleFilterRequest filter, Pageable pageable) {
-        Page<Sale> sales = saleService.getAll(filter, pageable);
-        return ResponseEntity.ok(sales.map(saleMapper::toResponse));
+    @PreAuthorize("hasAuthority('SALE_READ')")
+    public ResponseEntity<PageResponse<SaleResponse>> list(@ModelAttribute SaleFilterRequest filter, Pageable pageable) {
+        return ResponseEntity.ok(PageResponse.of(saleService.list(filter, pageable), saleMapper::toResponse));
     }
 
+    /**
+     * Get details of a specific sale by its ID.
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<SaleDetailedResponse> getById(Long id) {
-        return ResponseEntity.ok(saleMapper.toDetailedResponse(saleService.getById(id)));
+    @PreAuthorize("hasAuthority('SALE_READ')")
+    public ResponseEntity<SaleDetailedResponse> get(@PathVariable Long id) {
+        return ResponseEntity.ok(saleMapper.toDetailedResponse(saleService.get(id)));
     }
 
+    /**
+     * Create a new sale listing.
+     */
     @PostMapping
-    public ResponseEntity<SaleResponse> create(@RequestBody SaleCreationRequest request) {
-        Sale sale = saleService.create(request);
-        return ResponseEntity.ok(saleMapper.toResponse(sale));
+    @PreAuthorize("hasAuthority('SALE_WRITE')")
+    public ResponseEntity<SaleResponse> create(@Valid @RequestBody SaleCreateRequest request,
+                                               @AuthenticationPrincipal StaffPrincipal principal) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(saleMapper.toResponse(saleService.createListing(request, principal.staffId())));
     }
 
+    /**
+     * Sell the item for the given sale ID.
+     */
     @PostMapping("/{id}/sell")
-    public ResponseEntity<SaleResponse> sell(@PathVariable Long id, @RequestBody SaleSellRequest request) {
-        Sale sale = saleService.sell(id, request);
-        return ResponseEntity.ok(saleMapper.toResponse(sale));
+    @PreAuthorize("hasAuthority('SALE_WRITE')")
+    public ResponseEntity<SaleResponse> sell(@PathVariable Long id,
+                                             @Valid @RequestBody SaleSellRequest request,
+                                             @AuthenticationPrincipal StaffPrincipal principal) {
+        return ResponseEntity.ok(saleMapper.toResponse(saleService.sell(id, request, principal.staffId())));
+    }
+
+    /**
+     * Cancel the sale with the given ID.
+     */
+    @PostMapping("/{id}/cancel")
+    @PreAuthorize("hasAuthority('SALE_CANCEL')")
+    public ResponseEntity<SaleResponse> cancel(@PathVariable Long id) {
+        return ResponseEntity.ok(saleMapper.toResponse(saleService.cancel(id)));
     }
 }

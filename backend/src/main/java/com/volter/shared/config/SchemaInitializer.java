@@ -1,112 +1,89 @@
 package com.volter.shared.config;
 
-import jakarta.persistence.Entity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.boot.MetadataSources;
-import org.hibernate.boot.model.naming.PhysicalNamingStrategySnakeCaseImpl;
-import org.hibernate.boot.registry.StandardServiceRegistry;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
-import org.hibernate.cfg.Environment;
+import org.flywaydb.core.Flyway;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.type.filter.AnnotationTypeFilter;
-import org.springframework.jdbc.datasource.DelegatingDataSource;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
+/**
+ * Owns all DDL via Flyway (Hibernate ddl-auto is disabled).
+ * <p>
+ * Two independent migration sets are run:
+ * - db/migration/public  -> applied once to the shared `public` schema
+ * - db/migration/tenant  -> applied to each shop schema
+ * <p>
+ * The tenant migrations declare cross-schema foreign keys against
+ * `public.staff`, so the public schema MUST be migrated first.
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class SchemaInitializer {
 
+    private static final String PUBLIC_SCHEMA = "public";
+    private static final String PUBLIC_LOCATION = "classpath:db/migration/public";
+    private static final String TENANT_LOCATION = "classpath:db/migration/tenant";
+
     private final DataSource dataSource;
 
     @EventListener(ApplicationReadyEvent.class)
     public void initialize() {
-        log.info("Initializing database schemas...");
+        log.info("Initializing database schemas via Flyway...");
 
-        // Step 1: create identity tables in public schema
-        updateTables("public", "com.volter.identity.domain.model");
+        // Step 1: migrate the shared public schema (must run before any tenant).
+        migratePublic();
 
-        // Step 2: for every shop already registered, create its tenant tables
-        getShopSchemas().forEach(schema -> {
-            createSchema(schema);
-            updateTables(schema, "com.volter.shop");
-        });
+        // Step 2: migrate every shop schema that already exists.
+        getShopSchemas().forEach(this::initializeTenantSchema);
 
         log.info("Schema initialization complete.");
     }
 
-    // Call this whenever a new shop is created
+    /**
+     * Provision (or upgrade) a single tenant schema. Call when a new shop registers.
+     */
     public void initializeTenantSchema(String schemaName) {
-        log.info("Initializing tenant schema: {}", schemaName);
-        createSchema(schemaName);
-        updateTables(schemaName, "com.volter.shop");
+        log.info("Migrating tenant schema: {}", schemaName);
+        Flyway.configure()
+                .dataSource(dataSource)         // uses app's connection pool
+                .schemas(schemaName)            // sets the schema that Flyway manages, which creates the schema if absent
+                .defaultSchema(schemaName)      // sets the schema that is used for migrations during this Flyway run
+                .locations(TENANT_LOCATION)     // location of tenant migration scripts
+                .table("flyway_schema_history") // table for keeping track of applied migrations (one per schema)
+                .load()                         // creates a Flyway instance with the above configuration
+                .migrate();                     // applies any pending migrations to the tenant schema
     }
 
-    private void updateTables(String schema, String basePackage) {
-        log.info("Running schema update for package '{}' in schema '{}'", basePackage, schema);
-        StandardServiceRegistry registry = new StandardServiceRegistryBuilder()
-                .applySetting(Environment.DIALECT, "org.hibernate.dialect.PostgreSQLDialect")
-                .applySetting(Environment.DATASOURCE, schemaDataSource(schema))
-                .applySetting(Environment.PHYSICAL_NAMING_STRATEGY,
-                        PhysicalNamingStrategySnakeCaseImpl.class.getName())
-                .applySetting(Environment.HBM2DDL_AUTO, "update")
-                .build();
-        try {
-            MetadataSources sources = new MetadataSources(registry);
-            scanEntities(basePackage).forEach(sources::addAnnotatedClass);
-            sources.buildMetadata().buildSessionFactory().close();
-        } finally {
-            StandardServiceRegistryBuilder.destroy(registry);
-        }
-    }
-
-    private DataSource schemaDataSource(String schema) {
-        return new DelegatingDataSource(dataSource) {
-            @Override
-            public Connection getConnection() throws SQLException {
-                Connection conn = dataSource.getConnection();
-                conn.createStatement().execute("SET search_path TO " + schema);
-                return conn;
-            }
-
-            @Override
-            public Connection getConnection(String username, String password) throws SQLException {
-                return getConnection();
-            }
-        };
-    }
-
-    private List<Class<?>> scanEntities(String basePackage) {
-        ClassPathScanningCandidateComponentProvider scanner =
-                new ClassPathScanningCandidateComponentProvider(false);
-        scanner.addIncludeFilter(new AnnotationTypeFilter(Entity.class));
-        return scanner.findCandidateComponents(basePackage).stream()
-                .map(bd -> {
-                    try {
-                        return Class.forName(bd.getBeanClassName());
-                    } catch (ClassNotFoundException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-                .collect(Collectors.toList());
+    private void migratePublic() {
+        log.info("Migrating public schema");
+        // No baselineOnMigrate: greenfield expects an empty public schema. A
+        // pre-existing, unmanaged schema should fail loudly rather than be
+        // silently baselined past V1.
+        Flyway.configure()
+                .dataSource(dataSource)
+                .schemas(PUBLIC_SCHEMA)
+                .defaultSchema(PUBLIC_SCHEMA)
+                .locations(PUBLIC_LOCATION)
+                .table("flyway_schema_history")
+                .load()
+                .migrate();
     }
 
     private List<String> getShopSchemas() {
         List<String> schemas = new ArrayList<>();
         try (Connection conn = dataSource.getConnection()) {
-            // shop table might not exist yet on very first startup
             boolean shopExists = conn.getMetaData()
-                    .getTables(null, "public", "shop", null).next();
+                    .getTables(null, PUBLIC_SCHEMA, "shop", null).next();
             if (!shopExists) return schemas;
 
             try (Statement stmt = conn.createStatement();
@@ -117,14 +94,5 @@ public class SchemaInitializer {
             log.warn("Could not query existing shop schemas: {}", e.getMessage());
         }
         return schemas;
-    }
-
-    private void createSchema(String schema) {
-        try (Connection conn = dataSource.getConnection();
-             Statement stmt = conn.createStatement()) {
-            stmt.execute("CREATE SCHEMA IF NOT EXISTS \"" + schema + "\"");
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to create schema: " + schema, e);
-        }
     }
 }

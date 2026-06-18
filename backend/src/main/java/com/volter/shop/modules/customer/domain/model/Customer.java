@@ -1,182 +1,75 @@
 package com.volter.shop.modules.customer.domain.model;
 
-import com.volter.shop.modules.customer.domain.model.enums.CustomerRiskLevel;
-import com.volter.shop.modules.pawn.domain.model.Pawn;
-import com.volter.shop.modules.pawn.domain.model.enums.PawnTransactionAction;
-import com.volter.shop.modules.sale.domain.model.Sale;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.OffsetDateTime;
 
+/**
+ * A person who pawns or buys items at the shop. Tenant-scoped (lives in the
+ * shop schema). Identified within a shop by their national id.
+ */
 @Entity
+@Table(
+        name = "customer",
+        uniqueConstraints = @UniqueConstraint(name = "uk_customer_national_id", columnNames = "national_id")
+)
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@ToString
-//@Table(
-//        indexes = {
-//                @Index(name = "idx_customer_embg", columnList = "embg"),
-//                @Index(name = "idx_customer_phone_number", columnList = "phoneNumber, reservePhoneNumber"),
-//                @Index(name = "idx_customer_risk_level", columnList = "riskLevel")
-//        },
-//        uniqueConstraints = {
-//                @UniqueConstraint(name = "uk_customer_embg", columnNames = "embg"),
-//                @UniqueConstraint(name = "uk_customer_phone_number", columnNames = "phoneNumber"),
-//                @UniqueConstraint(name = "uk_customer_reserve_phone_number", columnNames = "reservePhoneNumber")
-//        }
-//)
 public class Customer {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Customer name is required")
-    @Column(nullable = false)
-    private String name;
+    @NotBlank(message = "Full name is required")
+    @Column(name = "full_name", nullable = false)
+    private String fullName;
 
-    @NotBlank(message = "Customer phone number is required")
-    @Column(nullable = false)
-    private String phoneNumber;
+    @NotBlank(message = "National id is required")
+    @Column(name = "national_id", nullable = false, length = 32)
+    private String nationalId;
 
-    @Column(nullable = true)
-    private String reservePhoneNumber;
+    @NotBlank(message = "Primary phone is required")
+    @Column(name = "phone_primary", nullable = false, length = 32)
+    private String phonePrimary;
 
-    @NotBlank(message = "Customer EMBG is required")
-    @Column(columnDefinition = "CHAR(13)", nullable = false)
-    private String embg;
+    @Column(name = "phone_secondary", length = 32)
+    private String phoneSecondary;
 
-    @NotBlank(message = "Customer address is required")
-    @Column(nullable = false)
+    @NotBlank(message = "Address is required")
+    @Column(name = "address", nullable = false)
     private String address;
 
-    @NotBlank(message = "Customer city is required")
-    @Column(nullable = false)
+    @NotBlank(message = "City is required")
+    @Column(name = "city", nullable = false, length = 100)
     private String city;
 
-    @NotNull(message = "Customer creation timestamp is required")
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false)
+    private OffsetDateTime createdAt;
 
-    @NotNull(message = "Customer update timestamp is required")
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private OffsetDateTime updatedAt;
 
-    @Column(nullable = true)
-    @Enumerated(EnumType.STRING)
-    @Builder.Default
-    private CustomerRiskLevel riskLevel = CustomerRiskLevel.LOW;
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 
-    @NotNull(message = "Customer total pawn count is required")
-    @Column(nullable = false)
-    @Builder.Default
-    private Integer totalPawnCount = 0;
-
-    @NotNull(message = "Customer total sale count is required")
-    @Column(nullable = false)
-    @Builder.Default
-    private Integer totalSaleCount = 0;
-
-    @NotNull(message = "Customer late renewal count is required")
-    @Column(nullable = false)
-    @Builder.Default
-    private Integer lateRenewalCount = 0;       // could be lateEventsCount for all events not only renewal?
-
-    @NotNull(message = "Customer average days late is required")
-    @Column(nullable = false)
-    @Builder.Default
-    private Double avgDaysLate = 0.0;
-
-    @NotNull(message = "Customer on-time renewal count is required")
-    @Column(nullable = false)
-    @Builder.Default
-    private Integer onTimeRenewalCount = 0;
-
-    @NotNull(message = "Customer forfeit count is required")
-    @Column(nullable = false)
-    @Builder.Default
-    private Integer forfeitCount = 0;
-
-    @NotNull(message = "Customer redeem count is required")
-    @Column(nullable = false)
-    @Builder.Default
-    private Integer redeemCount = 0;
-
-    @Builder.Default
-    @OneToMany(mappedBy = "customer", cascade = {}, orphanRemoval = false)
-    private List<Pawn> pawns = new ArrayList<>();
-
-    @Builder.Default
-    @OneToMany(mappedBy = "customer", cascade = {}, orphanRemoval = false)
-    private List<Sale> sales = new ArrayList<>();
-
-    @PrePersist
-    public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
-        createdAt = now;
-        updatedAt = now;
+    public void updateContactDetails(String phonePrimary, String phoneSecondary, String address, String city) {
+        this.phonePrimary = phonePrimary;
+        this.phoneSecondary = phoneSecondary;
+        this.address = address;
+        this.city = city;
     }
 
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now();
-
-        riskLevel = calculateRiskLevel();
+    public void rename(String fullName) {
+        this.fullName = fullName;
     }
-
-    // todo: check the logic here
-    private CustomerRiskLevel calculateRiskLevel() {
-        if (totalPawnCount == 0) return CustomerRiskLevel.LOW;
-
-        double lateRate = (double) lateRenewalCount / totalPawnCount;
-        double forfeitRate = (double) forfeitCount / totalPawnCount;
-
-        // HIGH risk conditions
-        if (forfeitRate > 0.6) return CustomerRiskLevel.HIGH;
-        if (lateRate > 0.6 && avgDaysLate > 10) return CustomerRiskLevel.HIGH;
-
-        // MEDIUM risk conditions
-        if (forfeitRate > 0.2) return CustomerRiskLevel.MEDIUM;
-        if (lateRate > 0.3 || avgDaysLate > 5) return CustomerRiskLevel.MEDIUM;
-
-        return CustomerRiskLevel.LOW;
-    }
-
-    public void pawnAction(PawnTransactionAction pawnTransactionAction) {
-        pawnAction(pawnTransactionAction, null);
-    }
-
-    public void pawnAction(PawnTransactionAction pawnTransactionAction, Long daysLate) {
-        switch (pawnTransactionAction) {
-            case CREATION ->
-                totalPawnCount++;
-            case RENEWAL -> {
-                if (daysLate == null)
-                    throw new IllegalArgumentException("Days late must be provided for renewal action");
-
-                if (daysLate <= 0)
-                    onTimeRenewalCount++;
-                else {
-                    lateRenewalCount++;
-                    avgDaysLate = ((avgDaysLate * (lateRenewalCount - 1)) + daysLate) / lateRenewalCount;
-                }
-            }
-            case REDEMPTION ->
-                redeemCount++;
-            case FORFEITURE ->
-                forfeitCount++;
-        }
-    }
-
-    public void saleAction() {
-        totalSaleCount++;
-    }
-
 }

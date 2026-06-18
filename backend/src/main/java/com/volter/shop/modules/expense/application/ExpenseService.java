@@ -1,77 +1,87 @@
 package com.volter.shop.modules.expense.application;
 
-
+import com.volter.identity.modules.staff.application.StaffService;
 import com.volter.shop.modules.cashregister.application.CashRegisterService;
 import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
-import com.volter.shop.modules.expense.web.response.ExpenseSummaryResponse;
-import com.volter.shop.modules.expense.web.request.ExpenseFilterRequest;
-import com.volter.shop.modules.expense.web.request.ExpenseCreationRequest;
+import com.volter.shop.modules.expense.application.dto.ExpenseCreateRequest;
+import com.volter.shop.modules.expense.application.dto.ExpenseFilterRequest;
 import com.volter.shop.modules.expense.domain.model.Expense;
-import com.volter.shop.modules.expense.domain.model.enums.ExpenseType;
-import com.volter.shop.modules.expense.infrastructure.ExpenseRepository;
+import com.volter.shop.modules.expense.domain.model.ExpenseTransaction;
+import com.volter.shop.modules.expense.domain.repository.ExpenseRepository;
+import com.volter.shop.modules.expense.domain.repository.ExpenseTransactionRepository;
 import com.volter.shop.modules.expense.domain.specification.ExpenseSpecification;
-import com.volter.shop.modules.staff.application.StaffService;
-import com.volter.shop.modules.staff.domain.model.Staff;
+import com.volter.shop.modules.transaction.application.TransactionService;
+import com.volter.shop.modules.transaction.domain.model.Transaction;
+import com.volter.shop.modules.transaction.domain.model.enums.TransactionDirection;
+import com.volter.shop.modules.transaction.domain.model.enums.TransactionType;
 import com.volter.shop.shared.valueobject.Money;
+import com.volter.shared.web.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
-@PreAuthorize("hasRole(T(com.volter.identity.domain.model.enums.RoleEnum).MANAGER or " +
-              "hasRole(T(com.volter.identity.domain.model.enums.RoleEnum).ADMIN))")
+@Transactional
 public class ExpenseService {
 
-    // one manager per shop, so every expense added will be added by one and only one manager
-    // this can be changed in the future if we want to allow multiple managers per shop, but for now its not needed
-
     private final ExpenseRepository expenseRepository;
-    private final StaffService staffService;
+    private final ExpenseTransactionRepository expenseTxRepository;
     private final CashRegisterService cashRegisterService;
+    private final TransactionService transactionService;
+    private final StaffService staffService;
 
+    /**
+     * Expenses the caller is allowed to see: their own plus those of every staff
+     * member below them in the management tree (recursive), narrowed by the filter.
+     */
     @Transactional(readOnly = true)
-    public Page<Expense> getAll(ExpenseFilterRequest filters, Pageable pageable) {
-        Specification<Expense> spec = ExpenseSpecification.withFilters(filters);
-        return expenseRepository.findAll(spec, pageable);
+    public Page<Expense> list(ExpenseFilterRequest filter, Pageable pageable, Long staffId) {
+        List<Long> visibleStaffIds = new ArrayList<>(staffService.findSubordinateStaffIds(staffId));
+        visibleStaffIds.add(staffId);
+        return expenseRepository.findAll(
+                ExpenseSpecification.matches(filter).and(ExpenseSpecification.staffIdIn(visibleStaffIds)),
+                pageable);
     }
 
+    /**
+     * A single expense, only if it is the caller's own or was recorded by someone they manage.
+     */
     @Transactional(readOnly = true)
-    public ExpenseSummaryResponse getAllGrouped(ExpenseFilterRequest filters) {
-        Specification<Expense> spec = ExpenseSpecification.withFilters(filters);
-        List<Expense> expenses = expenseRepository.findAll(spec);
-
-        Map<ExpenseType, Money> totalByType = expenses.stream()
-                .collect(Collectors.groupingBy(
-                        Expense::getExpenseType,
-                        Collectors.reducing(new Money(0), Expense::getAmount, Money::add)
-                ));
-
-        Money grandTotal = expenses.stream()
-                .map(Expense::getAmount)
-                .reduce(new Money(0), Money::add);
-
-        return new ExpenseSummaryResponse(filters.getFromDate(), filters.getToDate(), totalByType, grandTotal);
+    public Expense get(Long id, Long staffId) {
+        Expense expense = expenseRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Expense not found: " + id));
+        if (!Objects.equals(expense.getStaffId(), staffId) && !staffService.isManagerOf(staffId, expense.getStaffId())) {
+            throw new AccessDeniedException("Cannot access an expense recorded by another staff member");
+        }
+        return expense;
     }
 
-    @Transactional
-    public Expense create(ExpenseCreationRequest request) {
-        Staff staff = staffService.getCurrentStaff();
-        CashRegisterSession cashRegisterSession = cashRegisterService.getOpenSessionByStaff(staff.getId());
+    /**
+     * Record a new expense.
+     * Record general transaction and expense transaction.
+     * Record money flow from cash register session.
+     */
+    public Expense record(ExpenseCreateRequest request, Long staffId) {
+        CashRegisterSession session = cashRegisterService.requireOpenSession(request.cashRegisterSessionId());
+        Money amount = new Money(request.amount());
 
-        Expense expense = Expense.create(request, staff, cashRegisterSession);
-        expenseRepository.save(expense);
+        Expense expense = expenseRepository.save(Expense.create(
+                staffId, request.category(), amount, request.description(), request.date()));
 
-        cashRegisterSession.recordTransaction(expense.getInitialTransaction());
-        cashRegisterService.saveSession(cashRegisterSession);
+        Transaction tx = transactionService.record(
+                staffId, session, TransactionType.EXPENSE, amount,
+                TransactionDirection.OUT, request.description());
+        expenseTxRepository.save(ExpenseTransaction.record(tx, expense));
+
+        cashRegisterService.applyTransaction(tx);
 
         return expense;
     }

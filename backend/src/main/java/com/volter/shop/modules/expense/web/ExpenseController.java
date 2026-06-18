@@ -1,41 +1,77 @@
 package com.volter.shop.modules.expense.web;
 
+import com.volter.identity.modules.staff.application.StaffService;
 import com.volter.shop.modules.expense.application.ExpenseService;
-import com.volter.shop.modules.expense.web.request.ExpenseCreationRequest;
-import com.volter.shop.modules.expense.web.response.ExpenseSummaryResponse;
-import com.volter.shop.modules.expense.web.request.ExpenseFilterRequest;
-import com.volter.shop.modules.expense.web.response.ExpenseResponse;
+import com.volter.shop.modules.expense.application.dto.ExpenseCreateRequest;
+import com.volter.shop.modules.expense.application.dto.ExpenseFilterRequest;
+import com.volter.shop.modules.expense.application.dto.ExpenseResponse;
 import com.volter.shop.modules.expense.domain.model.Expense;
 import com.volter.shop.modules.expense.infrastructure.mapper.ExpenseMapper;
+import com.volter.shared.security.StaffPrincipal;
+import com.volter.shared.web.PageResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+/**
+ * REST controller for managing expenses.
+ * Allows staff members to view their own expenses and those of their subordinates (recursively).
+ */
 @RestController
+@RequestMapping("/expenses")
 @RequiredArgsConstructor
-@RequestMapping("${api.base.path}/expenses")
 public class ExpenseController {
 
     private final ExpenseService expenseService;
     private final ExpenseMapper expenseMapper;
+    private final StaffService staffService;
 
+    /**
+     * List expenses the caller may see, with optional filters.
+     */
     @GetMapping
-    public ResponseEntity<Page<ExpenseResponse>> getAll(ExpenseFilterRequest filters, Pageable pageable) {
-        Page<Expense> expenses = expenseService.getAll(filters, pageable);
-        return ResponseEntity.ok(expenses.map(expenseMapper::toResponse));
+    @PreAuthorize("hasAuthority('EXPENSE_READ')")
+    public ResponseEntity<PageResponse<ExpenseResponse>> list(@ModelAttribute ExpenseFilterRequest filter, Pageable pageable,
+                                                              @AuthenticationPrincipal StaffPrincipal principal) {
+        var page = expenseService.list(filter, pageable, principal.staffId());
+        Map<Long, String> staffNames = staffService.findStaffNames(
+                page.stream().map(Expense::getStaffId).collect(Collectors.toSet()));
+        return ResponseEntity.ok(PageResponse.of(page,
+                e -> expenseMapper.toResponse(e, staffNames.get(e.getStaffId()))));
     }
 
-    @GetMapping("/summary")
-    public ResponseEntity<ExpenseSummaryResponse> getSummary(ExpenseFilterRequest filters) {
-        ExpenseSummaryResponse summary = expenseService.getAllGrouped(filters);
-        return ResponseEntity.ok(summary);
+    /**
+     * Fetch an expense.
+     */
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('EXPENSE_READ')")
+    public ResponseEntity<ExpenseResponse> get(@PathVariable Long id, @AuthenticationPrincipal StaffPrincipal principal) {
+        Expense expense = expenseService.get(id, principal.staffId());
+        return ResponseEntity.ok(expenseMapper.toResponse(expense, staffNameOf(expense)));
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<ExpenseResponse> create(@RequestBody ExpenseCreationRequest request) {
-        Expense expense = expenseService.create(request);
-        return ResponseEntity.ok(expenseMapper.toResponse(expense));
+    /**
+     * Create a new expense.
+     */
+    @PostMapping
+    @PreAuthorize("hasAuthority('EXPENSE_WRITE')")
+    public ResponseEntity<ExpenseResponse> create(@Valid @RequestBody ExpenseCreateRequest request,
+                                                  @AuthenticationPrincipal StaffPrincipal principal) {
+        Expense expense = expenseService.record(request, principal.staffId());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(expenseMapper.toResponse(expense, staffNameOf(expense)));
+    }
+
+    private String staffNameOf(Expense expense) {
+        return staffService.findStaffNames(Set.of(expense.getStaffId())).get(expense.getStaffId());
     }
 }

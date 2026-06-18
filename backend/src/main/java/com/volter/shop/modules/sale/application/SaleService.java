@@ -2,119 +2,132 @@ package com.volter.shop.modules.sale.application;
 
 import com.volter.shop.modules.cashregister.application.CashRegisterService;
 import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
-import com.volter.shop.modules.customer.domain.factory.CustomerFactory;
-import com.volter.shop.modules.customer.domain.model.Customer;
 import com.volter.shop.modules.customer.application.CustomerService;
-import com.volter.shop.modules.inventory.web.response.baseitem.ItemFactoryResult;
-import com.volter.shop.modules.inventory.domain.factory.ItemFactory;
-import com.volter.shop.modules.sale.web.request.SaleFilterRequest;
-import com.volter.shop.modules.sale.web.request.SaleSellRequest;
-import com.volter.shop.modules.sale.application.dto.result.SaleSellResult;
-import com.volter.shop.modules.sale.domain.specification.SaleSpecification;
-import com.volter.shop.shared.common.exceptions.ResourceNotFoundException;
+import com.volter.shop.modules.customer.domain.model.Customer;
 import com.volter.shop.modules.inventory.application.ItemService;
+import com.volter.shop.modules.inventory.domain.model.Item;
+import com.volter.shop.modules.sale.application.dto.SaleCreateRequest;
+import com.volter.shop.modules.sale.application.dto.SaleFilterRequest;
+import com.volter.shop.modules.sale.application.dto.SaleSellRequest;
 import com.volter.shop.modules.sale.domain.model.Sale;
-import com.volter.shop.modules.sale.infrastructure.repository.SaleRepository;
-import com.volter.shop.modules.sale.web.request.SaleCreationRequest;
-import com.volter.shop.modules.staff.domain.model.Staff;
-import com.volter.shop.modules.staff.application.StaffService;
+import com.volter.shop.modules.sale.domain.model.SaleTransaction;
+import com.volter.shop.modules.sale.domain.model.enums.SaleTransactionAction;
+import com.volter.shop.modules.sale.domain.repository.SaleRepository;
+import com.volter.shop.modules.sale.domain.repository.SaleTransactionRepository;
+import com.volter.shop.modules.sale.domain.specification.SaleSpecification;
 import com.volter.shop.modules.transaction.application.TransactionService;
+import com.volter.shop.modules.transaction.domain.model.Transaction;
+import com.volter.shop.modules.transaction.domain.model.enums.TransactionDirection;
+import com.volter.shop.modules.transaction.domain.model.enums.TransactionType;
 import com.volter.shop.shared.valueobject.Money;
+import com.volter.shared.web.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class SaleService {
 
-    private final StaffService staffService;
     private final SaleRepository saleRepository;
+    private final SaleTransactionRepository saleTxRepository;
+    private final CustomerService customerService;
+    private final ItemService itemService;
     private final CashRegisterService cashRegisterService;
     private final TransactionService transactionService;
-    private final ItemService itemService;
-    private final CustomerService customerService;
-    private final CustomerFactory customerFactory;
-    private final ItemFactory itemFactory;
 
-    @Transactional
-    public Sale save(Sale sale) {
-        return saleRepository.save(sale);
+    /**
+     * List sales with optional filters.
+     */
+    @Transactional(readOnly = true)
+    public Page<Sale> list(SaleFilterRequest filter, Pageable pageable) {
+        return saleRepository.findAll(SaleSpecification.matches(filter), pageable);
     }
 
     /**
-     * Retrieves all sales
+     * Get details of a specific sale by its ID.
      */
-    @Transactional
-    public Page<Sale> getAll(SaleFilterRequest filter, Pageable pageable) {
-        Specification<Sale> spec = SaleSpecification.withFilters(filter);
-        return saleRepository.findAll(spec, pageable);
+    @Transactional(readOnly = true)
+    public Sale get(Long id) {
+        return loadSale(id);
     }
 
     /**
-     * Retrieves all sales by Customer ID
+     * Create a new item and sale listing for that item.
+     * Record general transaction and sale transaction.
+     * Record money flow from cash register session.
      */
-    @Transactional
-    public List<Sale> getByCustomerId(Long customerId) {
-        return saleRepository.findByCustomer_Id(customerId);
-    }
+    public Sale createListing(SaleCreateRequest request, Long staffId) {
+        Customer customer = customerService.findOrFail(request.customerId());
+        CashRegisterSession session = cashRegisterService.requireOpenSession(request.cashRegisterSessionId());
 
-    /**
-     * Retrieves a sale by its ID
-     */
-    @Transactional
-    public Sale getById(Long id) {
-        return saleRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Sale with ID " + id + " not found")
-        );
-    }
+        // FUTURE: support listing an existing item (by id). For now a brand-new item
+        // is always created inline as part of creating the sale listing.
+        Item item = itemService.create(request.item());
+        Money purchasePrice = new Money(request.purchasePrice());
 
-    @Transactional
-    @PreAuthorize("hasRole(T(com.volter.identity.domain.model.enums.RoleEnum).MANAGER) or hasRole(T(com.volter.identity.domain.model.enums.RoleEnum).ADMIN)")
-    public Integer countByMonthAndYear(Integer month, Integer year) {
-        return saleRepository.countByMonthAndYear(month, year);
-    }
+        Sale sale = createListing(customer, item, purchasePrice, staffId);
 
-    @Transactional
-    public Sale sell(Long id, SaleSellRequest request) {
-        Staff staff = staffService.getCurrentStaff();
-        Sale sale = getById(id);
-        CashRegisterSession cashRegisterSession = cashRegisterService.getOpenSessionByStaff(staff.getId());
+        Transaction tx = transactionService.record(
+                staffId, session, TransactionType.SALE, purchasePrice,
+                TransactionDirection.OUT, "Item purchased for resale");
+        saleTxRepository.save(SaleTransaction.record(tx, sale, SaleTransactionAction.LISTING_CREATED));
 
-        SaleSellResult result = sale.sell(new Money(request.soldPrice()), request.transactionDescription(), cashRegisterSession, staff);
-        saleRepository.save(sale);
-
-        cashRegisterSession.recordTransaction(result.transaction());
-        cashRegisterService.saveSession(cashRegisterSession);
+        cashRegisterService.applyTransaction(tx);
 
         return sale;
     }
 
-    @Transactional
-    public Sale create(SaleCreationRequest request) {
-        Staff staff = staffService.getCurrentStaff();
-        CashRegisterSession cashRegisterSession = cashRegisterService.getOpenSessionByStaff(staff.getId());
-        Customer customer = customerFactory.createOrGetCustomer(request.getCustomer());
-        ItemFactoryResult itemFactoryResult = itemFactory.createOrGetItem(request.getItem());
+    /**
+     * Creates a sale listing for an item the shop owns (a forfeited pawn).
+     * No transaction is recorded because the shop already owns the item and no money is exchanged.
+     * The caller owns the item's status transition.
+     */
+    public Sale createListing(Customer customer, Item item, Money purchasePrice, Long staffId) {
+        return saleRepository.save(Sale.create(customer, item, staffId, purchasePrice));
+    }
 
-        Sale sale = Sale.create(request, cashRegisterSession, staff, itemFactoryResult.item(), customer);
-        saleRepository.save(sale);
+    /**
+     * Sell a listed item.
+     * Mark item as sold.
+     * Record general transaction and sale transaction.
+     * Record money flow from cash register session.
+     */
+    public Sale sell(Long saleId, SaleSellRequest request, Long staffId) {
+        Sale sale = loadSale(saleId);
+        CashRegisterSession session = cashRegisterService.requireOpenSession(request.cashRegisterSessionId());
 
-        customer.saleAction();
-        customerService.save(customer);
+        Money salePrice = new Money(request.salePrice());
+        sale.sell(salePrice);
+        itemService.markSold(sale.getItem(), staffId);
 
-        if (itemFactoryResult.isNewItem())
-            itemService.save(itemFactoryResult.item());
-
-        cashRegisterSession.recordTransaction(sale.getInitialTransaction());
-        cashRegisterService.saveSession(cashRegisterSession);
+        Transaction tx = transactionService.record(
+                staffId, session, TransactionType.SALE, salePrice,
+                TransactionDirection.IN, "Item sold");
+        cashRegisterService.applyTransaction(tx);
+        saleTxRepository.save(SaleTransaction.record(tx, sale, SaleTransactionAction.SOLD));
 
         return sale;
+    }
+
+    /**
+     * Cancel a sale listing.
+     */
+    public Sale cancel(Long saleId) {
+        // FUTURE: define what happens when a sale is canceled. For now we just mark it but the item stays in limbo state.
+        Sale sale = loadSale(saleId);
+        sale.cancel();
+        return sale;
+    }
+
+    /**
+     * Helper to load sale by id or throw 404
+     */
+    private Sale loadSale(Long id) {
+        return saleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Sale not found: " + id));
     }
 }

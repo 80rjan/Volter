@@ -1,64 +1,109 @@
 package com.volter.shop.modules.pawn.web;
 
+import com.volter.identity.modules.staff.application.StaffService;
 import com.volter.shop.modules.pawn.application.PawnService;
-import com.volter.shop.modules.pawn.web.request.PawnFilterRequest;
-import com.volter.shop.modules.pawn.web.request.*;
-import com.volter.shop.modules.pawn.web.response.PawnDetailedResponse;
-import com.volter.shop.modules.pawn.web.response.PawnResponse;
-import com.volter.shop.modules.pawn.domain.model.Pawn;
-import com.volter.shop.modules.pawn.infrastructure.mapper.PawnMapper;
+import com.volter.shop.modules.pawn.application.dto.*;
+import com.volter.shop.modules.pawn.domain.model.PawnContract;
+import com.volter.shop.modules.pawn.infrastructure.mapper.PawnContractMapper;
+import com.volter.shared.security.StaffPrincipal;
+import com.volter.shared.web.PageResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+/**
+ * REST controller for managing pawn contracts.
+ * Pawn contracts of each status can be returned, depending on the status filter (no restrictions).
+ * Pawn contracts are returned regardless of who created them, because they're per shop (no restrictions).
+ */
 @RestController
+@RequestMapping("/pawns")
 @RequiredArgsConstructor
-@RequestMapping("${api.base.path}/pawns")
 public class PawnController {
+
     private final PawnService pawnService;
-    private final PawnMapper pawnMapper;
+    private final PawnContractMapper pawnContractMapper;
+    private final StaffService staffService;
 
+    /**
+     * List pawn contracts with optional filters.
+     */
     @GetMapping
-    public ResponseEntity<Page<PawnResponse>> getAll(PawnFilterRequest filter, Pageable pageable) {
-        Page<Pawn> pawns = pawnService.getAll(filter, pageable);
-        return ResponseEntity.ok(pawns.map(pawnMapper::toResponse));
+    @PreAuthorize("hasAuthority('PAWN_READ')")
+    public ResponseEntity<PageResponse<PawnContractResponse>> list(@ModelAttribute PawnFilterRequest filter, Pageable pageable) {
+        var page = pawnService.list(filter, pageable);
+        Map<Long, String> staffNames = staffService.findStaffNames(
+                page.stream().map(PawnContract::getCreatedByStaffId).collect(Collectors.toSet()));
+        return ResponseEntity.ok(PageResponse.of(page,
+                c -> pawnContractMapper.toResponse(c, staffNames.get(c.getCreatedByStaffId()))));
     }
 
+    /**
+     * Get details of a specific pawn contract by its ID.
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<PawnDetailedResponse> getById(@PathVariable Long id) {
-        Pawn pawn = pawnService.getById(id);
-        return ResponseEntity.ok(pawnMapper.toDetailedResponse(pawn));
+    @PreAuthorize("hasAuthority('PAWN_READ')")
+    public ResponseEntity<PawnContractDetailedResponse> get(@PathVariable Long id) {
+        PawnContract contract = pawnService.get(id);
+        return ResponseEntity.ok(pawnContractMapper.toDetailedResponse(contract, staffNameOf(contract)));
     }
 
+    /**
+     * Create a pawn contract.
+     */
     @PostMapping
-    public ResponseEntity<PawnResponse> create(@RequestBody PawnCreationRequest request) {
-        Pawn pawn = pawnService.create(request);
-        return ResponseEntity.ok(pawnMapper.toResponse(pawn));
+    @PreAuthorize("hasAuthority('PAWN_WRITE')")
+    public ResponseEntity<PawnContractResponse> create(@Valid @RequestBody PawnCreateRequest request,
+                                                       @AuthenticationPrincipal StaffPrincipal principal) {
+        PawnContract contract = pawnService.create(request, principal.staffId());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(pawnContractMapper.toResponse(contract, staffNameOf(contract)));
     }
 
+    /**
+     * Extend a pawn contract.
+     */
+    @PostMapping("/{id}/extend")
+    @PreAuthorize("hasAuthority('PAWN_WRITE')")
+    public ResponseEntity<PawnContractExtensionResponse> extend(@PathVariable Long id,
+                                                                @Valid @RequestBody PawnExtendRequest request,
+                                                                @AuthenticationPrincipal StaffPrincipal principal) {
+        return ResponseEntity.ok(pawnContractMapper.toResponse(pawnService.extend(id, request, principal.staffId())));
+    }
+
+    /**
+     * Redeem a pawn contract.
+     */
     @PostMapping("/{id}/redeem")
-    public ResponseEntity<PawnResponse> redeem(@PathVariable Long id, @RequestBody PawnRedemptionRequest request) {
-        Pawn pawn = pawnService.redeem(id, request);
-        return ResponseEntity.ok(pawnMapper.toResponse(pawn));
+    @PreAuthorize("hasAuthority('PAWN_WRITE')")
+    public ResponseEntity<PawnContractResponse> redeem(@PathVariable Long id,
+                                                       @Valid @RequestBody PawnRedeemRequest request,
+                                                       @AuthenticationPrincipal StaffPrincipal principal) {
+        PawnContract contract = pawnService.redeem(id, request, principal.staffId());
+        return ResponseEntity.ok(pawnContractMapper.toResponse(contract, staffNameOf(contract)));
     }
 
+    /**
+     * Forfeit a pawn contract.
+     */
     @PostMapping("/{id}/forfeit")
-    public ResponseEntity<PawnResponse> forfeit(@PathVariable Long id, @RequestBody PawnForfeitureRequest request) {
-        Pawn pawn = pawnService.forfeit(id, request);
-        return ResponseEntity.ok(pawnMapper.toResponse(pawn));
+    @PreAuthorize("hasAuthority('PAWN_FORFEIT')")
+    public ResponseEntity<PawnContractResponse> forfeit(@PathVariable Long id,
+                                                        @AuthenticationPrincipal StaffPrincipal principal) {
+        PawnContract contract = pawnService.forfeit(id, principal.staffId());
+        return ResponseEntity.ok(pawnContractMapper.toResponse(contract, staffNameOf(contract)));
     }
 
-    @PostMapping("/{id}/renew")
-    public ResponseEntity<PawnResponse> renew(@PathVariable Long id, @RequestBody PawnRenewalRequest request) {
-        Pawn pawn = pawnService.renew(id, request);
-        return ResponseEntity.ok(pawnMapper.toResponse(pawn));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<PawnResponse> modify(@PathVariable Long id, @RequestBody PawnModificationRequest request) {
-        Pawn pawn = pawnService.modify(id, request);
-        return ResponseEntity.ok(pawnMapper.toResponse(pawn));
+    private String staffNameOf(PawnContract contract) {
+        return staffService.findStaffNames(Set.of(contract.getCreatedByStaffId())).get(contract.getCreatedByStaffId());
     }
 }

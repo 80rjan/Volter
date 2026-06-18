@@ -1,220 +1,138 @@
 package com.volter.shop.modules.cashregister.domain.model;
 
-import com.volter.shop.modules.cashregister.application.dto.CashRegisterSessionCloseResult;
-import com.volter.shop.modules.cashregister.domain.model.enums.CashRegisterSessionDiscrepancyType;
 import com.volter.shop.modules.cashregister.domain.model.enums.CashRegisterSessionStatus;
-import com.volter.shop.modules.cashregister.domain.model.enums.CashRegisterTransactionAction;
-import com.volter.shop.modules.pawn.domain.model.Pawn;
-import com.volter.shop.modules.staff.domain.model.Staff;
-import com.volter.shop.modules.transaction.domain.model.Transaction;
-import com.volter.shop.modules.transaction.domain.model.enums.TransactionDirection;
-import com.volter.shop.modules.transaction.domain.model.enums.TransactionMarginType;
 import com.volter.shop.shared.valueobject.Money;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.OffsetDateTime;
 
-@Builder
+/**
+ * One open-to-close shift of a {@link CashRegister}, operated by a staff member
+ * (identity context, by id). Balances are plain signed integers because a pawn
+ * shop's drawer can legitimately go negative. At most one session per register
+ * may be OPEN at a time (enforced by a partial unique index).
+ */
 @Entity
+@Table(name = "cash_register_session")
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-// todo: add check for when status = CLOSED, the nullables must not be null
+@Builder
 public class CashRegisterSession {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "Cash register session status is required")
+    @NotNull(message = "Cash register is required")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "cash_register_id", nullable = false, foreignKey = @ForeignKey(name = "fk_crs_cash_register"))
+    private CashRegister cashRegister;
+
+    @NotNull(message = "Staff is required")
+    @Column(name = "staff_id", nullable = false)
+    private Long staffId;
+
+    @CreationTimestamp
+    @Column(name = "opened_at", nullable = false)
+    private OffsetDateTime openedAt;
+
+    @Column(name = "closed_at")
+    private OffsetDateTime closedAt;
+
+    @NotNull(message = "Opening balance is required")
+    @Column(name = "opening_balance", nullable = false)
+    private Integer openingBalance;
+
+    @NotNull(message = "Current balance is required")
+    @Column(name = "current_balance", nullable = false)
+    private Integer currentBalance;
+
+    @NotNull(message = "Expected interest is required")
+    @Embedded
+    @AttributeOverride(name = "amount", column = @Column(name = "expected_interest", nullable = false))
+    @Builder.Default
+    private Money expectedInterest = new Money(0);
+
+    @Column(name = "closing_balance")
+    private Integer closingBalance;
+
+    @NotNull(message = "Status is required")
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "status", nullable = false)
     @Builder.Default
     private CashRegisterSessionStatus status = CashRegisterSessionStatus.OPEN;
 
-    @NotNull(message = "Cash register session opened at is required")
-    @Column(nullable = false)
-    private LocalDateTime openedAt;
-
-    @NotNull(message = "Cash register session updated at is required")
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
-
-    @Column(nullable = true)
-    private LocalDateTime closedAt;
-
-    @NotNull(message = "Cash register session opening balance is required")
-    @Embedded
-    @AttributeOverride(name = "amount", column = @Column(name = "opening_balance", nullable = false))
-    private Money openingBalance;   // could be a problem because pawn shops wants negative balance
-
-    @NotNull(message = "Cash register session current balance is required")
-    @Embedded
-    @AttributeOverride(name = "amount", column = @Column(name = "current_balance", nullable = false))
-    private Money currentBalance;   // could be a problem because pawn shops wants negative balance
-
-    @NotNull(message = "Cash register session expected pawn interest is required")
-    @Embedded
-    @AttributeOverride(name = "amount", column = @Column(name = "expected_pawn_interest", nullable = false))
-    private Money expectedPawnInterest;
-
-    @Embedded
-    @AttributeOverride(name = "amount", column = @Column(name = "closing_balance", nullable = true))
-    private Money closingBalance;   // could be a problem because pawn shops wants negative balance
-
-    @Embedded
-    @AttributeOverride(name = "amount", column = @Column(name = "discrepancy", nullable = true))
-    private Money discrepancy;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = true)
-    private CashRegisterSessionDiscrepancyType discrepancyType;
-
-    @Builder.Default
-    @OneToMany(mappedBy = "cashRegisterSession", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
-    private List<Transaction> transactions = new ArrayList<>();     // todo: transactions aggregate? no transaction cash reg
-
-    @NotNull(message = "Cash register session cash register is required")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cash_register_id", nullable = false, foreignKey = @ForeignKey(name = "fk_cash_register_session_cash_register"))
-    private CashRegister cashRegister;
-
-    @OneToOne(mappedBy = "cashRegisterSession", cascade = CascadeType.ALL, fetch = FetchType.EAGER, optional = true)
-    private CashRegisterSessionAdjustment adjustment;
-
-    @NotNull(message = "Cash register session staff is required")
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "staff_id", nullable = false, foreignKey = @ForeignKey(name = "fk_cash_register_session_staff"))
-    private Staff staff;
-
-    @PrePersist
-    protected void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
-        this.openedAt = now;
-        this.updatedAt = now;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 
 
-    public static CashRegisterSession create(Money openingBalance, CashRegister cashRegister, Staff staff, List<Pawn> maturedPawns) {
-        int expectedPawnInterest = maturedPawns.stream()
-                .mapToInt(t -> t.getInterest().amount())
-                .sum();
-
-        CashRegisterSession session = CashRegisterSession.builder()
+    /**
+     * Open a session.
+     */
+    public static CashRegisterSession open(CashRegister cashRegister, Long staffId, int openingBalance, Money expectedInterest) {
+        return CashRegisterSession.builder()
                 .cashRegister(cashRegister)
-                .staff(staff)
+                .staffId(staffId)
                 .openingBalance(openingBalance)
                 .currentBalance(openingBalance)
-                .expectedPawnInterest(new Money(expectedPawnInterest))
+                .expectedInterest(expectedInterest == null ? new Money(0) : expectedInterest)
                 .build();
-
-        CashRegisterTransaction cashRegisterTransaction = CashRegisterTransaction.builder()
-                .amount(new Money(0))
-                .direction(TransactionDirection.NEUTRAL)
-                .marginAmount(new Money(0))
-                .marginType(TransactionMarginType.NEUTRAL)
-                .cashRegisterSession(session)
-                .staff(staff)
-                .action(CashRegisterTransactionAction.OPEN_SESSION)
-                .build();
-        session.transactions.add(cashRegisterTransaction);
-
-        return session;
     }
 
-    public CashRegisterSessionCloseResult close(Money closingBalance, Staff staff) {
-        if (this.status == CashRegisterSessionStatus.CLOSED) {
-            throw new IllegalStateException("Operation not allowed when cash register session is CLOSED");
-        }
-
-        this.staff = staff;
-        this.closedAt = LocalDateTime.now();
-        this.closingBalance = closingBalance;
-        this.discrepancy = closingBalance.absoluteSubtract(this.currentBalance);
-        int discrepancySigned = closingBalance.amount() - this.currentBalance.amount();
-        this.discrepancyType = discrepancySigned > 0 ? CashRegisterSessionDiscrepancyType.OVERAGE :
-                (discrepancySigned < 0 ? CashRegisterSessionDiscrepancyType.SHORTAGE : CashRegisterSessionDiscrepancyType.NONE);
+    /**
+     * Close the session.
+     * Discrepancy is calculated as the diff between the staff-counted closing balance and the session's running current balance, which is the expected closing balance.
+     */
+    public CashRegisterSessionDiscrepancy close(int countedClosingBalance) {
+        ensureOpen();
+        this.closingBalance = countedClosingBalance;
+        this.closedAt = OffsetDateTime.now();
         this.status = CashRegisterSessionStatus.CLOSED;
 
-        CashRegisterTransaction transaction = CashRegisterTransaction.builder()
-                .amount(new Money(0))
-                .direction(TransactionDirection.NEUTRAL)
-                .marginAmount(new Money(0))
-                .marginType(TransactionMarginType.NEUTRAL)
-                .cashRegisterSession(this)
-                .staff(this.staff)
-                .action(CashRegisterTransactionAction.CLOSE_SESSION)
-                .cashRegisterSession(this)
-                .build();
-        this.transactions.add(transaction);
-
-        return new CashRegisterSessionCloseResult(this.discrepancy, this.discrepancyType, transaction);    // return discrepancy and its direction to know if there is a cash shortage or overage in the session and create a alert
-    }
-
-    public void withdraw(Money amount, String transactionDescription) {
-        if (this.status == CashRegisterSessionStatus.CLOSED) {
-            throw new IllegalStateException("Operation not allowed when cash register session is CLOSED");
+        // if positive, the drawer has more money than expected; if negative, less money
+        int difference = countedClosingBalance - this.currentBalance;
+        if (difference == 0) {
+            return null;
         }
 
-        this.currentBalance = this.currentBalance.subtract(amount);
-
-        CashRegisterTransaction transaction = CashRegisterTransaction.builder()
-                .amount(new Money(amount.amount()))
-                .direction(TransactionDirection.OUT)
-                .marginAmount(new Money(0))
-                .marginType(TransactionMarginType.NEUTRAL)
-                .cashRegisterSession(this)
-                .staff(this.staff)
-                .action(CashRegisterTransactionAction.WITHDRAW)
-                .description(transactionDescription)
-                .cashRegisterSession(this)
-                .build();
-        this.transactions.add(transaction);
+        return CashRegisterSessionDiscrepancy.of(this, this.currentBalance, countedClosingBalance, difference);
     }
 
-    public void deposit(Money amount, String transactionDescription) {
-        if (this.status == CashRegisterSessionStatus.CLOSED) {
-            throw new IllegalStateException("Operation not allowed when cash register session is CLOSED");
-        }
-
-        this.currentBalance = this.currentBalance.add(amount);
-
-        CashRegisterTransaction transaction = CashRegisterTransaction.builder()
-                .amount(new Money(amount.amount()))
-                .direction(TransactionDirection.IN)
-                .marginAmount(new Money(0))
-                .marginType(TransactionMarginType.NEUTRAL)
-                .cashRegisterSession(this)
-                .staff(this.staff)
-                .action(CashRegisterTransactionAction.DEPOSIT)
-                .description(transactionDescription)
-                .cashRegisterSession(this)
-                .build();
-        this.transactions.add(transaction);
+    public void addExpectedInterest(Money interest) {
+        ensureOpen();
+        this.expectedInterest = this.expectedInterest.add(interest);
     }
 
-    public void recordTransaction(Transaction transaction) {
-        if (this.status == CashRegisterSessionStatus.CLOSED) {
-            throw new IllegalStateException("Operation not allowed when cash register session is CLOSED");
-        }
+    /**
+     * Deposits money into the drawer (a transaction inflow). The running balance
+     * is intentionally allowed to go negative.
+     */
+    public void deposit(Money amount) {
+        ensureOpen();
+        this.currentBalance += amount.amount();
+    }
 
-        Money amount = transaction.getAmount();
-        if (transaction.getDirection() == TransactionDirection.IN)
-            this.currentBalance = this.currentBalance.add(amount);
-        else if (transaction.getDirection() == TransactionDirection.OUT)
-            this.currentBalance = this.currentBalance.subtract(amount);
-//        else unchanged
+    /**
+     * Withdraws money from the drawer (a transaction outflow). The running
+     * balance is intentionally allowed to go negative.
+     */
+    public void withdraw(Money amount) {
+        ensureOpen();
+        this.currentBalance -= amount.amount();
+    }
+
+    public boolean isOpen() {
+        return status == CashRegisterSessionStatus.OPEN;
+    }
+
+    private void ensureOpen() {
+        if (status == CashRegisterSessionStatus.CLOSED) {
+            throw new IllegalStateException("Operation not allowed on a CLOSED cash register session");
+        }
     }
 }

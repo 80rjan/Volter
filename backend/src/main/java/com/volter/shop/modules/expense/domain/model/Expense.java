@@ -1,106 +1,68 @@
 package com.volter.shop.modules.expense.domain.model;
 
-import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
-import com.volter.shop.modules.expense.web.request.ExpenseCreationRequest;
-import com.volter.shop.modules.staff.domain.model.Staff;
-import com.volter.shop.modules.expense.domain.model.enums.ExpenseType;
-import com.volter.shop.modules.transaction.domain.model.enums.TransactionDirection;
-import com.volter.shop.modules.transaction.domain.model.enums.TransactionMarginType;
+import com.volter.shop.modules.expense.domain.model.enums.ExpenseCategory;
 import com.volter.shop.shared.valueobject.Money;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.OffsetDateTime;
 
+/**
+ * An operating cost incurred by the shop (rent, utilities, supplies, ...),
+ * recorded by a staff member (identity context, by id).
+ */
 @Entity
+@Table(name = "expense")
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class Expense {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "Expense type is required")
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ExpenseType expenseType;
+    @NotNull(message = "Staff is required")
+    @Column(name = "staff_id", nullable = false)
+    private Long staffId;
 
-    @NotNull(message = "Expense amount is required")
-    @Column(nullable = false)
+    @NotNull(message = "Category is required")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false)
+    private ExpenseCategory category;
+
+    @NotNull(message = "Amount is required")
+    @Embedded
+    @AttributeOverride(name = "amount", column = @Column(name = "amount", nullable = false))
     private Money amount;
 
-    @NotNull(message = "Expense description is required")
-    @Column(nullable = false)
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @NotNull(message = "Expense date is required")
-    @Column(nullable = false)
+    @NotNull(message = "Date is required")
+    @Column(name = "date", nullable = false)
     private LocalDate date;
 
-    @NotNull(message = "Expense created at is required")
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false)
+    private OffsetDateTime createdAt;
 
-    @NotNull(message = "Expense updated at is required")
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private OffsetDateTime updatedAt;
 
-    @NotNull(message = "Expense staff is required")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "staff_id", nullable = true, foreignKey = @ForeignKey(name = "fk_expense_staff"))
-    private Staff staff;
-
-    @Builder.Default
-    @OneToMany(mappedBy = "expense", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
-    private List<ExpenseTransaction> transactions = new ArrayList<>();
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = createdAt;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
-    @Transient
-    public ExpenseTransaction getInitialTransaction() {
-        return transactions.stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Initial creation transaction not found for pawn id: " + id));
-    }
-
-    public static Expense create(ExpenseCreationRequest request, Staff staff, CashRegisterSession cashRegisterSession) {
-        Expense expense = Expense.builder()
-                .expenseType(request.getExpenseType())
-                .amount(new Money(request.getAmount()))
-                .description(request.getDescription())
-                .date(request.getDate())
-                .staff(staff)
+    public static Expense create(Long staffId, ExpenseCategory category, Money amount, String description, LocalDate date) {
+        return Expense.builder()
+                .staffId(staffId)
+                .category(category)
+                .amount(amount)
+                .description(description)
+                .date(date)
                 .build();
-
-        ExpenseTransaction transaction = ExpenseTransaction.builder()
-                .amount(new Money(request.getAmount()))
-                .direction(TransactionDirection.OUT)
-                .marginAmount(new Money(0))
-                .marginType(TransactionMarginType.NEUTRAL)
-                .description(request.getTransactionDescription())
-                .expense(expense)
-                .staff(staff)
-                .cashRegisterSession(cashRegisterSession)
-                .build();
-        expense.transactions.add(transaction);
-
-        return expense;
     }
 }

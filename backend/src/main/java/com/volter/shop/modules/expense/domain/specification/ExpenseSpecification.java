@@ -1,57 +1,29 @@
 package com.volter.shop.modules.expense.domain.specification;
 
+import com.volter.shop.modules.expense.application.dto.ExpenseFilterRequest;
 import com.volter.shop.modules.expense.domain.model.Expense;
-import com.volter.shop.modules.expense.web.request.ExpenseFilterRequest;
+import com.volter.shared.specification.PredicateBuilder;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
-public class ExpenseSpecification {
+public final class ExpenseSpecification {
 
-    public static Specification<Expense> withFilters(ExpenseFilterRequest filters) {
-        return (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
+    private ExpenseSpecification() {}
 
-            if (filters.getExpenseType() != null) {
-                predicates.add(
-                        cb.equal(cb.lower(root.get("expenseType")), filters.getExpenseType().toString().toLowerCase())
-                );
-            }
-
-            if (filters.getFromDate() != null) {
-                predicates.add(
-                        cb.greaterThanOrEqualTo(root.get("date"), filters.getFromDate())
-                );
-            }
-
-            if (filters.getToDate() != null) {
-                predicates.add(
-                        cb.lessThanOrEqualTo(root.get("date"), filters.getToDate())
-                );
-            }
-
-            return cb.and(predicates.toArray(new Predicate[0]));
-        };
+    /** Restricts to expenses recorded by one of the given staff members (empty set matches nothing). */
+    public static Specification<Expense> staffIdIn(Collection<Long> staffIds) {
+        return (root, query, cb) -> staffIds.isEmpty() ? cb.disjunction() : root.get("staffId").in(staffIds);
     }
 
-    public static Specification<Expense> withMonthAndYear(Integer month, Integer year) {
+    public static Specification<Expense> matches(ExpenseFilterRequest filter) {
         return (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
-
-            if (month != null) {
-                predicates.add(
-                        cb.equal(cb.function("MONTH", Integer.class, root.get("date")), month)
-                );
-            }
-
-            if (year != null) {
-                predicates.add(
-                        cb.equal(cb.function("YEAR", Integer.class, root.get("date")), year)
-                );
-            }
-
+            var predicates = new PredicateBuilder<Expense>(root, cb)
+                    .withEnum(root.get("category"), filter.category())
+                    .withValue(root.get("staffId"), filter.staffId())
+                    .withDateRange(root.get("date"), filter.dateFrom(), filter.dateTo())
+                    .build();
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
