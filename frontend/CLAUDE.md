@@ -57,8 +57,12 @@ src/
 
 **Pawn categories**: `Gold`, `Electronics`, `Watch`, `Vehicle`, `Other`. The add-pawn modal (`ModalAddNewPawn.tsx`) renders different form fields per category via a `renderCategoryInputs()` switch.
 
-**Live gold price**: `GoldPriceLive.tsx` polls `GET /goldPriceLive` every 5 minutes and displays the price per gram. The nav sidebar always shows this.
+**Gold price**: `GoldPriceLive.tsx` fetches `GET /gold/price` once per app session (caching the result in `sessionStorage`) and shows the per-gram price by karat in the nav sidebar. It does **not** poll. The backend proxies goldapi.io and caches the price with a **1-hour TTL**, so the upstream API is hit at most once an hour (no restart needed to refresh) and each new app session gets a price that's at most an hour old, held stable for that session.
 
 ## CSS variables
 
 Global CSS variables are defined in `src/index.css`. `--green` is the primary brand color used for active nav links and primary buttons.
+
+## Review
+
+Codex will review your output once you are done.

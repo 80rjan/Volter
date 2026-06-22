@@ -238,30 +238,20 @@ class StaffServiceTest {
     }
 
     @Nested
-    @DisplayName("revokeRoleGrant()")
-    class RevokeRoleGrant {
-
-        @Test
-        @DisplayName("is refused for a non-manager")
-        void nonManager_throws() {
-            when(staffRepository.isManagerOf(PRINCIPAL, TARGET)).thenReturn(false);
-
-            assertThrows(BusinessRuleException.class,
-                    () -> service.revokeRoleGrant(TARGET, 10L, PRINCIPAL));
-        }
+    @DisplayName("revokeRole()")
+    class RevokeRole {
 
         @Test
         @DisplayName("throws when the grant does not belong to the staff member")
         void grantNotFound_throws() {
             Staff target = org.mockito.Mockito.mock(Staff.class);
             StaffRole other = org.mockito.Mockito.mock(StaffRole.class);
-            when(staffRepository.isManagerOf(PRINCIPAL, TARGET)).thenReturn(true);
             when(staffRepository.findById(TARGET)).thenReturn(Optional.of(target));
             when(target.getStaffRoles()).thenReturn(List.of(other));
             when(other.getId()).thenReturn(99L);
 
             assertThrows(ResourceNotFoundException.class,
-                    () -> service.revokeRoleGrant(TARGET, 10L, PRINCIPAL));
+                    () -> service.revokeRole(TARGET, 10L));
         }
 
         @Test
@@ -269,12 +259,11 @@ class StaffServiceTest {
         void revokesMatchingGrant() {
             Staff target = org.mockito.Mockito.mock(Staff.class);
             StaffRole grant = org.mockito.Mockito.mock(StaffRole.class);
-            when(staffRepository.isManagerOf(PRINCIPAL, TARGET)).thenReturn(true);
             when(staffRepository.findById(TARGET)).thenReturn(Optional.of(target));
             when(target.getStaffRoles()).thenReturn(List.of(grant));
             when(grant.getId()).thenReturn(10L);
 
-            service.revokeRoleGrant(TARGET, 10L, PRINCIPAL);
+            service.revokeRole(TARGET, 10L);
 
             verify(grant).revoke();
         }

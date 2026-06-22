@@ -1,125 +1,158 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import Nav from "../../shared/components/Nav.tsx";
-import { ChevronUp, ChevronDown, Minus } from "lucide-react";
+import { ChevronUp, ChevronDown, Minus, Lock } from "lucide-react";
 import CashRegister from "../../shared/components/CashRegister.tsx";
 import Loading from "../../shared/components/Loading.tsx";
 import ClientRow from "./Client.tsx";
-import { ClientRow as ClientRowType } from "./types.ts";
+import { Customer } from "./types.ts";
 import { API_BASE } from "../../shared/api/config.ts";
+import { useAuth } from "../../GlobalContext.tsx";
+import { useDebounce } from "../../shared/utils/useDebounce.ts";
+
+const SORT_FIELD: Record<string, string> = {
+    Id: "id",
+    Name: "fullName",
+    Embg: "nationalId",
+    City: "city",
+    Date: "createdAt",
+};
 
 function SortIcon({ dir }: { dir: number }) {
     return dir === 0 ? <Minus size={14} /> : dir === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />;
 }
 
+const cols = "grid-cols-[3rem_1.6fr_1.2fr_1.5fr_1fr_1.1fr_0.5fr]";
+
 export default function Clients() {
-    const [allClients, setAllClients] = useState<ClientRowType[]>([]);
-    const [orderBy, setOrderBy] = useState("Active Pawns");
-    const orderDirectionArr = useRef([0, 0, 0, 0, -1, 0, 0]);
+    const { can } = useAuth();
+    const allowed = can("CUSTOMER_READ");
+
+    const [allClients, setAllClients] = useState<Customer[]>([]);
+    const [orderBy, setOrderBy] = useState("Date");
+    const orderDirectionArr = useRef([0, 0, 0, 0, 0, -1, 0]);
     const [orderDirection, setOrderDirection] = useState("DESC");
-    const [searchByName, setSearchByName] = useState("");
-    const [searchByEmbg, setSearchByEmbg] = useState("");
-    const [searchByTel, setSearchByTel] = useState("");
-    const [refresh, setRefresh] = useState(false);
-    const offset = useRef(0);
-    const limit = 40;
+    const [searchName, setSearchName] = useState("");
+    const [searchEmbg, setSearchEmbg] = useState("");
+    const [searchPhone, setSearchPhone] = useState("");
+    const [searchCity, setSearchCity] = useState("");
+    const name = useDebounce(searchName, 350);
+    const embg = useDebounce(searchEmbg, 350);
+    const phone = useDebounce(searchPhone, 350);
+    const city = useDebounce(searchCity, 350);
+
+    const page = useRef(0);
+    const size = 40;
     const [isLastPage, setIsLastPage] = useState(false);
-    const scrollableClientsRef = useRef<HTMLDivElement>(null);
+    const scrollableRef = useRef<HTMLDivElement>(null);
     const [loading, setLoading] = useState(false);
     const isFetchingRef = useRef(false);
-    const [isFetching, setIsFetching] = useState(false);
-    const fetchedClientIds = useRef(new Set<number>());
+    const fetchedIds = useRef(new Set<number>());
 
-    const fetchClients = (limit: number, off: number, order: string, direction: string, name: string, embg: string, tel: string, isLoading: boolean) => {
-        if (isFetching) return;
-        setIsFetching(true);
-        setLoading(isLoading);
+    const fetchClients = (pg: number, order: string, direction: string, isLoading: boolean) => {
+        if (isFetchingRef.current) return;
         isFetchingRef.current = true;
-        // TODO: No customer list endpoint in Spring Boot backend yet
-        axios.get(`${API_BASE}/customers`, { params: { page: Math.floor(off / limit), size: limit, name, embg, phoneNumber: tel } })
+        setLoading(isLoading);
+        const params = new URLSearchParams({
+            page: String(pg),
+            size: String(size),
+            sort: `${SORT_FIELD[order] ?? "createdAt"},${direction}`,
+        });
+        if (name) params.set("fullName", name);
+        if (embg) params.set("nationalId", embg);
+        if (phone) params.set("phone", phone);
+        if (city) params.set("city", city);
+        axios.get(`${API_BASE}/customers?${params}`)
             .then(res => {
-                const newUnique = (res.data.content ?? []).filter((c: ClientRowType) => !fetchedClientIds.current.has(c.Id));
-                newUnique.forEach((c: ClientRowType) => fetchedClientIds.current.add(c.Id));
+                const newUnique = (res.data.content ?? []).filter((c: Customer) => !fetchedIds.current.has(c.id));
+                newUnique.forEach((c: Customer) => fetchedIds.current.add(c.id));
                 setAllClients(prev => [...prev, ...newUnique]);
                 setIsLastPage(res.data.page ? res.data.page.number >= res.data.page.totalPages - 1 : true);
             })
-            .catch(() => setIsLastPage(true))
-            .finally(() => { setLoading(false); isFetchingRef.current = false; setIsFetching(false); });
+            .catch(error => console.error("Error fetching customers:", error))
+            .finally(() => { setLoading(false); isFetchingRef.current = false; });
     };
 
     useEffect(() => {
-        const el = scrollableClientsRef.current!;
+        const el = scrollableRef.current;
+        if (!el) return;
         const handleScroll = () => {
             if (el.scrollHeight - el.scrollTop - el.clientHeight <= el.scrollHeight * 0.3 && !isLastPage && !isFetchingRef.current) {
-                offset.current += limit;
-                fetchClients(limit, offset.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, false);
+                page.current += 1;
+                fetchClients(page.current, orderBy, orderDirection, false);
             }
         };
         el.addEventListener("scroll", handleScroll);
         return () => el.removeEventListener("scroll", handleScroll);
-    }, [isLastPage, refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLastPage, orderBy, orderDirection, name, embg, phone, city]);
 
     useEffect(() => {
-        fetchedClientIds.current.clear();
+        if (!allowed) return;
+        fetchedIds.current.clear();
         setAllClients([]);
-        offset.current = 0;
-        fetchClients(limit, 0, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, true);
-    }, [refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel]);
+        page.current = 0;
+        fetchClients(0, orderBy, orderDirection, true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [allowed, orderBy, orderDirection, name, embg, phone, city]);
 
     const handleOrder = (by: string, index: number) => {
         const newDir = new Array(orderDirectionArr.current.length).fill(0);
-        newDir[index] = orderDirectionArr.current[index] === 0 ? 1 : orderDirectionArr.current[index] === 1 ? -1 : 1;
+        newDir[index] = orderDirectionArr.current[index] === 1 ? -1 : 1;
         orderDirectionArr.current = newDir;
-        setOrderDirection(newDir.includes(-1) ? "DESC" : "ASC");
+        setOrderDirection(newDir[index] === -1 ? "DESC" : "ASC");
         setOrderBy(by);
     };
 
-    const inputClass = "border-none rounded text-sm font-medium w-1/4 p-2 shadow-[0_0_8px_rgba(0,0,0,0.2)]";
+    // Replace a customer in place after an edit, keeping scroll position.
+    const onUpdated = (updated: Customer) =>
+        setAllClients(prev => prev.map(c => (c.id === updated.id ? updated : c)));
+
+    const inputClass = "bg-white border-none rounded text-xs font-medium px-2 py-2 w-full shadow-sm";
 
     const headers: [string, string | null, number][] = [
-        ["Ид", "Id", 0], ["Име", "Name", 1], ["Телефон", null, -1], ["Град", "City", 2],
-        ["Вкупно залози", "Total Pawns", 3], ["Активни залози", "Active Pawns", 4],
-        ["Вредност на залози", "Money Pawns", 5], ["Приход од провизија", "Money Provision", 6], ["Повеќе", null, -1],
+        ["Код", "Id", 0], ["Име", "Name", 1], ["ЕМБГ", "Embg", 2], ["Телефон", null, -1],
+        ["Град", "City", 4], ["Креиран", "Date", 5], ["Повеќе", null, -1],
     ];
 
     return (
-        <div className="h-screen grid grid-cols-[max(15%,240px)_auto]">
-            <Nav />
-            <div className="flex flex-col px-8 pt-2 gap-3 flex-1 overflow-hidden">
-                <div className="flex justify-between w-full">
-                    <input className={inputClass} type="search" placeholder="Пребарувај по име" onChange={e => setSearchByName(e.target.value)} />
-                    <input className={inputClass} type="search" placeholder="Пребарувај по ембг" onChange={e => setSearchByEmbg(e.target.value)} />
-                    <input className={inputClass} type="search" placeholder="Пребарувај по телефон" onChange={e => setSearchByTel(e.target.value)} />
-                </div>
+        <div className="h-screen flex pl-16">
+            <div className="flex flex-col px-8 py-2 gap-3 flex-1 overflow-hidden">
+                {!allowed ? (
+                    <div className="flex flex-1 flex-col items-center justify-center gap-3 text-[#666]">
+                        <Lock size={40} />
+                        <p className="text-sm">Немате дозвола за преглед на клиенти.</p>
+                    </div>
+                ) : (
+                    <>
+                        <div className="flex justify-between w-full gap-3">
+                            <input className={inputClass} type="search" placeholder="Пребарувај по име" value={searchName} onChange={e => setSearchName(e.target.value)} />
+                            <input className={inputClass} type="search" placeholder="Пребарувај по ембг" value={searchEmbg} onChange={e => setSearchEmbg(e.target.value)} />
+                            <input className={inputClass} type="search" placeholder="Пребарувај по телефон" value={searchPhone} onChange={e => setSearchPhone(e.target.value)} />
+                            <input className={inputClass} type="search" placeholder="Пребарувај по град" value={searchCity} onChange={e => setSearchCity(e.target.value)} />
+                        </div>
 
-                <div className="flex flex-col bg-white rounded-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] overflow-hidden flex-1 min-h-0">
-                    <div className="grid place-items-center grid-cols-[3rem_repeat(8,1fr)] px-2 py-2 border-b-2 border-black/20 text-[#eee] bg-[#666]">
-                        {headers.map(([label, key, idx]) => (
-                            <div
-                                key={label}
-                                className={`text-xs font-medium flex items-center ${key ? "cursor-pointer" : "cursor-default"}`}
-                                onClick={key ? () => handleOrder(key, idx) : undefined}
-                            >
-                                {label} {key && <SortIcon dir={orderDirectionArr.current[idx]} />}
+                        <div className="flex flex-col bg-white rounded-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] overflow-hidden flex-1 min-h-0">
+                            <div className={`grid place-items-center ${cols} px-2 py-2 border-b-2 border-black/20 text-[#eee] bg-[#666]`}>
+                                {headers.map(([label, key, idx], i) => (
+                                    <div
+                                        key={i}
+                                        className={`text-xs font-medium flex items-center ${key ? "cursor-pointer" : "cursor-default"}`}
+                                        onClick={key ? () => handleOrder(key, idx) : undefined}
+                                    >
+                                        {label} {key && <SortIcon dir={orderDirectionArr.current[idx]} />}
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
 
-                    <div ref={scrollableClientsRef} className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-thin">
-                        {loading ? <Loading /> : allClients.map((client, index) => (
-                            <ClientRow
-                                key={index}
-                                client={client}
-                                index={index}
-                                updateTelephones={(tel1, tel2) => setAllClients(
-                                    prev => prev.map(c => c.Id === client.Id ? { ...c, "Telephone 1": tel1, "Telephone 2": tel2 } : c)
-                                )}
-                            />
-                        ))}
-                    </div>
-                </div>
+                            <div ref={scrollableRef} className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-thin">
+                                {loading ? <Loading /> : allClients.map((client, index) => (
+                                    <ClientRow key={client.id} client={client} isOdd={index % 2 === 1} onUpdated={onUpdated} cols={cols} />
+                                ))}
+                            </div>
+                        </div>
 
-                <CashRegister refreshDependency={refresh} />
+                    </>
+                )}
             </div>
         </div>
     );

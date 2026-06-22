@@ -1,7 +1,9 @@
 package com.volter.platform.modules.report.application;
 
 import com.volter.platform.modules.shop.domain.model.Shop;
+import com.volter.platform.modules.shop.domain.model.StaffShop;
 import com.volter.platform.modules.shop.domain.repository.ShopRepository;
+import com.volter.platform.modules.shop.domain.repository.StaffShopRepository;
 import com.volter.shared.multitenancy.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,7 @@ import java.util.List;
 public class MonthlyReportScheduler {
 
     private final ShopRepository shopRepository;
+    private final StaffShopRepository staffShopRepository;
     private final ReportService reportService;
 
     @Scheduled(cron = "0 0 0 1 * *", zone = "Europe/Skopje")
@@ -42,8 +45,15 @@ public class MonthlyReportScheduler {
             try {
                 TenantContext.setCurrentTenant(shop.getSchemaName());
                 reportService.generateMonthlySummary(shop.getId(), from, to);
+
+                // One performance report per staff member assigned to this shop.
+                staffShopRepository.findAllByShop_Id(shop.getId()).stream()
+                        .filter(StaffShop::isActive)
+                        .map(StaffShop::getStaffId)
+                        .distinct()
+                        .forEach(staffId -> reportService.generateStaffPerformance(shop.getId(), staffId, from, to));
             } catch (Exception e) {
-                log.error("Failed to generate monthly summary for shop {}", shop.getId(), e);
+                log.error("Failed to generate monthly reports for shop {}", shop.getId(), e);
             } finally {
                 TenantContext.clear();
             }

@@ -11,6 +11,7 @@ public record SaleFilterRequest(
         String customerNationalId,
         String customerPhone,
         ItemType itemType,
+        Long createdByStaffId,
         OffsetDateTime soldFrom,
         OffsetDateTime soldTo
 ) {

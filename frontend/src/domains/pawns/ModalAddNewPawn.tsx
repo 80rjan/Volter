@@ -1,413 +1,199 @@
 import ReactDom from "react-dom";
-import { X, CopyPlus, CheckCheck, User, Database, UserX } from "lucide-react";
-import { useRef, useState, useEffect } from "react";
+import { X, CopyPlus, CheckCheck, User, Database, UserX, TriangleAlert, Coins } from "lucide-react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { Autocomplete, TextField } from "@mui/material";
 import Loading from "../../shared/components/Loading.tsx";
 import { API_BASE } from "../../shared/api/config.ts";
+import { resolveActiveSessionId } from "../../shared/utils/activeSession.ts";
+import {
+    ItemFormData, ITEM_FORM_DEFAULTS, Handle, inputClass, selectClass,
+    ItemTypeSelect, ItemFields, DescField, buildAttributes, GoldPriceStrip,
+} from "../../shared/components/itemForm.tsx";
 
 interface Props {
     closeModal: () => void;
     refresh: () => void;
 }
 
-interface FormData {
-    name: string;
-    embg: string;
-    telephone: string;
-    telephone_2: string;
-    address: string;
-    city: string;
-    existingCustomerId: number | null;
-    brand: string;
-    model: string;
-    year: string;
-    price_pawned: string;
-    provision: number;
-    provisionPercent: number;
-    total_days: string;
-    description: string;
-    weight: string;
-    carats: string;
-    type: string;
-    pricePerGram: string;
-    date: string;
-    category: string;
-    electronicCategory: string;
-    vehicleType: string;
-    registrationNumber: string;
-    mileage: string;
-    numberOfKeys: string;
-    serviceHistoryAvailable: boolean;
-    registrationExpiryDate: string;
-    material: string;
-    originalBoxIncluded: boolean;
-    originalPapersIncluded: boolean;
-    warrantyCardIncluded: boolean;
-    functional: boolean;
-    serviceRequired: boolean;
-    otherCategory: string;
-    [key: string]: any;
-}
-
-interface ClientOption {
+interface CustomerOption {
     id: number;
-    name: string;
-    embg: string;
-    phoneNumber: string;
-    reservePhoneNumber: string | null;
+    fullName: string;
+    nationalId: string;
+    phonePrimary: string;
+    phoneSecondary: string | null;
     address: string;
     city: string;
 }
 
-const inputClass = "bg-white border-none rounded text-base p-2 shadow-[0_0_4px_rgba(0,0,0,0.2)] h-fit";
-const selectClass = "bg-white border-none! shadow-[0_0_4px_rgba(0,0,0,0.2)] rounded p-1";
-const checkRow = (label: string, name: string, value: boolean, onChange: (n: string, v: any) => void) => (
-    <div key={name} className="flex flex-col gap-1">
-        <p className="-ml-1 text-[#666]">{label}</p>
-        <div className="flex items-center h-full">
-            <input type="checkbox" checked={value} onChange={e => onChange(name, e.target.checked)} className="w-5 h-5 cursor-pointer" />
-        </div>
-    </div>
-);
-
-function ProvisionFields({ formData, handleInputChange }: { formData: FormData; handleInputChange: (name: string, value: any) => void }) {
-    return (
-        <div className="flex flex-col gap-1">
-            <p className="-ml-1 text-[#666]">Провизија</p>
-            <div className="flex gap-2 items-end w-full">
-                <span className="flex items-center gap-1 text-[#666] m-0">
-                    <input
-                        className={inputClass + " w-1/2"}
-                        name="provision"
-                        value={formData.provision || ""}
-                        onChange={e => {
-                            handleInputChange(e.target.name, e.target.value);
-                            handleInputChange("provisionPercent", Math.round((Number(e.target.value) / Number(formData.price_pawned)) * 100 * 100) / 100);
-                        }}
-                        type="number"
-                        required
-                    />
-                    ден
-                </span>
-                <span className="flex items-center gap-1 text-[#666] m-0">
-                    <input
-                        className={inputClass + " w-1/2"}
-                        name="provisionPercent"
-                        value={formData.provisionPercent || ""}
-                        onChange={e => {
-                            handleInputChange(e.target.name, e.target.value);
-                            handleInputChange("provision", Math.round((Number(e.target.value) / 100) * Number(formData.price_pawned)));
-                        }}
-                        type="number"
-                        step="0.001"
-                        required
-                    />
-                    %
-                </span>
-            </div>
-        </div>
-    );
+interface FormData extends ItemFormData {
+    fullName: string; nationalId: string; phonePrimary: string; phoneSecondary: string; address: string; city: string;
+    existingCustomerId: number | null;
+    // pawn-specific
+    principalAmount: string;
+    interestAmount: number;
+    interestPercent: number;
+    termDays: string;
+    issueDate: string;
 }
 
-function DaysAndDesc({ handleInputChange, date }: { handleInputChange: (name: string, value: any) => void; date: string }) {
+const customerFields: [string, string, boolean][] = [
+    ["Име и презиме", "fullName", true],
+    ["ЕМБГ", "nationalId", true],
+    ["Телефон 1", "phonePrimary", true],
+    ["Телефон 2", "phoneSecondary", false],
+    ["Адреса", "address", true],
+    ["Град", "city", true],
+];
+
+// Pawn-specific fields (item fields come from the shared itemForm module).
+function PriceAndProvision({ f, h }: { f: FormData; h: Handle }) {
     return (
         <>
             <div className="flex flex-col gap-1">
-                <p className="-ml-1 text-[#666]">Валидност во денови</p>
-                <select className={selectClass} name="total_days" onChange={e => handleInputChange(e.target.name, e.target.value)} required>
+                <p className="-ml-1 text-[#666]">Вредност на залогот</p>
+                <input className={inputClass} name="principalAmount" type="number" required
+                       onChange={e => {
+                           h("principalAmount", e.target.value);
+                           h("interestPercent", Math.round((f.interestAmount / Number(e.target.value)) * 10000) / 100);
+                       }} />
+            </div>
+            <div className="flex flex-col gap-1">
+                <p className="-ml-1 text-[#666]">Провизија</p>
+                <div className="flex gap-2 items-end w-full">
+                    <span className="flex items-end gap-1">
+                        <input className={inputClass + " w-full"} type="number" value={f.interestAmount || ""}
+                               onChange={e => {
+                                   h("interestAmount", Number(e.target.value));
+                                   h("interestPercent", Math.round((Number(e.target.value) / Number(f.principalAmount)) * 10000) / 100);
+                               }} required /> <span className="text-sm">ден</span>
+                    </span>
+                    <span className="flex items-end gap-1">
+                        <input className={inputClass + " w-full"} type="number" step="0.001" value={f.interestPercent || ""}
+                               onChange={e => {
+                                   h("interestPercent", e.target.value);
+                                   h("interestAmount", Math.round((Number(e.target.value) / 100) * Number(f.principalAmount)));
+                               }} /> <span className="text-sm">%</span>
+                    </span>
+                </div>
+            </div>
+        </>
+    );
+}
+
+function TermAndIssue({ f, h }: { f: FormData; h: Handle }) {
+    return (
+        <>
+            <div className="flex flex-col gap-1">
+                <p className="-ml-1 text-[#666] whitespace-nowrap">Валидност во денови</p>
+                <select className={selectClass} name="termDays" value={f.termDays}
+                        onChange={e => h(e.target.name, e.target.value)} required>
                     <option value=""></option>
                     <option value="15">15</option>
                     <option value="30">30</option>
                 </select>
             </div>
             <div className="flex flex-col gap-1">
-                <p className="-ml-1 text-[#666]">Опис</p>
-                <input className={inputClass} name="description" onChange={e => handleInputChange(e.target.name, e.target.value)} required />
-            </div>
-            <div className="flex flex-col gap-1">
                 <p className="-ml-1 text-[#666]">Заложено на</p>
-                <input className={inputClass} type="date" value={date} name="date" onChange={e => handleInputChange(e.target.name, e.target.value)} required />
+                <input className={inputClass} type="date" value={f.issueDate} name="issueDate"
+                       onChange={e => h(e.target.name, e.target.value)} required />
             </div>
-        </>
-    );
-}
-
-function PriceField({ formData, handleInputChange }: { formData: FormData; handleInputChange: (name: string, value: any) => void }) {
-    return (
-        <div className="flex flex-col gap-1">
-            <p className="-ml-1 text-[#666]">Вредност на залогот</p>
-            <input
-                className={inputClass}
-                name="price_pawned"
-                onChange={e => {
-                    handleInputChange(e.target.name, e.target.value);
-                    handleInputChange("provisionPercent", Math.round((formData.provision / Number(e.target.value)) * 100 * 100) / 100);
-                }}
-                type="number"
-                required
-            />
-        </div>
-    );
-}
-
-function ElectronicsInputs({ handleInputChange, formData, date }: { handleInputChange: (n: string, v: any) => void; formData: FormData; date: string }) {
-    return (
-        <>
-            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Бренд</p><input className={inputClass} name="brand" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
-            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Категорија</p><input className={inputClass} name="electronicCategory" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
-            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Година</p><input className={inputClass} name="year" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" required /></div>
-            <PriceField formData={formData} handleInputChange={handleInputChange} />
-            <ProvisionFields formData={formData} handleInputChange={handleInputChange} />
-            <DaysAndDesc handleInputChange={handleInputChange} date={date} />
-        </>
-    );
-}
-
-function GoldInputs({ handleInputChange, formData, date }: { handleInputChange: (n: string, v: any) => void; formData: FormData; date: string }) {
-    return (
-        <>
-            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Тежина (во грамови)</p><input className={inputClass} name="weight" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" step="0.001" required /></div>
-            <div className="flex flex-col gap-1">
-                <p className="-ml-1 text-[#666]">Каратажа</p>
-                <select className={selectClass} name="carats" onChange={e => handleInputChange(e.target.name, e.target.value)} required>
-                    <option value=""></option>
-                    <option value="CARAT_14">14k</option>
-                    <option value="CARAT_18">18k</option>
-                    <option value="CARAT_21">21k</option>
-                    <option value="CARAT_22">22k</option>
-                    <option value="CARAT_24">24k</option>
-                </select>
-            </div>
-            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Тип на злато</p><input className={inputClass} name="type" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
-            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Цена по грам</p><input className={inputClass} name="pricePerGram" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" step="0.01" required /></div>
-            <PriceField formData={formData} handleInputChange={handleInputChange} />
-            <ProvisionFields formData={formData} handleInputChange={handleInputChange} />
-            <DaysAndDesc handleInputChange={handleInputChange} date={date} />
-        </>
-    );
-}
-
-function VehicleInputs({ handleInputChange, formData, date }: { handleInputChange: (n: string, v: any) => void; formData: FormData; date: string }) {
-    return (
-        <>
-            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Бренд</p><input className={inputClass} name="brand" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
-            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Модел</p><input className={inputClass} name="model" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
-            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Година</p><input className={inputClass} name="year" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" required /></div>
-            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Тип на возило</p><input className={inputClass} name="vehicleType" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
-            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Рег. број</p><input className={inputClass} name="registrationNumber" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
-            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Километража</p><input className={inputClass} name="mileage" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" required /></div>
-            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Број на клучеви</p><input className={inputClass} name="numberOfKeys" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" required /></div>
-            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Рег. важи до</p><input className={inputClass} type="date" name="registrationExpiryDate" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
-            {checkRow("Сервисна историја", "serviceHistoryAvailable", formData.serviceHistoryAvailable, handleInputChange)}
-            <PriceField formData={formData} handleInputChange={handleInputChange} />
-            <ProvisionFields formData={formData} handleInputChange={handleInputChange} />
-            <DaysAndDesc handleInputChange={handleInputChange} date={date} />
-        </>
-    );
-}
-
-function WatchInputs({ handleInputChange, formData, date }: { handleInputChange: (n: string, v: any) => void; formData: FormData; date: string }) {
-    return (
-        <>
-            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Бренд</p><input className={inputClass} name="brand" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
-            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Модел</p><input className={inputClass} name="model" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
-            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Материјал</p><input className={inputClass} name="material" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
-            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Година</p><input className={inputClass} name="year" onChange={e => handleInputChange(e.target.name, e.target.value)} type="number" required /></div>
-            {checkRow("Оригинална кутија", "originalBoxIncluded", formData.originalBoxIncluded, handleInputChange)}
-            {checkRow("Оригинални документи", "originalPapersIncluded", formData.originalPapersIncluded, handleInputChange)}
-            {checkRow("Гарантна картичка", "warrantyCardIncluded", formData.warrantyCardIncluded, handleInputChange)}
-            {checkRow("Функционален", "functional", formData.functional, handleInputChange)}
-            {checkRow("Потребен сервис", "serviceRequired", formData.serviceRequired, handleInputChange)}
-            <PriceField formData={formData} handleInputChange={handleInputChange} />
-            <ProvisionFields formData={formData} handleInputChange={handleInputChange} />
-            <DaysAndDesc handleInputChange={handleInputChange} date={date} />
-        </>
-    );
-}
-
-function OtherInputs({ handleInputChange, formData, date }: { handleInputChange: (n: string, v: any) => void; formData: FormData; date: string }) {
-    return (
-        <>
-            <div className="flex flex-col gap-1"><p className="-ml-1 text-[#666]">Категорија</p><input className={inputClass} name="otherCategory" onChange={e => handleInputChange(e.target.name, e.target.value)} required /></div>
-            <PriceField formData={formData} handleInputChange={handleInputChange} />
-            <ProvisionFields formData={formData} handleInputChange={handleInputChange} />
-            <DaysAndDesc handleInputChange={handleInputChange} date={date} />
         </>
     );
 }
 
 export default function ModalAddNewPawn({ closeModal, refresh }: Props) {
-    const [clients, setClients] = useState<ClientOption[]>([]);
-    const [selectedClient, setSelectedClient] = useState<ClientOption | null>(null);
-    const [formData, setFormData] = useState<FormData>({
-        name: "", embg: "", telephone: "", telephone_2: "", address: "", city: "",
-        existingCustomerId: null,
-        brand: "", model: "", year: "", price_pawned: "",
-        provision: 0, provisionPercent: 0, total_days: "", description: "",
-        weight: "", carats: "", type: "", pricePerGram: "",
-        date: new Date().toISOString().split("T")[0],
-        category: "ELECTRONIC",
-        electronicCategory: "",
-        vehicleType: "", registrationNumber: "", mileage: "", numberOfKeys: "",
-        serviceHistoryAvailable: false, registrationExpiryDate: "",
-        material: "", originalBoxIncluded: false, originalPapersIncluded: false,
-        warrantyCardIncluded: false, functional: true, serviceRequired: false,
-        otherCategory: "",
-    });
-    const scrollableClientsRef = useRef(null);
+    const [customers, setCustomers] = useState<CustomerOption[]>([]);
+    const [selected, setSelected] = useState<CustomerOption | null>(null);
+    const [mode, setMode] = useState<"existing" | "new">("existing");
+    const [openSessionId, setOpenSessionId] = useState<number | null>(null);
+    const [goldPrices, setGoldPrices] = useState<Record<string, number> | null>(null);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [formData, setFormData] = useState<FormData>({
+        ...ITEM_FORM_DEFAULTS,
+        fullName: "", nationalId: "", phonePrimary: "", phoneSecondary: "", address: "", city: "",
+        existingCustomerId: null,
+        principalAmount: "", interestAmount: 0, interestPercent: 0, termDays: "",
+        issueDate: new Date().toISOString().split("T")[0],
+    });
 
     useEffect(() => {
-        axios.get(`${API_BASE}/customers`, { params: { size: 1_000_000, sort: "name,ASC" } })
-            .then(res => setClients(res.data.content))
-            .catch(err => console.error("Error fetching clients:", err));
+        axios.get(`${API_BASE}/customers`, { params: { size: 1_000_000, sort: "fullName,ASC" } })
+            .then(res => setCustomers(res.data.content ?? []))
+            .catch(err => console.error("Error fetching customers:", err));
+        resolveActiveSessionId()
+            .then(setOpenSessionId)
+            .catch(err => console.error("Error fetching cash sessions:", err));
     }, []);
 
-    const handleInputChange = (name: string, value: any) => {
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
+    useEffect(() => {
+        if (formData.type !== "GOLD" || goldPrices) return;
+        const cached = sessionStorage.getItem("goldPrice");
+        if (cached) { try { setGoldPrices(JSON.parse(cached)); return; } catch { /* refetch below */ } }
+        axios.get(`${API_BASE}/gold/price`)
+            .then(res => { setGoldPrices(res.data); sessionStorage.setItem("goldPrice", JSON.stringify(res.data)); })
+            .catch(() => { /* non-critical reference */ });
+    }, [formData.type, goldPrices]);
 
-    const handleObjectSelect = (_event: any, value: ClientOption | null) => {
-        if (value) {
-            setSelectedClient(value);
-            setFormData(prev => ({
-                ...prev,
-                existingCustomerId: value.id,
-                name: value.name,
-                embg: value.embg,
-                telephone: value.phoneNumber,
-                telephone_2: value.reservePhoneNumber ?? "",
-                address: value.address,
-                city: value.city,
-            }));
-        }
-    };
+    const h: Handle = (name, value) => setFormData(prev => ({ ...prev, [name]: value }));
 
-    const deselectClient = () => {
-        setSelectedClient(null);
-        setFormData(prev => ({
-            ...prev,
-            existingCustomerId: null,
-            name: "", embg: "", telephone: "", telephone_2: "", address: "", city: "",
-        }));
+    const pickCustomer = (_e: any, value: CustomerOption | null) => {
+        setSelected(value);
+        h("existingCustomerId", value ? value.id : null);
     };
+    const clearSelected = () => { setSelected(null); h("existingCustomerId", null); };
+    const switchMode = (m: "existing" | "new") => { setMode(m); if (m === "new") clearSelected(); };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!openSessionId) { setError("Нема отворена каса — отворете каса пред да внесете залог."); return; }
+        if (mode === "existing" && !formData.existingCustomerId) { setError("Изберете постоечки клиент."); return; }
         setLoading(true);
+        setError("");
+        try {
+            let customerId = formData.existingCustomerId;
+            if (mode === "new") {
+                const created = await axios.post(`${API_BASE}/customers`, {
+                    fullName: formData.fullName,
+                    nationalId: formData.nationalId,
+                    phonePrimary: formData.phonePrimary,
+                    phoneSecondary: formData.phoneSecondary || null,
+                    address: formData.address,
+                    city: formData.city,
+                });
+                customerId = created.data.id;
+            }
 
-        const issueDate = formData.date;
-        const durationDays = Number(formData.total_days);
-        const maturityDate = (() => {
-            const d = new Date(issueDate);
-            d.setDate(d.getDate() + durationDays);
-            return d.toISOString().split("T")[0];
-        })();
-
-        const customer = formData.existingCustomerId
-            ? { referenceStrategy: "EXISTING", customerId: formData.existingCustomerId }
-            : {
-                referenceStrategy: "NEW",
-                name: formData.name,
-                embg: formData.embg,
-                phoneNumber: formData.telephone,
-                reservePhoneNumber: formData.telephone_2 || null,
-                address: formData.address,
-                city: formData.city,
-            };
-
-        let itemData: any = {
-            itemType: formData.category,
-            itemOriginType: "PAWN",
-            itemStatus: "IN_PAWN",
-            description: formData.description,
-        };
-
-        switch (formData.category) {
-            case "ELECTRONIC":
-                itemData = { ...itemData, brand: formData.brand, category: formData.electronicCategory, year: Number(formData.year) };
-                break;
-            case "GOLD":
-                itemData = {
-                    ...itemData,
-                    weightGrams: Number(formData.weight),
-                    carats: formData.carats,
-                    pieceType: formData.type,
-                    pricePerGram: Number(formData.pricePerGram),
-                };
-                break;
-            case "VEHICLE":
-                itemData = {
-                    ...itemData,
-                    brand: formData.brand,
-                    model: formData.model,
-                    year: Number(formData.year),
-                    vehicleType: formData.vehicleType,
-                    registrationNumber: formData.registrationNumber,
-                    mileage: Number(formData.mileage),
-                    numberOfKeys: Number(formData.numberOfKeys),
-                    serviceHistoryAvailable: formData.serviceHistoryAvailable,
-                    registrationExpiryDate: formData.registrationExpiryDate,
-                };
-                break;
-            case "WATCH":
-                itemData = {
-                    ...itemData,
-                    brand: formData.brand,
-                    model: formData.model,
-                    year: Number(formData.year),
-                    material: formData.material,
-                    originalBoxIncluded: formData.originalBoxIncluded,
-                    originalPapersIncluded: formData.originalPapersIncluded,
-                    warrantyCardIncluded: formData.warrantyCardIncluded,
-                    functional: formData.functional,
-                    serviceRequired: formData.serviceRequired,
-                };
-                break;
-            case "OTHER":
-                itemData = { ...itemData, category: formData.otherCategory };
-                break;
-        }
-
-        axios.post(`${API_BASE}/pawns`, {
-            amount: Number(formData.price_pawned),
-            interest: formData.provision,
-            durationDays,
-            maturityDate,
-            issueDate,
-            customer,
-            item: { referenceStrategy: "NEW", data: itemData },
-        })
-            .then(() => { closeModal(); refresh(); })
-            .catch(error => console.error("Error adding pawn:", error))
-            .finally(() => setLoading(false));
-    };
-
-    const renderCategoryInputs = () => {
-        const props = { handleInputChange, formData, date: formData.date };
-        switch (formData.category) {
-            case "ELECTRONIC": return <ElectronicsInputs {...props} />;
-            case "GOLD": return <GoldInputs {...props} />;
-            case "VEHICLE": return <VehicleInputs {...props} />;
-            case "WATCH": return <WatchInputs {...props} />;
-            case "OTHER": return <OtherInputs {...props} />;
+            await axios.post(`${API_BASE}/pawns`, {
+                customerId,
+                item: {
+                    type: formData.type,
+                    origin: "PAWN",
+                    initialStatus: "IN_PAWN",
+                    description: formData.description,
+                    attributes: buildAttributes(formData),
+                },
+                principalAmount: Number(formData.principalAmount),
+                interestAmount: Number(formData.interestAmount),
+                termDays: Number(formData.termDays),
+                issueDate: formData.issueDate,
+                cashRegisterSessionId: openSessionId,
+            });
+            closeModal();
+            refresh();
+        } catch (err) {
+            console.error("Error adding pawn:", err);
+            setError("Грешка при внесување на залогот.");
+        } finally {
+            setLoading(false);
         }
     };
-
-    const clientFields: [string, string, boolean][] = [
-        ["Име", "name", true],
-        ["Ембг", "embg", true],
-        ["Телефон 1", "telephone", true],
-        ["Телефон 2", "telephone_2", false],
-        ["Адреса", "address", true],
-        ["Град", "city", true],
-    ];
 
     return ReactDom.createPortal(
         <>
             <div className="fixed inset-0 bg-black/70 z-[1000]" />
-            <div className="flex flex-col gap-8 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#eee] z-[1000] p-8 rounded-lg min-w-fit w-[90%]">
+            <div className="flex flex-col gap-6 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#eee] z-[1000] p-8 rounded-lg w-[min(900px,92%)] max-h-[92vh] overflow-y-auto scrollbar-hidden">
                 <div className="flex justify-between">
                     <div className="flex items-center gap-2">
                         <CopyPlus size={32} />
@@ -416,102 +202,114 @@ export default function ModalAddNewPawn({ closeModal, refresh }: Props) {
                     <button className="close-x-btn" onClick={closeModal}><X size={32} /></button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="flex flex-col items-center gap-8">
-                    <div className="flex gap-8 items-start">
-                        {/* Client inputs */}
-                        <div className="flex flex-col gap-2">
-                            <span className="flex items-center gap-2 font-medium mb-2 w-max">
-                                <User size={20} /> Внеси Податоци за Клиентот
-                            </span>
-                            {selectedClient ? (
-                                <div className="flex flex-col gap-2">
+                {!openSessionId && (
+                    <div className="flex items-center gap-2 bg-red-500/10 text-red-600 rounded p-3 text-sm">
+                        <TriangleAlert size={18} /> Нема отворена каса. Отворете каса за да можете да внесете залог.
+                    </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+                    {/* Section: client */}
+                    <div className="flex flex-col gap-3">
+                        <div className="flex gap-3 items-center flex-wrap">
+                            <span className="flex items-center gap-2 font-medium"><User size={20} /> Податоци за клиентот</span>
+                            <div className="flex gap-1 bg-white rounded p-1 shadow-[0_0_4px_rgba(0,0,0,0.2)] w-fit">
+                                {(["existing", "new"] as const).map(m => (
+                                    <button key={m} type="button" onClick={() => switchMode(m)}
+                                            className={`px-4 whitespace-nowrap py-1.5 rounded text-sm font-medium transition-colors ${mode === m ? "bg-green text-white" : "text-[#666] hover:bg-black/5"}`}>
+                                        {m === "existing" ? "Постоечки" : "Нов клиент"}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {mode === "existing" ? (
+                            selected ? (
+                                <div className="flex flex-col gap-2 max-w-sm">
                                     <div className="bg-white rounded shadow-[0_0_4px_rgba(0,0,0,0.2)] p-3 flex flex-col gap-1 text-sm">
-                                        <p className="font-semibold text-base">{selectedClient.name}</p>
-                                        <p className="text-[#666]">{selectedClient.embg}</p>
-                                        <p className="text-[#666]">{selectedClient.phoneNumber}</p>
-                                        {selectedClient.reservePhoneNumber && <p className="text-[#666]">{selectedClient.reservePhoneNumber}</p>}
-                                        <p className="text-[#666]">{selectedClient.address}, {selectedClient.city}</p>
+                                        <p className="font-semibold text-base">{selected.fullName}</p>
+                                        <p className="text-[#666]">{selected.nationalId}</p>
+                                        <p className="text-[#666]">{selected.phonePrimary}</p>
+                                        {selected.phoneSecondary && <p className="text-[#666]">{selected.phoneSecondary}</p>}
+                                        <p className="text-[#666]">{selected.address}, {selected.city}</p>
                                     </div>
-                                    <button
-                                        type="button"
-                                        onClick={deselectClient}
-                                        className="flex items-center gap-2 px-3 py-1.5 rounded bg-red-500 text-white text-sm hover:bg-red-600 transition-colors"
-                                    >
-                                        <UserX size={15} /> Нов клиент
+                                    <button type="button" onClick={clearSelected}
+                                            className="flex items-center gap-2 px-3 py-1.5 rounded bg-black/10 text-sm w-fit hover:bg-black/15 transition-colors">
+                                        <UserX size={15} /> Промени клиент
                                     </button>
                                 </div>
                             ) : (
-                                <>
-                                    <Autocomplete
-                                        ref={scrollableClientsRef}
-                                        options={clients}
-                                        value={selectedClient}
-                                        getOptionLabel={option => option.name}
-                                        onChange={handleObjectSelect}
-                                        renderInput={params => <TextField {...params} label="Постоечки клиенти" />}
-                                        isOptionEqualToValue={(option, value) => option.id === value.id}
-                                        filterOptions={(options, state) => options.filter(o =>
-                                            o.name.toLowerCase().includes(state.inputValue.toLowerCase()) ||
-                                            (o.embg && o.embg.includes(state.inputValue)) ||
-                                            (o.phoneNumber && o.phoneNumber.includes(state.inputValue)) ||
-                                            (o.reservePhoneNumber && o.reservePhoneNumber.includes(state.inputValue))
-                                        )}
-                                        renderOption={(props, option) => (
-                                            <li {...props} key={option.id} style={{ display: "flex", flexDirection: "column", gap: ".1rem", alignItems: "flex-start" }}>
-                                                <strong>{option.name}</strong>
-                                                <span>{option.embg}</span>
-                                                <span>{option.phoneNumber}</span>
-                                                {option.reservePhoneNumber && <span>{option.reservePhoneNumber}</span>}
-                                            </li>
-                                        )}
-                                        sx={{ background: "white", borderRadius: ".3rem", fontSize: "1rem", boxShadow: "0 0 4px rgba(0,0,0,0.2)" }}
-                                    />
-                                    {clientFields.map(([label, name, required]) => (
-                                        <div key={name} className="flex items-center gap-4 justify-between">
-                                            <p className="text-[#666] whitespace-nowrap">{label}</p>
-                                            <input
-                                                className={inputClass}
-                                                name={name}
-                                                value={formData[name]}
-                                                onChange={e => handleInputChange(e.target.name, e.target.value)}
-                                                required={required}
-                                            />
-                                        </div>
-                                    ))}
-                                </>
-                            )}
-                        </div>
+                                <Autocomplete
+                                    className="max-w-sm"
+                                    options={customers}
+                                    value={selected}
+                                    getOptionLabel={o => o.fullName}
+                                    onChange={pickCustomer}
+                                    isOptionEqualToValue={(o, v) => o.id === v.id}
+                                    renderInput={params => <TextField {...params} label="Пребарај клиент (име, ЕМБГ, телефон)" />}
+                                    filterOptions={(opts, state) => opts.filter(o =>
+                                        o.fullName.toLowerCase().includes(state.inputValue.toLowerCase()) ||
+                                        (o.nationalId && o.nationalId.includes(state.inputValue)) ||
+                                        (o.phonePrimary && o.phonePrimary.includes(state.inputValue)) ||
+                                        (o.phoneSecondary && o.phoneSecondary.includes(state.inputValue))
+                                    )}
+                                    renderOption={(props, o) => (
+                                        <li {...props} key={o.id} style={{ display: "flex", flexDirection: "column", gap: ".1rem", alignItems: "flex-start" }}>
+                                            <strong>{o.fullName}</strong><span>{o.nationalId}</span><span>{o.phonePrimary}</span>
+                                        </li>
+                                    )}
+                                    sx={{ background: "white", borderRadius: ".3rem", boxShadow: "0 0 4px rgba(0,0,0,0.2)" }}
+                                />
+                            )
+                        ) : (
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-3 max-w-2xl">
+                                {customerFields.map(([label, name, required]) => (
+                                    <div key={name} className="flex flex-col gap-1">
+                                        <p className="text-[#666] text-sm">{label}{required ? " *" : ""}</p>
+                                        <input className={inputClass} name={name} value={formData[name]}
+                                               onChange={e => h(e.target.name, e.target.value)} required={required} />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
 
-                        {/* Pawn inputs */}
-                        <div className="grid grid-cols-3 gap-2 gap-x-8">
-                            <span className=" flex items-center gap-2 font-medium">
-                                <Database size={20} /> Внеси Податоци за Предметот
-                            </span>
-                            <select
-                                className="col-span-2 h-full px-2 py-1 rounded border-2 border-black/60 cursor-pointer text-base"
-                                name="category"
-                                value={formData.category}
-                                onChange={e => handleInputChange(e.target.name, e.target.value)}
-                            >
-                                <option value="ELECTRONIC">Електроника</option>
-                                <option value="GOLD">Злато</option>
-                                <option value="VEHICLE">Возила</option>
-                                <option value="WATCH">Часовници</option>
-                                <option value="OTHER">Останато</option>
-                            </select>
-                            {renderCategoryInputs()}
+                    <hr className="border-black/15" />
+
+                    {/* Section: pawn */}
+                    <div className="flex flex-col gap-3">
+                        <span className="flex items-center gap-2 font-medium"><Coins size={20} /> Податоци за залогот</span>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-3 max-w-3xl">
+                            <PriceAndProvision f={formData} h={h} />
+                            <TermAndIssue f={formData} h={h} />
                         </div>
                     </div>
 
-                    <div className="flex gap-4 items-center">
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="flex justify-center items-center gap-2 px-32 py-3 rounded bg-green text-white text-2xl shadow-[0_0_8px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                            <CheckCheck size={28} /> Потврди
+                    <hr className="border-black/15" />
+
+                    {/* Section: item */}
+                    <div className="flex flex-col gap-3">
+                        <div className="flex gap-3 items-center flex-wrap">
+                            <span className="flex items-center gap-2 font-medium"><Database size={20} /> Податоци за предметот</span>
+                            <ItemTypeSelect value={formData.type} onChange={v => h("type", v)} />
+                        </div>
+                        <GoldPriceStrip prices={formData.type === "GOLD" ? goldPrices : null} />
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-3">
+                            <ItemFields f={formData} h={h} />
+                            <DescField h={h} />
+                        </div>
+                    </div>
+
+                    {error && <p className="text-red-500 text-sm">{error}</p>}
+
+                    <div className="flex gap-4 items-center justify-center mt-2">
+                        <button type="submit" disabled={loading || !openSessionId}
+                                className="group relative overflow-hidden flex justify-center items-center gap-2 px-16 py-2.5 rounded bg-green text-white text-base font-semibold shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100">
+                            {loading ? <Loading width={26} height={26} /> : (<>
+                                <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[180%]" />
+                                <CheckCheck size={22} /> Потврди
+                            </>)}
                         </button>
-                        {loading && <Loading width={40} height={40} />}
                     </div>
                 </form>
             </div>

@@ -37,6 +37,9 @@ CREATE TABLE staff
     base_salary     INTEGER                  NOT NULL,
     bonus_percent   NUMERIC(5, 2)            NOT NULL,
     status          VARCHAR(50)              NOT NULL,
+    -- A manager-set password is temporary; staff must change it on first login
+    -- before they can enter the app. Seeded/existing accounts default to FALSE.
+    password_change_required BOOLEAN         NOT NULL DEFAULT FALSE,
     manager_id      BIGINT,
     created_at      TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at      TIMESTAMP WITH TIME ZONE NOT NULL,

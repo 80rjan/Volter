@@ -1,0 +1,2 @@
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/resources/db/migration/public/V3__bootstrap_staff_records.sql","timestamp":1782065704882,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/resources/db/migration/tenant/V2__seed_demo_data.sql","timestamp":1782065852848,"sessionId":null}

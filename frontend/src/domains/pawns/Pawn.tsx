@@ -1,12 +1,14 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { Euro, RotateCcw, X, Ellipsis } from "lucide-react";
+import {Euro, RotateCcw, X, Ellipsis, ShoppingCart, Tag} from "lucide-react";
 import ModalShowMessagePawn from "./ModalShowMessagePawn.tsx";
 import ModalReadMorePawn from "./ModalReadMorePawn.tsx";
 import Loading from "../../shared/components/Loading.tsx";
 import ModalActions from "../../shared/components/ModalActions.tsx";
 import { PawnRow, PawnDetailed } from "./types.ts";
 import { API_BASE } from "../../shared/api/config.ts";
+import { useAuth } from "../../GlobalContext.tsx";
+import { resolveActiveSessionId } from "../../shared/utils/activeSession.ts";
 
 interface Props {
     pawn: PawnRow;
@@ -23,67 +25,64 @@ const getCat: Record<string, string> = {
     Other: "Останато",
 };
 
-function mapToPawnDetailed(r: any, daysLeft: number): PawnDetailed {
-    return {
-        id: r.id,
-        amount: r.amount,
-        interest: r.interest,
-        issueDate: r.issueDate ?? '',
-        maturityDate: r.maturityDate ?? '',
-        defaultDurationDays: r.defaultDurationDays,
-        status: r.status ?? '',
-        active: r.active ?? true,
-        createdAt: r.createdAt ?? '',
-        updatedAt: r.updatedAt ?? '',
-        customer: r.customer ?? {},
-        item: r.item ?? {},
-        daysLeft,
-    };
-}
-
 export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
+    const { can } = useAuth();
     const [modalSuccessMsg, setModalSuccessMsg] = useState(false);
     const [modalReadMore, setModalReadMore] = useState(false);
     const [successMsg, setSuccessMsg] = useState("");
     const [infoMsg, setInfoMsg] = useState("");
     const [pawnDetailed, setPawnDetailed] = useState<PawnDetailed | null>(null);
     const [loading, setLoading] = useState(false);
-    const [modalClosePawn, setModalClosePawn] = useState(false);
-    const [modalContinuePawn, setModalContinuePawn] = useState(false);
+    const [modalRedeemPawn, setModalRedeemPawn] = useState(false);
+    const [modalExtendPawn, setModalExtendPawn] = useState(false);
+    const [modalForfeitPawn, setModalForfeitPawn] = useState(false);
 
-    // category and carryOverDays params kept for ModalActions compatibility but not sent to API
-    const continuePawn = (id: number, _category: string, provision: number, description: string, _carryOverDays: number) => {
+    // Extend/redeem post against the active register's open session (selected in the cash bar).
+    const getOpenSessionId = (): Promise<number | null> => resolveActiveSessionId();
+
+    // provision -> interestPaid; description is no longer sent (the new /extend has no such field).
+    const extendPawn = async (id: number, _category: string, provision: number, _description: string, _carryOverDays: number) => {
         setLoading(true);
-        axios.post(`${API_BASE}/pawns/${id}/renew`, { interest: provision, transactionDescription: description })
-            .then(() => {
-                setSuccessMsg("Успешно продолжен залог");
-                setInfoMsg(`Додадени се ${provision.toLocaleString("de-DE")} во каса!`);
-                setModalContinuePawn(false);
-                setModalSuccessMsg(true);
-            })
-            .catch(error => console.error("Error continuing pawn:", error))
-            .finally(() => setLoading(false));
+        try {
+            const sessionId = await getOpenSessionId();
+            if (!sessionId) { setSuccessMsg("Нема отворена каса"); setInfoMsg(""); setModalExtendPawn(false); setModalSuccessMsg(true); return; }
+            await axios.post(`${API_BASE}/pawns/${id}/extend`, { interestPaid: provision, fee: 0, cashRegisterSessionId: sessionId });
+            setSuccessMsg("Успешно продолжен залог");
+            setInfoMsg(`Додадени се ${provision.toLocaleString("de-DE")} во каса!`);
+            setModalExtendPawn(false);
+            setModalSuccessMsg(true);
+        } catch (error) {
+            console.error("Error extending pawn:", error);
+        } finally { setLoading(false); }
     };
 
-    const closePawn = (id: number, _category: string, priceClosed: number, description: string) => {
+    // The staff-entered amount is the final redemption price recorded in the transaction.
+    const redeemPawn = async (id: number, _category: string, priceClosed: number, _description: string) => {
         setLoading(true);
-        axios.post(`${API_BASE}/pawns/${id}/redeem`, { paidAmount: priceClosed, transactionDescription: description })
-            .then(() => {
-                setSuccessMsg("Успешно затворен залог");
-                setInfoMsg(`Додадени се ${priceClosed.toLocaleString("de-DE")} во каса!`);
-                setModalClosePawn(false);
-                setModalSuccessMsg(true);
-            })
-            .catch(error => console.error("Error closing pawn:", error))
-            .finally(() => setLoading(false));
+        try {
+            const sessionId = await getOpenSessionId();
+            if (!sessionId) { setSuccessMsg("Нема отворена каса"); setInfoMsg(""); setModalRedeemPawn(false); setModalSuccessMsg(true); return; }
+            await axios.post(`${API_BASE}/pawns/${id}/redeem`, { paidAmount: priceClosed, cashRegisterSessionId: sessionId });
+            setSuccessMsg("Успешно затворен залог");
+            setInfoMsg("Залогот е затворен!");
+            setModalRedeemPawn(false);
+            setModalSuccessMsg(true);
+        } catch (error) {
+            console.error("Error redeeming pawn:", error);
+        } finally { setLoading(false); }
     };
 
-    const movePawnToSale = (id: number, _category: string) => {
+    const forfeitPawn = async (id: number, _category: string) => {
         setLoading(true);
-        axios.post(`${API_BASE}/pawns/${id}/forfeit`, { transactionDescription: "Премести во продажба" })
-            .then(() => { setSuccessMsg("Успешно пренесен залог во продажба"); setModalSuccessMsg(true); })
-            .catch(error => console.error("Error moving pawn to sale:", error))
-            .finally(() => setLoading(false));
+        try {
+            await axios.post(`${API_BASE}/pawns/${id}/forfeit`, {});
+            setSuccessMsg("Успешно пренесен залог во продажба");
+            setInfoMsg("");
+            setModalForfeitPawn(false);
+            setModalSuccessMsg(true);
+        } catch (error) {
+            console.error("Error forfeiting pawn:", error);
+        } finally { setLoading(false); }
     };
 
     useEffect(() => {
@@ -93,7 +92,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
     const fetchPawn = (_clientId: number, _category: string, pawnId: number) => {
         setLoading(true);
         axios.get(`${API_BASE}/pawns/${pawnId}`)
-            .then(res => setPawnDetailed(mapToPawnDetailed(res.data, pawn["Days Left"])))
+            .then(res => setPawnDetailed(res.data))
             .catch(error => console.error("Error fetching pawn:", error))
             .finally(() => setLoading(false));
     };
@@ -103,34 +102,43 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
     return (
         <div style={{ background: isOdd ? "#f0f0f0" : "#ffffff" }} className={`grid place-items-center text-center ${cols} border-b border-black/20 svg-hover`}>
             <p className="text-xs">{pawn.Id}</p>
-            <p className={`text-xs font-semibold ${pawn["Days Left"] < 0 ? "text-red-500" : ""}`}>{pawn.Name.toUpperCase()}</p>
+            <p className={`text-xs font-semibold ${pawn.Status === "ACTIVE" && pawn["Days Left"] < 0 ? "text-red-500" : ""}`}>{pawn.Name.toUpperCase()}</p>
             <p className="text-xs">{getCat[pawn.Category]}</p>
             <p className="text-xs">{pawn.About}</p>
             <p className="text-xs">{Number(pawn["Item Cost"]).toLocaleString("de-DE")}</p>
             <p className="text-xs font-semibold italic">{Number(pawn.Provision).toLocaleString("de-DE")}</p>
-            <p className={`text-xs font-semibold ${pawn["Days Left"] < 0 ? "text-red-500" : "text-green"}`}>{pawn["Days Left"]}</p>
+            <p className={`text-xs font-semibold ${
+                pawn.Status === "ACTIVE"
+                    ? (pawn["Days Left"] < 0 ? "text-red-500" : "text-green")
+                    : (pawn["Days Left"] < 0 ? "text-amber-600" : "text-green")
+            }`}>{pawn["Days Left"]}</p>
             <p className="text-xs">{String(pawn["Valid Until"]).substring(0, 10)}</p>
             {loading ? (
                 <Loading width={30} height={30} />
             ) : (
                 <>
-                    <div className="flex gap-2">
-                        <X size={16} className="cursor-pointer" onClick={() => setModalClosePawn(true)} />
-                        <RotateCcw size={16} color="var(--cta-color)" className="cursor-pointer" onClick={() => setModalContinuePawn(true)} />
-                        <Euro size={16} color="var(--green)" className="cursor-pointer" onClick={() => movePawnToSale(pawn.Id, pawn.Category)} />
-                    </div>
+                    {/* Actions only for active pawns, gated by permission; others are view-only. */}
+                    {pawn.Status === "ACTIVE" ? (
+                        <div className="flex gap-2">
+                            {can("PAWN_WRITE") && <RotateCcw size={16} color="var(--green)" className="cursor-pointer" onClick={() => setModalExtendPawn(true)} />}
+                            {can("PAWN_WRITE") && <X size={16} className="text-red-500 cursor-pointer" onClick={() => setModalRedeemPawn(true)} />}
+                            {can("PAWN_FORFEIT") && <Tag size={16}  className="text-amber-500 cursor-pointer" onClick={() => setModalForfeitPawn(true)} />}
+                        </div>
+                    ) : (
+                        <div />
+                    )}
                     <Ellipsis size={20} color="#888" className="cursor-pointer" onClick={() => fetchPawn(pawn["Client Id"], pawn.Category, pawn.Id)} />
                 </>
             )}
 
-            {modalClosePawn && (
+            {modalRedeemPawn && (
                 <ModalActions
-                    pawnAction="close"
-                    action={closePawn}
+                    pawnAction="redeem"
+                    action={redeemPawn}
                     id={pawn.Id}
                     category={pawn.Category}
                     successMsg="Успешно затворен залог!"
-                    closeModal={() => setModalClosePawn(false)}
+                    closeModal={() => setModalRedeemPawn(false)}
                     priceBought={Number(pawn["Item Cost"])}
                     provision={Number(pawn.Provision)}
                     dailyProvision={Math.abs(Math.round(Number(pawn.Provision)) / Number(pawn["Total Days"]))}
@@ -141,20 +149,34 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
                 />
             )}
 
-            {modalContinuePawn && (
+            {modalExtendPawn && (
                 <ModalActions
-                    pawnAction="continue"
-                    action={continuePawn}
+                    pawnAction="extend"
+                    action={extendPawn}
                     id={pawn.Id}
                     category={pawn.Category}
                     successMsg="Успешно продолжен залог!"
-                    closeModal={() => setModalContinuePawn(false)}
+                    closeModal={() => setModalExtendPawn(false)}
                     priceBought={Number(pawn["Item Cost"])}
                     provision={Number(pawn.Provision)}
                     dailyProvision={Math.abs(Math.round(Number(pawn.Provision)) / Number(pawn["Total Days"]))}
                     suggestedPrice={Number(pawn.Provision)}
                     daysLeft={Number(pawn["Days Left"])}
                     title="Со кој износ е продолжен залогот?"
+                    loading={loading}
+                />
+            )}
+
+            {modalForfeitPawn && (
+                <ModalActions
+                    pawnAction="forfeit"
+                    action={forfeitPawn}
+                    id={pawn.Id}
+                    category={pawn.Category}
+                    successMsg="Успешно пренесен залог во продажба!"
+                    closeModal={() => setModalForfeitPawn(false)}
+                    priceBought={Number(pawn["Item Cost"])}
+                    title="Пренеси во продажба?"
                     loading={loading}
                 />
             )}
@@ -170,13 +192,9 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
 
             {modalReadMore && pawnDetailed && (
                 <ModalReadMorePawn
-                    pawnDetailed={pawnDetailed}
-                    closeModal={(e: React.MouseEvent) => { e.stopPropagation(); setModalReadMore(false); }}
-                    closePawn={() => setModalClosePawn(true)}
-                    continuePawn={() => setModalContinuePawn(true)}
-                    movePawnToSale={() => movePawnToSale(pawn.Id, pawn.Category)}
-                    oldPawnRow={pawn}
-                    refreshCashReg={refreshCashReg}
+                    pawn={pawnDetailed}
+                    closeModal={(e?: React.MouseEvent) => { e?.stopPropagation(); setModalReadMore(false); }}
+                    refresh={refresh}
                 />
             )}
         </div>

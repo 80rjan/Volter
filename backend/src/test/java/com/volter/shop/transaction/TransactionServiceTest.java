@@ -111,7 +111,7 @@ class TransactionServiceTest {
         when(transactionRepository.findAll(any(Specification.class), eq(pageable)))
                 .thenReturn(org.springframework.data.domain.Page.empty(pageable));
 
-        transactionService.list(new TransactionFilterRequest(null, null, null, null), pageable, 3L);
+        transactionService.list(new TransactionFilterRequest(null, null, null, null, null), pageable, 3L);
 
         verify(staffService).findSubordinateStaffIds(3L);
         verify(transactionRepository).findAll(any(Specification.class), eq(pageable));

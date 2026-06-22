@@ -1,10 +1,11 @@
 import ReactDom from "react-dom";
-import { X, CircleHelp, CheckCheck } from 'lucide-react';
+import { X, RotateCcw, HandCoins, ShoppingCart, Coins, CheckCheck, Ban, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from "react";
 import Loading from "./Loading.tsx";
+import { resolveActiveSessionId } from "../utils/activeSession.ts";
 
 interface Props {
-    pawnAction: 'close' | 'continue' | null;
+    pawnAction: 'redeem' | 'extend' | 'forfeit' | 'cancel' | null;
     id: number;
     category: string;
     successMsg: string;
@@ -20,13 +21,39 @@ interface Props {
     refresh?: () => void;
 }
 
+// Contextual icon + accent per action.
+const META: Record<string, { Icon: any; ring: string }> = {
+    redeem: { Icon: HandCoins, ring: "bg-red-500/15 text-red-500" },
+    extend: { Icon: RotateCcw, ring: "bg-green/15 text-green" },
+    forfeit: { Icon: ShoppingCart, ring: "bg-amber-100 text-amber-600" },
+    cancel: { Icon: Ban, ring: "bg-red-100 text-red-600" },
+    sale: { Icon: Coins, ring: "bg-green/15 text-green" },
+};
+
+const inputClass = "bg-white border-none rounded text-base p-2 w-full shadow-[0_0_4px_rgba(0,0,0,0.2)]";
+
 export default function ModalActions({
-    pawnAction, id, category, successMsg, action,
+    pawnAction, id, category, action,
     priceBought, provision, dailyProvision, suggestedPrice,
     daysLeft, closeModal, title, loading,
 }: Props) {
+    const isConfirmOnly = pawnAction === "forfeit" || pawnAction === "cancel";
+    // Redeem/extend/sell move cash, so they need an open register session;
+    // forfeit/cancel are confirm-only and don't.
+    const requiresSession = !isConfirmOnly;
+
+    const [openSessionId, setOpenSessionId] = useState<number | null>(null);
+    const [sessionChecked, setSessionChecked] = useState(!requiresSession);
+    useEffect(() => {
+        if (!requiresSession) return;
+        resolveActiveSessionId()
+            .then(id => setOpenSessionId(id))
+            .finally(() => setSessionChecked(true));
+    }, [requiresSession]);
+    const noSession = requiresSession && sessionChecked && openSessionId == null;
+
     const penaltyPrice = (daysLeft ?? 0) < 0
-        ? (pawnAction === "continue" ? Math.abs(daysLeft!) * (dailyProvision ?? 0) : (provision ?? 0))
+        ? (pawnAction === "extend" ? Math.abs(daysLeft!) * (dailyProvision ?? 0) : (provision ?? 0))
         : 0;
 
     const initialPrice = Math.round(category === "sale"
@@ -34,88 +61,94 @@ export default function ModalActions({
         : (suggestedPrice ?? 0) + penaltyPrice);
 
     const [price, setPrice] = useState(initialPrice);
-    const [carryOverDays, setCarryOverDays] = useState(
-        Math.round((initialPrice - ((suggestedPrice ?? 0) + penaltyPrice)) / (dailyProvision ?? 1))
-    );
+    const [carryOverDays, setCarryOverDays] = useState(0);
     const [description, setDescription] = useState("");
     const [error, setError] = useState("");
-    const [showError] = useState(true);
 
-    const useActionFunc = () => {
-        try {
-            if (category === "sale")
-                action(id, price, description);
-            else
-                pawnAction === "continue"
-                    ? action(id, category, price, description, carryOverDays)
-                    : action(id, category, price, description);
-        } catch (err) {
-            console.error('Error in action:', err);
-        }
+    const submit = () => {
+        if (isConfirmOnly) { action(id, category); return; }
+        if (!(price > 0) || String(price).length === 0) { setError("Внеси сума!"); return; }
+        if (isNaN(price)) { setError("Внеси валиден број!"); return; }
+        if (pawnAction === "extend") action(id, category, price, description, carryOverDays);
+        else action(id, category, price, description);
     };
 
-    const inputClass = "border-none rounded-sm text-xl p-2 shadow-[0_0_4px_rgba(0,0,0,0.2)] h-fit";
+    const meta = META[pawnAction ?? "sale"] ?? META.sale;
+    const Icon = meta.Icon;
+
+    const info = (label: string, value: React.ReactNode) => (
+        <span className="text-[#666]">{label}: <span className="font-semibold text-black">{value}</span></span>
+    );
 
     return ReactDom.createPortal(
         <>
-            <div className="fixed inset-0 bg-black/70 z-[1000]" />
-            <div className="flex flex-col items-center gap-3 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#eee] z-[1000] p-4 pb-8 px-8 rounded-lg min-w-fit max-w-[90%]">
-                <X size={32} className="ml-auto close-x-btn" onClick={closeModal} />
-                <CircleHelp size={120} className="text-green mx-auto" />
-                <h1 className="text-center">{title}</h1>
-                <form
-                    className="flex flex-col items-center gap-4 mt-4"
-                    onSubmit={e => {
-                        e.preventDefault();
-                        if (String(price).length > 0 || price > 0) {
-                            if (isNaN(price)) setError('Внеси валиден број!');
-                            else useActionFunc();
-                        } else {
-                            setError('Внеси сума!');
-                        }
-                    }}
-                >
-                    <div className="flex items-center gap-8">
-                        <div className="flex flex-col gap-4">
-                            <p className="text-xl font-normal">Исплатени пари: <span className="font-semibold">{priceBought.toLocaleString("de-DE")}</span></p>
-                            {category !== "sale" && <p className="text-xl font-normal">Провизија: <span className="font-semibold">{provision?.toLocaleString("de-DE")}</span></p>}
-                            {category !== "sale" && <p className="text-xl font-normal">Казна: <span className="font-semibold">{Math.round(penaltyPrice).toLocaleString("de-DE")}</span></p>}
-                            {successMsg === "Успешно продолжен залог!" && (
-                                <p className="text-xl font-normal">Префрлени денови: <span className="font-semibold">{carryOverDays.toLocaleString("de-DE")}</span></p>
-                            )}
+            <div className="fixed inset-0 bg-black/70 z-[1000]" onClick={closeModal} />
+            <div className="flex flex-col gap-5 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#eee] z-[1000] p-7 rounded-lg w-[min(540px,92%)]">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <span className={`flex h-10 w-10 items-center justify-center rounded-full ${meta.ring}`}>
+                            <Icon size={20} />
+                        </span>
+                        <h1 className="text-xl font-semibold">{title}</h1>
+                    </div>
+                    <button className="close-x-btn" onClick={closeModal}><X size={24} /></button>
+                </div>
+
+                {noSession && (
+                    <div className="flex items-center gap-2 bg-red-500/10 text-red-600 rounded p-3 text-sm">
+                        <TriangleAlert size={18} /> Нема отворена каса. Отворете каса за да го извршите дејството.
+                    </div>
+                )}
+
+                {isConfirmOnly ? (
+                    <p className="text-[#666]">
+                        {pawnAction === "cancel"
+                            ? "Продажбата ќе биде откажана. Ова дејство не може да се врати."
+                            : "Залогот ќе биде пренесен во продажба. Ова дејство не може да се врати."}
+                    </p>
+                ) : (
+                    <div className="flex flex-col gap-4">
+                        <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                            {info("Исплатени пари", priceBought.toLocaleString("de-DE"))}
+                            {category !== "sale" && info("Провизија", provision?.toLocaleString("de-DE"))}
+                            {category !== "sale" && info("Казна", Math.round(penaltyPrice).toLocaleString("de-DE"))}
+                            {pawnAction === "extend" && info("Префрлени денови", carryOverDays.toLocaleString("de-DE"))}
                         </div>
-                        <div className="flex flex-col gap-4">
-                            <input
-                                className={inputClass}
-                                onChange={e => {
-                                    setPrice(Number(e.target.value));
-                                    setCarryOverDays(Math.round((Number(e.target.value) - ((suggestedPrice ?? 0) + penaltyPrice)) / (dailyProvision ?? 1)));
-                                }}
-                                type="number"
-                                placeholder="Внеси сума"
-                                value={price}
-                                required
-                            />
-                            <input
-                                className={inputClass}
-                                onChange={e => setDescription(e.target.value)}
-                                placeholder="Внеси опис"
-                                value={description}
-                            />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
+                                <span className="text-[#666] text-xs">Сума</span>
+                                <input
+                                    className={inputClass} type="number" value={price} placeholder="Внеси сума" required
+                                    onChange={e => {
+                                        setPrice(Number(e.target.value));
+                                        setCarryOverDays(Math.floor((Number(e.target.value) - ((suggestedPrice ?? 0) + penaltyPrice)) / (dailyProvision ?? 1)));
+                                    }}
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <span className="text-[#666] text-xs">Опис</span>
+                                <input className={inputClass} value={description} placeholder="Внеси опис"
+                                       onChange={e => setDescription(e.target.value)} />
+                            </div>
                         </div>
                     </div>
-                    <div className="flex gap-4 items-center">
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="flex justify-center items-center gap-2 px-32 py-2 rounded bg-green text-white text-2xl shadow-[0_0_8px_rgba(0,0,0,0.2)] transition-all duration-400 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                            <CheckCheck size={28} /> Потврди
-                        </button>
-                        {loading && <Loading width={40} height={40} />}
-                    </div>
-                </form>
-                {showError && <span className="text-red-500 italic text-xl">{error}</span>}
+                )}
+
+                {error && <span className="text-red-500 text-sm">{error}</span>}
+
+                <div className="flex gap-3 items-center justify-end">
+                    <button type="button" onClick={closeModal} disabled={loading}
+                            className="px-5 py-2 rounded bg-black/10 text-sm hover:bg-black/15 transition-colors">
+                        Откажи
+                    </button>
+                    <button type="button" onClick={submit} disabled={loading || noSession}
+                            className={`group relative overflow-hidden flex items-center justify-center gap-2 px-6 py-2 rounded text-white font-medium shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 ${pawnAction === "cancel" || pawnAction == "redeem" ? "bg-red-500" : pawnAction === "forfeit" ? "bg-amber-500" : "bg-green"}`}>
+                        {loading ? <Loading width={24} height={24} /> : (<>
+                            <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[180%]" />
+                            <CheckCheck size={20} /> Потврди
+                        </>)}
+                    </button>
+                </div>
             </div>
         </>,
         document.getElementById("portal")!

@@ -259,6 +259,8 @@ CREATE TABLE cash_register_session_discrepancy
     counted_amount           INTEGER                                  NOT NULL,
     difference               INTEGER                                  NOT NULL,
     type                     VARCHAR(50)                              NOT NULL,
+    -- OPENING (new opening balance != previous counted close) or CLOSING (counted close != expected).
+    phase                    VARCHAR(50)                              NOT NULL DEFAULT 'CLOSING',
     status                   VARCHAR(50)                              NOT NULL,
     resolution_note          TEXT,
     created_at               TIMESTAMP WITH TIME ZONE                 NOT NULL,

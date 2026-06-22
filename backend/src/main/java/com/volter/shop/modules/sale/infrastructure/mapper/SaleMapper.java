@@ -13,7 +13,6 @@ public interface SaleMapper {
 
     @Mapping(target = "customerId", source = "customer.id")
     @Mapping(target = "customerName", source = "customer.fullName")
-    @Mapping(target = "itemId", source = "item.id")
     @Mapping(target = "purchasePrice", expression = "java(sale.getPurchasePrice().amount())")
     @Mapping(target = "salePrice", expression = "java(sale.getSalePrice() == null ? null : sale.getSalePrice().amount())")
     @Mapping(target = "profit", expression = "java(sale.profit())")

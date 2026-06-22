@@ -148,6 +148,22 @@ public class PawnContract {
     }
 
     /**
+     * Correct the terms of an active contract. Principal and interest are set
+     * directly; changing the term shifts the due date (and the original due date)
+     * by the difference, preserving any extension offset. The caller is
+     * responsible for moving the cash when the principal changes.
+     */
+    public void updateTerms(Money principalAmount, Money interestAmount, int termDays) {
+        ensureActive();
+        int dayShift = termDays - this.termDays;
+        this.principalAmount = principalAmount;
+        this.interestAmount = interestAmount;
+        this.termDays = termDays;
+        this.dueDate = this.dueDate.plusDays(dayShift);
+        this.originalDueDate = this.originalDueDate.plusDays(dayShift);
+    }
+
+    /**
      * Mark the contract as redeemed, setting the redeemedAt timestamp.
      */
     public void redeem() {
@@ -169,6 +185,16 @@ public class PawnContract {
 
     public Money totalDue() {
         return principalAmount.add(interestAmount);
+    }
+
+    /**
+     * Amount expected for redemption: principal + interest, plus one more
+     * interest amount as a late penalty when redeemed after the (current) due
+     * date. Used to flag underpaid redemptions for manager review.
+     */
+    public Money expectedRedemptionAmount() {
+        Money base = totalDue();
+        return isMatured() ? base.add(interestAmount) : base;
     }
 
     public boolean isActive() {

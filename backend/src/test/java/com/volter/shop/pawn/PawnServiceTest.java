@@ -22,6 +22,9 @@ import com.volter.shop.modules.pawn.domain.repository.PawnContractRepository;
 import com.volter.shop.modules.pawn.domain.repository.PawnTransactionRepository;
 import com.volter.shop.modules.sale.application.SaleService;
 import com.volter.shop.modules.transaction.application.TransactionService;
+import com.volter.identity.modules.staff.application.StaffService;
+import com.volter.platform.modules.notification.application.NotificationService;
+import com.volter.platform.modules.notification.domain.model.enums.NotificationType;
 import com.volter.shop.modules.transaction.domain.model.Transaction;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionDirection;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionType;
@@ -53,6 +56,8 @@ class PawnServiceTest {
     @Mock private CashRegisterService cashRegisterService;
     @Mock private TransactionService transactionService;
     @Mock private SaleService saleService;
+    @Mock private StaffService staffService;
+    @Mock private NotificationService notificationService;
 
     @InjectMocks
     private PawnService pawnService;
@@ -162,7 +167,7 @@ class PawnServiceTest {
     class Redeem {
 
         @Test
-        @DisplayName("redeems the contract, marks the item redeemed and takes the total due as INFLOW")
+        @DisplayName("redeems the contract, marks the item redeemed and takes the staff-entered amount as INFLOW")
         void redeems() {
             PawnContract contract = mock(PawnContract.class);
             Item item = mock(Item.class);
@@ -171,16 +176,43 @@ class PawnServiceTest {
             when(contractRepository.findById(1L)).thenReturn(Optional.of(contract));
             when(cashRegisterService.requireOpenSession(77L)).thenReturn(session);
             when(contract.getItem()).thenReturn(item);
-            when(contract.totalDue()).thenReturn(new Money(1120));
+            when(contract.expectedRedemptionAmount()).thenReturn(new Money(1120));
             when(transactionService.record(eq(3L), eq(session), eq(TransactionType.PAWN),
                     eq(new Money(1120)), eq(TransactionDirection.IN), anyString())).thenReturn(tx);
 
-            pawnService.redeem(1L, new PawnRedeemRequest(77L), 3L);
+            // Paid exactly what was expected -> no risk flag raised.
+            pawnService.redeem(1L, new PawnRedeemRequest(1120, 77L), 3L);
 
             verify(contract).redeem();
             verify(itemService).markRedeemed(item, 3L);
             verify(cashRegisterService).applyTransaction(tx);
             verify(pawnTxRepository).save(any(PawnTransaction.class));
+            verifyNoInteractions(notificationService);
+        }
+
+        @Test
+        @DisplayName("flags the staff member's manager when the redemption is underpaid")
+        void underpaidRaisesRiskFlag() {
+            PawnContract contract = mock(PawnContract.class);
+            Item item = mock(Item.class);
+            CashRegisterSession session = mock(CashRegisterSession.class);
+            Transaction tx = mock(Transaction.class);
+            PawnTransaction pawnTx = mock(PawnTransaction.class);
+            when(contractRepository.findById(1L)).thenReturn(Optional.of(contract));
+            when(cashRegisterService.requireOpenSession(77L)).thenReturn(session);
+            when(contract.getItem()).thenReturn(item);
+            when(contract.getId()).thenReturn(1L);
+            when(contract.expectedRedemptionAmount()).thenReturn(new Money(1120));
+            when(transactionService.record(any(), any(), any(), any(), any(), anyString())).thenReturn(tx);
+            when(pawnTxRepository.save(any(PawnTransaction.class))).thenReturn(pawnTx);
+            when(pawnTx.getId()).thenReturn(555L);
+            when(staffService.findManagerId(3L)).thenReturn(Optional.of(9L));
+
+            // Paid less than expected -> manager gets a RISK_FLAG pointing at the pawn transaction.
+            pawnService.redeem(1L, new PawnRedeemRequest(1000, 77L), 3L);
+
+            verify(notificationService).create(eq(9L), eq(NotificationType.RISK_FLAG),
+                    anyString(), anyString(), eq("pawn_transaction"), eq(555L));
         }
     }
 

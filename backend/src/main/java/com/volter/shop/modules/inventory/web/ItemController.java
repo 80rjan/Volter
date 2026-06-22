@@ -62,7 +62,7 @@ public class ItemController {
      * Update information about an item.
      */
     @PatchMapping("/{id}")
-    @PreAuthorize("hasAuthority('ITEM_WRITE')")
+    @PreAuthorize("hasAuthority('ITEM_UPDATE')")
     public ResponseEntity<ItemResponse> update(@PathVariable Long id, @Valid @RequestBody ItemUpdateRequest request) {
         return ResponseEntity.ok(itemMapper.toResponse(itemService.update(id, request)));
     }

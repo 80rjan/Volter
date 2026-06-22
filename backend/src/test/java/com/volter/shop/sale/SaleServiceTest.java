@@ -18,6 +18,9 @@ import com.volter.shop.modules.sale.domain.model.SaleTransaction;
 import com.volter.shop.modules.sale.domain.repository.SaleRepository;
 import com.volter.shop.modules.sale.domain.repository.SaleTransactionRepository;
 import com.volter.shop.modules.transaction.application.TransactionService;
+import com.volter.identity.modules.staff.application.StaffService;
+import com.volter.platform.modules.notification.application.NotificationService;
+import com.volter.platform.modules.notification.domain.model.enums.NotificationType;
 import com.volter.shop.modules.transaction.domain.model.Transaction;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionDirection;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionType;
@@ -46,6 +49,8 @@ class SaleServiceTest {
     @Mock private ItemService itemService;
     @Mock private CashRegisterService cashRegisterService;
     @Mock private TransactionService transactionService;
+    @Mock private StaffService staffService;
+    @Mock private NotificationService notificationService;
 
     @InjectMocks
     private SaleService saleService;
@@ -149,6 +154,33 @@ class SaleServiceTest {
             verify(itemService).markSold(item, 3L);
             verify(cashRegisterService).applyTransaction(tx);
             verify(saleTxRepository).save(any(SaleTransaction.class));
+            verifyNoInteractions(notificationService);
+        }
+
+        @Test
+        @DisplayName("flags the staff member's manager when sold below purchase price")
+        void underpricedRaisesRiskFlag() {
+            Sale sale = mock(Sale.class);
+            Item item = mock(Item.class);
+            CashRegisterSession session = mock(CashRegisterSession.class);
+            Transaction tx = mock(Transaction.class);
+            SaleTransaction saleTx = mock(SaleTransaction.class);
+            when(saleRepository.findById(10L)).thenReturn(Optional.of(sale));
+            when(sale.getItem()).thenReturn(item);
+            when(sale.getId()).thenReturn(10L);
+            when(sale.isUnderwater()).thenReturn(true);
+            when(sale.getSalePrice()).thenReturn(new Money(800));
+            when(sale.getPurchasePrice()).thenReturn(new Money(1000));
+            when(cashRegisterService.requireOpenSession(77L)).thenReturn(session);
+            when(transactionService.record(any(), any(), any(), any(), any(), anyString())).thenReturn(tx);
+            when(saleTxRepository.save(any(SaleTransaction.class))).thenReturn(saleTx);
+            when(saleTx.getId()).thenReturn(321L);
+            when(staffService.findManagerId(3L)).thenReturn(Optional.of(9L));
+
+            saleService.sell(10L, new SaleSellRequest(800, 77L), 3L);
+
+            verify(notificationService).create(eq(9L), eq(NotificationType.RISK_FLAG),
+                    anyString(), anyString(), eq("sale_transaction"), eq(321L));
         }
     }
 

@@ -48,6 +48,11 @@ public class Staff {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    // True for a manager-created account with a temporary password: the staff member
+    // must change it on first login before they can use the app. Cleared on change.
+    @Column(name = "password_change_required", nullable = false)
+    private boolean passwordChangeRequired;
+
     @NotBlank(message = "National id is required")
     @Column(name = "national_id", nullable = false, length = 32)
     private String nationalId;
@@ -153,6 +158,7 @@ public class Staff {
 
     public void changePassword(String newPasswordHash) {
         this.passwordHash = newPasswordHash;
+        this.passwordChangeRequired = false;
     }
 
     public void assignManager(Staff manager) {

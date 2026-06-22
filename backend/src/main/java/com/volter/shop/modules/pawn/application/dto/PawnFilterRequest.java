@@ -13,6 +13,7 @@ public record PawnFilterRequest(
         String customerPhone,
         ItemType itemType,
         PawnContractStatus status,
+        Long createdByStaffId,
         LocalDate issuedFrom,
         LocalDate issuedTo,
         LocalDate dueFrom,

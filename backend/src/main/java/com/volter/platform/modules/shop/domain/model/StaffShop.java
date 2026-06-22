@@ -65,6 +65,12 @@ public class StaffShop {
         this.unassignedAt = OffsetDateTime.now();
     }
 
+    /** Re-activates a previously unassigned record (the unique (staff, shop) row is reused). */
+    public void reassign() {
+        this.status = StaffShopStatus.ACTIVE;
+        this.unassignedAt = null;
+    }
+
     public boolean isActive() {
         return status == StaffShopStatus.ACTIVE;
     }

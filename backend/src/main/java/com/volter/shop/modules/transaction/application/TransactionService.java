@@ -1,7 +1,13 @@
 package com.volter.shop.modules.transaction.application;
 
 import com.volter.identity.modules.staff.application.StaffService;
+import com.volter.identity.modules.staff.infrastructure.mapper.StaffMapper;
+import com.volter.shop.modules.cashregister.application.CashRegisterTxQueryService;
 import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
+import com.volter.shop.modules.expense.application.ExpenseTxQueryService;
+import com.volter.shop.modules.pawn.application.PawnTxQueryService;
+import com.volter.shop.modules.sale.application.SaleTxQueryService;
+import com.volter.shop.modules.transaction.application.dto.TransactionDetailedResponse;
 import com.volter.shop.modules.transaction.application.dto.TransactionFilterRequest;
 import com.volter.shop.modules.transaction.domain.model.Transaction;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionDirection;
@@ -28,6 +34,11 @@ public class TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final StaffService staffService;
+    private final StaffMapper staffMapper;
+    private final PawnTxQueryService pawnTxQueryService;
+    private final SaleTxQueryService saleTxQueryService;
+    private final ExpenseTxQueryService expenseTxQueryService;
+    private final CashRegisterTxQueryService cashRegisterTxQueryService;
 
     /**
      * Transactions the caller may see: their own plus those of every staff member
@@ -51,6 +62,37 @@ public class TransactionService {
             throw new AccessDeniedException("Cannot access a transaction made by another staff member");
         }
         return transaction;
+    }
+
+    /**
+     * Full detailed view of a transaction: ledger data, the staff member who made
+     * it, and the one type-specific block (pawn / sale / expense / cash register
+     * session) that matches its type. Access is enforced via {@link #get}; once a
+     * transaction is visible to the caller, so are its sub-details.
+     */
+    public TransactionDetailedResponse getDetailed(Long id, Long callerStaffId) {
+        Transaction tx = get(id, callerStaffId);
+
+        var staff = staffMapper.toResponse(staffService.get(tx.getStaffId(), callerStaffId));
+
+        var pawn = tx.getType() == TransactionType.PAWN
+                ? pawnTxQueryService.findDetailByTransactionId(id).orElse(null) : null;
+        var sale = tx.getType() == TransactionType.SALE
+                ? saleTxQueryService.findDetailByTransactionId(id).orElse(null) : null;
+        var expense = tx.getType() == TransactionType.EXPENSE
+                ? expenseTxQueryService.findDetailByTransactionId(id).orElse(null) : null;
+        // Every transaction belongs to a cash register session — show it for all types.
+        var session = cashRegisterTxQueryService.findSessionDetail(tx.getCashRegisterSession().getId()).orElse(null);
+
+        return new TransactionDetailedResponse(
+                tx.getId(),
+                tx.getType(),
+                tx.getAmount() == null ? null : tx.getAmount().amount(),
+                tx.getDirection(),
+                tx.getDescription(),
+                tx.getCreatedAt(),
+                tx.getCashRegisterSession().getId(),
+                staff, pawn, sale, expense, session);
     }
 
     // CROSS MODULE OPERATIONS

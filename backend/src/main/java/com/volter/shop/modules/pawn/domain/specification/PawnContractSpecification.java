@@ -8,10 +8,16 @@ import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
+import java.util.Collection;
 
 public final class PawnContractSpecification {
 
     private PawnContractSpecification() {}
+
+    /** Restricts to contracts opened by one of the given staff members (empty set matches nothing). */
+    public static Specification<PawnContract> createdByStaffIn(Collection<Long> staffIds) {
+        return (root, query, cb) -> staffIds.isEmpty() ? cb.disjunction() : root.get("createdByStaffId").in(staffIds);
+    }
 
     public static Specification<PawnContract> matches(PawnFilterRequest filter) {
         return (root, query, cb) -> {
@@ -23,6 +29,7 @@ public final class PawnContractSpecification {
                             root.get("customer").get("phoneSecondary"))
                     .withEnum(root.get("item").get("type"), filter.itemType())
                     .withEnum(root.get("status"), filter.status())
+                    .withValue(root.get("createdByStaffId"), filter.createdByStaffId())
                     .withDateRange(root.get("issueDate"), filter.issuedFrom(), filter.issuedTo())
                     .withDateRange(root.get("dueDate"), filter.dueFrom(), filter.dueTo());
             var predicates = builder.build();

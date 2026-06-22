@@ -117,14 +117,55 @@ public class StaffController {
         return ResponseEntity.noContent().build();
     }
 
+    // ----- shop + role assignment (IAM) -----
+    // Granting roles is privilege-sensitive, so these require IAM_MANAGE (overriding
+    // the class-level STAFF_MANAGE that guards basic staff administration).
+
     /**
-     * Revoke a role grant from a staff member. The caller must have access to the staff member.
+     * All shops, for the assign-to-shop picker.
+     */
+    @GetMapping("/shop-options")
+    @PreAuthorize("hasAuthority('IAM_MANAGE')")
+    public ResponseEntity<List<ShopResponse>> shopOptions() {
+        return ResponseEntity.ok(shopService.listAll().stream().map(shopMapper::toResponse).toList());
+    }
+
+    /**
+     * A staff member's active shop assignments, each with the role held there.
+     */
+    @GetMapping("/{id}/shops")
+    @PreAuthorize("hasAuthority('IAM_MANAGE')")
+    public ResponseEntity<List<StaffShopAssignmentResponse>> shopAssignments(@PathVariable Long id) {
+        return ResponseEntity.ok(staffService.listShopAssignments(id));
+    }
+
+    /**
+     * Assign the staff member to a shop and grant them a role there (one unit, one role per shop).
+     */
+    @PostMapping("/{id}/shops")
+    @PreAuthorize("hasAuthority('IAM_MANAGE')")
+    public ResponseEntity<Void> assignShop(@PathVariable Long id, @Valid @RequestBody StaffRoleGrantRequest request) {
+        staffService.assignShopWithRole(id, request.shopId(), request.roleId());
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    /**
+     * Remove the staff member from a shop (deactivates the assignment and revokes the role there).
+     */
+    @DeleteMapping("/{id}/shops/{shopId}")
+    @PreAuthorize("hasAuthority('IAM_MANAGE')")
+    public ResponseEntity<Void> revokeShop(@PathVariable Long id, @PathVariable Long shopId) {
+        staffService.revokeShop(id, shopId);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Revoke just the role the staff member holds in a shop (the shop assignment stays).
      */
     @DeleteMapping("/{id}/roles/{staffRoleId}")
-    public ResponseEntity<Void> revokeRoleGrant(@PathVariable Long id,
-                                                @PathVariable Long staffRoleId,
-                                                @AuthenticationPrincipal StaffPrincipal principal) {
-        staffService.revokeRoleGrant(id, staffRoleId, principal.staffId());
+    @PreAuthorize("hasAuthority('IAM_MANAGE')")
+    public ResponseEntity<Void> revokeRole(@PathVariable Long id, @PathVariable Long staffRoleId) {
+        staffService.revokeRole(id, staffRoleId);
         return ResponseEntity.noContent().build();
     }
 

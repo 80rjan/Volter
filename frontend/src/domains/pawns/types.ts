@@ -1,8 +1,20 @@
+// The three pawn actions, named to match the backend endpoints.
+export type PawnAction = 'extend' | 'redeem' | 'forfeit';
+
+// Adequate Macedonian labels for the action buttons — single source of truth.
+export const PAWN_ACTION_LABEL: Record<PawnAction, string> = {
+    extend: 'Продолжи',
+    redeem: 'Затвори',
+    forfeit: 'Пренеси во продажба',
+};
+
+// Pawn list row (used by usePawns, the Pawn row, and ModalActions).
 export interface PawnRow {
   Id: number;
   'Client Id': number;
   Name: string;
   Category: 'Electronics' | 'Gold' | 'Watch' | 'Vehicle' | 'Other';
+  Status: 'ACTIVE' | 'REDEEMED' | 'FORFEITED';
   About: string;
   'Item Cost': number | string;
   Provision: number | string;
@@ -11,100 +23,60 @@ export interface PawnRow {
   'Total Days': number | string;
 }
 
-export interface PawnCustomer {
-  name: string;
-  phoneNumber: string;
-  reservePhoneNumber: string | null;
-  embg: string;
+// --- Pawn detail (GET /pawns/{id} -> PawnContractDetailedResponse) ---
+
+export type ItemType = 'GOLD' | 'ELECTRONIC' | 'WATCH' | 'VEHICLE' | 'OTHER';
+
+export interface CustomerDetail {
+  id: number;
+  fullName: string;
+  nationalId: string;
+  phonePrimary: string;
+  phoneSecondary: string | null;
   address: string;
   city: string;
   createdAt: string;
   updatedAt: string;
-  riskLevel: string;
-  totalPawnCount: number;
-  totalSaleCount: number;
-  lateRenewalCount: number;
-  avgDaysLate: number;
-  onTimeRenewalCount: number;
-  forfeitCount: number;
-  redeemCount: number;
 }
 
-interface BaseItemDetailed {
-  itemType: string;
-  description: string;
-  itemStatus: string;
+export interface ItemDetail {
+  id: number;
+  type: ItemType;
+  origin: string;
+  status: string;
+  description: string | null;
+  // Type-specific data is a free-form key/value map.
+  attributes: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface GoldItemDetailed extends BaseItemDetailed {
-  itemType: 'GOLD';
-  weightGrams: number;
-  carats: string;
-  pieceType: string;
-  pricePerGram: number;
+export interface PawnExtension {
+  id: number;
+  previousDueDate: string;
+  newDueDate: string;
+  interestPaid: number;
+  fee: number;
+  createdAt: string;
 }
-
-export interface ElectronicItemDetailed extends BaseItemDetailed {
-  itemType: 'ELECTRONIC';
-  brand: string;
-  category: string;
-  year: number;
-}
-
-export interface WatchItemDetailed extends BaseItemDetailed {
-  itemType: 'WATCH';
-  brand: string;
-  model: string;
-  material: string;
-  year: number;
-  originalBoxIncluded: boolean;
-  originalPapersIncluded: boolean;
-  warrantyCardIncluded: boolean;
-  warrantyExpirationDate: string | null;
-  functional: boolean;
-  serviceRequired: boolean;
-}
-
-export interface VehicleItemDetailed extends BaseItemDetailed {
-  itemType: 'VEHICLE';
-  brand: string;
-  model: string;
-  year: number;
-  registrationNumber: string;
-  vehicleType: string;
-  mileage: number;
-  serviceHistoryAvailable: boolean;
-  lastServiceDate: string | null;
-  registrationExpiryDate: string;
-  numberOfKeys: number;
-}
-
-export interface OtherItemDetailed extends BaseItemDetailed {
-  itemType: 'OTHER';
-  category: string;
-}
-
-export type AnyItemDetailed =
-  | GoldItemDetailed
-  | ElectronicItemDetailed
-  | WatchItemDetailed
-  | VehicleItemDetailed
-  | OtherItemDetailed;
 
 export interface PawnDetailed {
   id: number;
-  amount: number;
-  interest: number;
+  customer: CustomerDetail;
+  item: ItemDetail;
+  createdByStaffId: number;
+  createdByStaffName: string | null;
+  principalAmount: number;
+  interestAmount: number;
+  termDays: number;
   issueDate: string;
-  maturityDate: string;
-  defaultDurationDays: number;
+  dueDate: string;
+  originalDueDate: string;
   status: string;
-  active: boolean;
+  daysOverdue: number;
+  redeemedAt: string | null;
+  forfeitedAt: string | null;
+  extensions: PawnExtension[];
   createdAt: string;
   updatedAt: string;
-  customer: PawnCustomer;
-  item: AnyItemDetailed;
-  daysLeft: number;
 }

@@ -49,10 +49,15 @@ public interface StaffRepository extends JpaRepository<Staff, Long>, JpaSpecific
             """, nativeQuery = true)
     boolean isManagerOf(@Param("managerId") Long managerId, @Param("staffId") Long staffId);
 
-    // open-in-view is disabled; the detailed response (mapped in the controller)
-    // walks the staffRoles collection, so fetch it eagerly here. The role behind
-    // each grant is already EAGER on StaffRole, so it comes along.
+    /**
+     * ID of the staff member's direct manager, if any.
+     */
+    @Query("select s.manager.id from Staff s where s.id = :staffId")
+    Optional<Long> findManagerId(@Param("staffId") Long staffId);
+
+    // Need type LOAD to keep all other attributes as is (example to keep eager as eager),
+    // because the default type FETCH would make all unlisted attributes lazy, which would cause issues with the eager role and permissions.
     @Override
-    @EntityGraph(attributePaths = "staffRoles")
+    @EntityGraph(attributePaths = "staffRoles", type = EntityGraph.EntityGraphType.LOAD)
     Optional<Staff> findById(Long id);
 }

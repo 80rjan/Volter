@@ -10,17 +10,18 @@ if (savedToken) {
     axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
 }
 
-axios.interceptors.response.use(
-    response => response,
-    error => {
-        if (error.response?.status === 401) {
-            localStorage.removeItem('token');
-            delete axios.defaults.headers.common['Authorization'];
-            window.location.hash = '/login';
-        }
-        return Promise.reject(error);
-    }
-);
+// Land on the login screen on a fresh app launch (the shop logs in each time the
+// app is opened), but NOT on an in-app refresh. sessionStorage survives a reload
+// and is only cleared when the app window is actually closed, so on a refresh the
+// flag is already set and the user stays on whatever page they were on.
+if (!sessionStorage.getItem('appLaunched')) {
+    sessionStorage.setItem('appLaunched', '1');
+    window.location.hash = '/login';
+}
+
+// Note: no global 401 handler. A 401 no longer force-logs-out or redirects — each
+// caller handles its own request errors locally, so one failed call can't tear
+// down the session.
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

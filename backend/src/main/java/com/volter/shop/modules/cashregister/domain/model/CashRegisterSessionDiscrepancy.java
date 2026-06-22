@@ -1,5 +1,6 @@
 package com.volter.shop.modules.cashregister.domain.model;
 
+import com.volter.shop.modules.cashregister.domain.model.enums.CashRegisterSessionDiscrepancyPhase;
 import com.volter.shop.modules.cashregister.domain.model.enums.CashRegisterSessionDiscrepancyStatus;
 import com.volter.shop.modules.cashregister.domain.model.enums.CashRegisterSessionDiscrepancyType;
 import jakarta.persistence.*;
@@ -52,6 +53,12 @@ public class CashRegisterSessionDiscrepancy {
     @Column(name = "type", nullable = false)
     private CashRegisterSessionDiscrepancyType type;
 
+    @NotNull(message = "Discrepancy phase is required")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "phase", nullable = false)
+    @Builder.Default
+    private CashRegisterSessionDiscrepancyPhase phase = CashRegisterSessionDiscrepancyPhase.CLOSING;
+
     @NotNull(message = "Status is required")
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -76,6 +83,23 @@ public class CashRegisterSessionDiscrepancy {
                 .countedAmount(countedAmount)
                 .difference(difference)
                 .type(difference > 0 ? CashRegisterSessionDiscrepancyType.OVERAGE : CashRegisterSessionDiscrepancyType.SHORTAGE)
+                .phase(CashRegisterSessionDiscrepancyPhase.CLOSING)
+                .build();
+    }
+
+    /**
+     * An OPENING discrepancy: the new session's opening balance differs from the
+     * previous session's counted closing balance (cash changed while closed).
+     */
+    public static CashRegisterSessionDiscrepancy ofOpening(CashRegisterSession session, int previousClosingBalance, int newOpeningBalance) {
+        int difference = newOpeningBalance - previousClosingBalance;
+        return CashRegisterSessionDiscrepancy.builder()
+                .session(session)
+                .expectedAmount(previousClosingBalance)
+                .countedAmount(newOpeningBalance)
+                .difference(difference)
+                .type(difference > 0 ? CashRegisterSessionDiscrepancyType.OVERAGE : CashRegisterSessionDiscrepancyType.SHORTAGE)
+                .phase(CashRegisterSessionDiscrepancyPhase.OPENING)
                 .build();
     }
 

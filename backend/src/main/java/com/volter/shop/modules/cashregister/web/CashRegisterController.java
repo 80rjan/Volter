@@ -1,7 +1,11 @@
 package com.volter.shop.modules.cashregister.web;
 
+import com.volter.identity.modules.staff.application.StaffService;
+import com.volter.identity.modules.staff.domain.model.Staff;
+import com.volter.identity.modules.staff.infrastructure.mapper.StaffMapper;
 import com.volter.shop.modules.cashregister.application.CashRegisterService;
 import com.volter.shop.modules.cashregister.application.dto.*;
+import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
 import com.volter.shop.modules.cashregister.infrastructure.mapper.CashRegisterMapper;
 import com.volter.shared.security.StaffPrincipal;
 import com.volter.shared.web.PageResponse;
@@ -27,6 +31,8 @@ public class CashRegisterController {
 
     private final CashRegisterService cashRegisterService;
     private final CashRegisterMapper cashRegisterMapper;
+    private final StaffService staffService;
+    private final StaffMapper staffMapper;
 
     // ----- registers -----
 
@@ -72,6 +78,19 @@ public class CashRegisterController {
     }
 
     /**
+     * Get a session together with the staff member who operated it.
+     */
+    @GetMapping("/cash-register-sessions/{id}/detailed")
+    @PreAuthorize("hasAuthority('CASH_REGISTER_SESSION_READ')")
+    public ResponseEntity<CashRegisterSessionDetailedResponse> getSessionDetailed(@PathVariable Long id, @AuthenticationPrincipal StaffPrincipal principal) {
+        CashRegisterSession session = cashRegisterService.getSession(id, principal.staffId());
+        Staff operator = staffService.get(session.getStaffId(), principal.staffId());
+        return ResponseEntity.ok(new CashRegisterSessionDetailedResponse(
+                cashRegisterMapper.toResponse(session),
+                staffMapper.toResponse(operator)));
+    }
+
+    /**
      * Open a new cash register session for the given register, operated by the caller.
      */
     @PostMapping("/cash-registers/{registerId}/open-session")
@@ -114,7 +133,7 @@ public class CashRegisterController {
      */
     @GetMapping("/cash-register-session-discrepancies")
     @PreAuthorize("hasAuthority('CASH_REGISTER_SESSION_DISCREPANCY_READ')")
-    public ResponseEntity<PageResponse<DiscrepancyResponse>> listSubordinateDiscrepancies(
+    public ResponseEntity<PageResponse<DiscrepancyResponse>> listDiscrepancies(
             @ModelAttribute DiscrepancyFilterRequest filter, Pageable pageable,
             @AuthenticationPrincipal StaffPrincipal principal) {
         return ResponseEntity.ok(PageResponse.of(

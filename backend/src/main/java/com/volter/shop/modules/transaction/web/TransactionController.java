@@ -1,6 +1,7 @@
 package com.volter.shop.modules.transaction.web;
 
 import com.volter.shop.modules.transaction.application.TransactionService;
+import com.volter.shop.modules.transaction.application.dto.TransactionDetailedResponse;
 import com.volter.shop.modules.transaction.application.dto.TransactionFilterRequest;
 import com.volter.shop.modules.transaction.application.dto.TransactionResponse;
 import com.volter.shop.modules.transaction.infrastructure.mapper.TransactionMapper;
@@ -37,10 +38,12 @@ public class TransactionController {
     }
 
     /**
-     * Get details of a specific transaction (own or one made by a subordinate).
+     * Get the full detailed view of a specific transaction (own or one made by a
+     * subordinate): ledger data, the staff member who made it, and the matching
+     * type-specific block (pawn / sale / expense / cash register session).
      */
     @GetMapping("/{id}")
-    public ResponseEntity<TransactionResponse> get(@PathVariable Long id, @AuthenticationPrincipal StaffPrincipal principal) {
-        return ResponseEntity.ok(transactionMapper.toResponse(transactionService.get(id, principal.staffId())));
+    public ResponseEntity<TransactionDetailedResponse> get(@PathVariable Long id, @AuthenticationPrincipal StaffPrincipal principal) {
+        return ResponseEntity.ok(transactionService.getDetailed(id, principal.staffId()));
     }
 }

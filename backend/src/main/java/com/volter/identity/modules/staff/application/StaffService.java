@@ -5,14 +5,19 @@ import com.volter.identity.modules.role.domain.repository.RoleRepository;
 import com.volter.identity.modules.staff.application.dto.PasswordChangeRequest;
 import com.volter.identity.modules.staff.application.dto.StaffCreateRequest;
 import com.volter.identity.modules.staff.application.dto.StaffFilterRequest;
-import com.volter.identity.modules.staff.application.dto.StaffRoleGrantRequest;
+import com.volter.identity.modules.staff.application.dto.StaffOptionResponse;
+import com.volter.identity.modules.staff.application.dto.StaffShopAssignmentResponse;
 import com.volter.identity.modules.staff.application.dto.StaffUpdateRequest;
 import com.volter.identity.modules.staff.domain.model.Staff;
 import com.volter.identity.modules.staff.domain.model.StaffRole;
 import com.volter.identity.modules.staff.domain.repository.StaffRepository;
 import com.volter.identity.modules.staff.domain.repository.StaffRoleRepository;
 import com.volter.identity.modules.staff.domain.specification.StaffSpecification;
+import com.volter.platform.modules.shop.domain.model.Shop;
+import com.volter.platform.modules.shop.domain.model.StaffShop;
+import com.volter.platform.modules.shop.domain.model.enums.StaffShopStatus;
 import com.volter.platform.modules.shop.domain.repository.ShopRepository;
+import com.volter.platform.modules.shop.domain.repository.StaffShopRepository;
 import com.volter.shared.web.exception.BusinessRuleException;
 import com.volter.shared.web.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +27,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,6 +43,7 @@ public class StaffService {
     private final StaffRoleRepository staffRoleRepository;
     private final RoleRepository roleRepository;
     private final ShopRepository shopRepository;
+    private final StaffShopRepository staffShopRepository;
     private final PasswordEncoder passwordEncoder;
 
     /**
@@ -73,6 +81,8 @@ public class StaffService {
                 .fullName(request.fullName())
                 .username(request.username())
                 .passwordHash(passwordEncoder.encode(request.password()))
+                // The manager-set password is temporary; force a change on first login.
+                .passwordChangeRequired(true)
                 .nationalId(request.nationalId())
                 .phonePrimary(request.phonePrimary())
                 .phoneSecondary(request.phoneSecondary())
@@ -143,20 +153,86 @@ public class StaffService {
         staff.softDelete();
     }
 
+    // ----- shop + role assignment (IAM) -----
+
     /**
-     * Revoke a role from a staff member. The caller must be the manager of the staff member.
+     * Active shop assignments for a staff member, each with the single role they
+     * hold in that shop (role fields null if the role was revoked but the shop kept).
      */
-    public void revokeRoleGrant(Long staffId, Long staffRoleId, Long principalId) {
-        if (!isManagerOf(principalId, staffId)) {
-            throw new BusinessRuleException("A staff role grant can be revoked only by the manager (direct or indirect) of the staff member");
+    @Transactional(readOnly = true)
+    public List<StaffShopAssignmentResponse> listShopAssignments(Long staffId) {
+        Staff staff = loadStaff(staffId);
+        return staffShopRepository.findAllByStaffIdAndStatus(staffId, StaffShopStatus.ACTIVE).stream()
+                .map(ss -> {
+                    Long shopId = ss.getShop().getId();
+                    Optional<StaffRole> role = staff.getStaffRoles().stream()
+                            .filter(sr -> sr.appliesTo(shopId) && sr.isGranted())
+                            .findFirst();
+                    return new StaffShopAssignmentResponse(
+                            shopId, ss.getShop().getName(), ss.getShop().getCode(),
+                            role.map(StaffRole::getId).orElse(null),
+                            role.map(sr -> sr.getRole().getId()).orElse(null),
+                            role.map(sr -> sr.getRole().getName()).orElse(null));
+                })
+                .toList();
+    }
+
+    /**
+     * Assign a staff member to a shop and grant them a role there, as one unit.
+     * Enforces one role per shop. Re-uses (re-activates) any previously revoked
+     * shop/role rows to respect the unique constraints.
+     */
+    public void assignShopWithRole(Long staffId, Long shopId, Long roleId) {
+        Staff staff = loadStaff(staffId);
+        Shop shop = shopRepository.findById(shopId)
+                .orElseThrow(() -> new ResourceNotFoundException("Shop not found: " + shopId));
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + roleId));
+
+        boolean alreadyHasRole = staff.getStaffRoles().stream()
+                .anyMatch(sr -> sr.appliesTo(shopId) && sr.isGranted());
+        if (alreadyHasRole) {
+            throw new BusinessRuleException("Staff already has a role in this shop");
         }
 
+        // Activate (or create) the shop assignment.
+        staffShopRepository.findByStaffIdAndShop_Id(staffId, shopId)
+                .ifPresentOrElse(StaffShop::reassign,
+                        () -> staffShopRepository.save(StaffShop.assign(staffId, shop)));
+
+        // Grant the role: re-activate the (staff, role, shop) row if it exists, else create.
+        staff.getStaffRoles().stream()
+                .filter(sr -> sr.appliesTo(shopId) && sr.getRole().getId().equals(roleId))
+                .findFirst()
+                .ifPresentOrElse(StaffRole::regrant,
+                        () -> staff.assignRole(role, shopId));
+    }
+
+    /**
+     * Revoke just the role a staff member holds in a shop (the shop assignment stays).
+     */
+    public void revokeRole(Long staffId, Long staffRoleId) {
         Staff staff = loadStaff(staffId);
         StaffRole grant = staff.getStaffRoles().stream()
                 .filter(sr -> sr.getId().equals(staffRoleId))
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("Staff role grant not found: " + staffRoleId));
         grant.revoke();
+    }
+
+    /**
+     * Remove a staff member from a shop: deactivate the assignment and revoke any
+     * role they held there.
+     */
+    public void revokeShop(Long staffId, Long shopId) {
+        StaffShop assignment = staffShopRepository.findByStaffIdAndShop_Id(staffId, shopId)
+                .orElseThrow(() -> new ResourceNotFoundException("Shop assignment not found for shop: " + shopId));
+        assignment.unassign();
+
+        Staff staff = loadStaff(staffId);
+        staff.getStaffRoles().stream()
+                .filter(sr -> sr.appliesTo(shopId) && sr.isGranted())
+                .forEach(StaffRole::revoke);
     }
 
 
@@ -169,6 +245,20 @@ public class StaffService {
     @Transactional(readOnly = true)
     public List<Long> findSubordinateStaffIds(Long managerId) {
         return staffRepository.findSubordinateIds(managerId);
+    }
+
+    /**
+     * The caller's own team for pickers: themselves plus everyone below them in the
+     * management tree, as {id, fullName}. Used by the per-page "filter by staff" dropdown.
+     */
+    @Transactional(readOnly = true)
+    public List<StaffOptionResponse> listTeam(Long staffId) {
+        List<Long> ids = new ArrayList<>(staffRepository.findSubordinateIds(staffId));
+        ids.add(staffId);
+        return staffRepository.findAllById(ids).stream()
+                .map(s -> new StaffOptionResponse(s.getId(), s.getFullName()))
+                .sorted(java.util.Comparator.comparing(StaffOptionResponse::fullName))
+                .toList();
     }
 
     /**
@@ -190,6 +280,14 @@ public class StaffService {
     @Transactional(readOnly = true)
     public boolean isManagerOf(Long managerId, Long staffId) {
         return staffRepository.isManagerOf(managerId, staffId);
+    }
+
+    /**
+     * Id of the staff member's direct manager, if any. Used to route risk flags.
+     */
+    @Transactional(readOnly = true)
+    public Optional<Long> findManagerId(Long staffId) {
+        return staffRepository.findManagerId(staffId);
     }
 
 

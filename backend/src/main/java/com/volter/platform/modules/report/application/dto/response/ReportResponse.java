@@ -13,6 +13,12 @@ public record ReportResponse(
         ReportType type,
         LocalDate dateFrom,
         LocalDate dateTo,
-        OffsetDateTime generatedAt
+        OffsetDateTime generatedAt,
+        // Headline figures derived from the payload, so the list row can show them
+        // without fetching each report's full detail.
+        long totalRevenue,
+        long totalExpenses,
+        long netProfit,
+        long moneyGivenToClients
 ) {
 }

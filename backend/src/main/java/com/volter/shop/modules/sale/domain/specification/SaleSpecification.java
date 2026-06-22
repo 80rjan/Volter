@@ -6,9 +6,16 @@ import com.volter.shared.specification.PredicateBuilder;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.Collection;
+
 public final class SaleSpecification {
 
     private SaleSpecification() {}
+
+    /** Restricts to sales created by one of the given staff members (empty set matches nothing). */
+    public static Specification<Sale> createdByStaffIn(Collection<Long> staffIds) {
+        return (root, query, cb) -> staffIds.isEmpty() ? cb.disjunction() : root.get("createdByStaffId").in(staffIds);
+    }
 
     public static Specification<Sale> matches(SaleFilterRequest filter) {
         return (root, query, cb) -> {
@@ -20,6 +27,7 @@ public final class SaleSpecification {
                             root.get("customer").get("phonePrimary"),
                             root.get("customer").get("phoneSecondary"))
                     .withEnum(root.get("item").get("type"), filter.itemType())
+                    .withValue(root.get("createdByStaffId"), filter.createdByStaffId())
                     .withRange(root.get("soldAt"), filter.soldFrom(), filter.soldTo())
                     .build();
             return cb.and(predicates.toArray(new Predicate[0]));

@@ -4,5 +4,6 @@ public enum PawnTransactionAction {
     CONTRACT_CREATED,
     REDEEMED,
     FORFEITED,
-    EXTENDED
+    EXTENDED,
+    ADJUSTED
 }

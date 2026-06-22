@@ -1,0 +1,16 @@
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/shared/types.ts","timestamp":1781976112363,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/shared/components/CashRegister.tsx","timestamp":1781976134344,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/shared/components/ModalAdjustCashRegister.tsx","timestamp":1781976154076,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/shared/components/ModalOpenCashRegister.tsx","timestamp":1781976164234,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/shared/components/ModalCloseCashRegister.tsx","timestamp":1781976176824,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/shared/components/ModalCloseCashRegister.tsx","timestamp":1781976187490,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/cashregister/domain/model/enums/CashRegisterSessionDiscrepancyPhase.java","timestamp":1782141276116,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/cashregister/domain/model/CashRegisterSessionDiscrepancy.java","timestamp":1782141304162,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/cashregister/domain/model/CashRegisterSessionDiscrepancy.java","timestamp":1782141315393,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/cashregister/domain/model/CashRegisterSessionDiscrepancy.java","timestamp":1782141326583,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/cashregister/domain/repository/CashRegisterSessionRepository.java","timestamp":1782141342787,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/cashregister/application/CashRegisterService.java","timestamp":1782141370089,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/cashregister/application/CashRegisterService.java","timestamp":1782141377690,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/cashregister/application/CashRegisterService.java","timestamp":1782141394854,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/cashregister/application/dto/DiscrepancyResponse.java","timestamp":1782141426986,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/resources/db/migration/tenant/V1__init_tenant_schema.sql","timestamp":1782141460680,"sessionId":null}

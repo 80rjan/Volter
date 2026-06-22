@@ -8,6 +8,7 @@ import java.time.OffsetDateTime;
 public record TransactionFilterRequest(
         TransactionType type,
         TransactionDirection direction,
+        Long staffId,
         OffsetDateTime createdFrom,
         OffsetDateTime createdTo
 ) {

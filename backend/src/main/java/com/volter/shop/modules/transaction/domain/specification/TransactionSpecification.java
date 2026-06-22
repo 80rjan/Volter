@@ -22,6 +22,7 @@ public final class TransactionSpecification {
             var predicates = new PredicateBuilder<Transaction>(root, cb)
                     .withEnum(root.get("type"), filter.type())
                     .withEnum(root.get("direction"), filter.direction())
+                    .withValue(root.get("staffId"), filter.staffId())
                     .withRange(root.get("createdAt"), filter.createdFrom(), filter.createdTo())
                     .build();
             return cb.and(predicates.toArray(new Predicate[0]));

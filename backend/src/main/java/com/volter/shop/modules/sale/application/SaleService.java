@@ -20,12 +20,19 @@ import com.volter.shop.modules.transaction.domain.model.Transaction;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionDirection;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionType;
 import com.volter.shop.shared.valueobject.Money;
+import com.volter.identity.modules.staff.application.StaffService;
+import com.volter.platform.modules.notification.application.NotificationService;
+import com.volter.platform.modules.notification.domain.model.enums.NotificationType;
 import com.volter.shared.web.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -38,13 +45,22 @@ public class SaleService {
     private final ItemService itemService;
     private final CashRegisterService cashRegisterService;
     private final TransactionService transactionService;
+    private final StaffService staffService;
+    private final NotificationService notificationService;
 
     /**
-     * List sales with optional filters.
+     * List sales with optional filters. When filtering by the creating staff member,
+     * the choice is restricted to the caller's own team (themselves + subordinates).
      */
     @Transactional(readOnly = true)
-    public Page<Sale> list(SaleFilterRequest filter, Pageable pageable) {
-        return saleRepository.findAll(SaleSpecification.matches(filter), pageable);
+    public Page<Sale> list(SaleFilterRequest filter, Pageable pageable, Long callerStaffId) {
+        Specification<Sale> spec = SaleSpecification.matches(filter);
+        if (filter.createdByStaffId() != null) {
+            List<Long> visible = new ArrayList<>(staffService.findSubordinateStaffIds(callerStaffId));
+            visible.add(callerStaffId);
+            spec = spec.and(SaleSpecification.createdByStaffIn(visible));
+        }
+        return saleRepository.findAll(spec, pageable);
     }
 
     /**
@@ -108,9 +124,30 @@ public class SaleService {
                 staffId, session, TransactionType.SALE, salePrice,
                 TransactionDirection.IN, "Item sold");
         cashRegisterService.applyTransaction(tx);
-        saleTxRepository.save(SaleTransaction.record(tx, sale, SaleTransactionAction.SOLD));
+        SaleTransaction saleTx = saleTxRepository.save(SaleTransaction.record(tx, sale, SaleTransactionAction.SOLD));
+
+        // Risk flag: sold below what the shop paid for the item -> notify the manager.
+        if (sale.isUnderwater()) {
+            flagUnderpricedSale(staffId, sale, saleTx.getId());
+        }
 
         return sale;
+    }
+
+    /**
+     * Notify the staff member's manager about a sale closed below the item's
+     * purchase price, pointing the risk flag at the created sale transaction.
+     */
+    private void flagUnderpricedSale(Long staffId, Sale sale, Long saleTransactionId) {
+        staffService.findManagerId(staffId).ifPresent(managerId ->
+                notificationService.create(
+                        managerId,
+                        NotificationType.RISK_FLAG,
+                        "Продажба под откупна цена",
+                        "Продажба #" + sale.getId() + " е затворена со " + sale.getSalePrice().amount()
+                                + " ден., помалку од откупната цена од " + sale.getPurchasePrice().amount() + " ден.",
+                        "sale_transaction",
+                        saleTransactionId));
     }
 
     /**

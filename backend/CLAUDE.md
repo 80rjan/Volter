@@ -64,3 +64,7 @@ DDL mode is `update` (Hibernate auto-updates schema on startup). Flyway is a dep
 Tests use JUnit 5 + Mockito. Repositories and mappers are mocked; services are unit-tested in isolation. The security context and tenant context are not set up in unit tests — test only the service logic.
 
 Run a specific test method: `./mvnw test -Dtest=PawnServiceTest#testCreatePawn`
+
+## Review
+
+Codex will review your output once you are done.

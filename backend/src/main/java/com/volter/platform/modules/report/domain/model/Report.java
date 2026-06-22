@@ -85,4 +85,21 @@ public class Report {
                 .payload(payload)
                 .build();
     }
+
+    /**
+     * A monthly performance report about one staff member. Owner is set to the subject
+     * so it is not a "system" (everyone-visible) report; visibility (subject + managers)
+     * is enforced by the service.
+     */
+    public static Report staffPerformance(Long shopId, Long subjectStaffId, LocalDate from, LocalDate to, Map<String, Object> payload) {
+        return Report.builder()
+                .shopId(shopId)
+                .ownerStaffId(subjectStaffId)
+                .subjectStaffId(subjectStaffId)
+                .type(ReportType.STAFF_PERFORMANCE)
+                .dateFrom(from)
+                .dateTo(to)
+                .payload(payload)
+                .build();
+    }
 }

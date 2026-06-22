@@ -1,44 +1,62 @@
 import ReactDom from "react-dom";
-import { X, Calendar1, BanknoteArrowUp, BanknoteX, Banknote, Landmark, Sigma, Vault } from 'lucide-react';
-import { MonthlyReportRow } from "./types.ts";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { X, CalendarFold } from "lucide-react";
+import Loading from "../../shared/components/Loading.tsx";
+import { API_BASE } from "../../shared/api/config.ts";
+import { MonthlyReportRow, ReportPayload, MONTHS_MK } from "./types.ts";
+import { ReportStats, ReportBreakdown } from "./ReportBreakdown.tsx";
 
 interface Props {
     report: MonthlyReportRow;
-    closeModal: () => void;
+    closeModal: (e?: React.MouseEvent) => void;
 }
 
+const period = (r: MonthlyReportRow) => `${MONTHS_MK[parseInt(r.dateFrom.substring(5, 7), 10) - 1]} ${r.dateFrom.substring(0, 4)}`;
+
 export default function ModalReadMoreMonthReport({ report, closeModal }: Props) {
-    const item = (icon: React.ReactNode, val: number, label: string) => (
-        <div className="flex gap-4 leading-none min-w-max">
-            {icon}
-            <div className="flex flex-col gap-1">
-                <h1 className="text-2xl">{Number(val).toLocaleString("de-DE")}</h1>
-                <p className="font-normal text-base">{label}</p>
-            </div>
-        </div>
-    );
+    const [payload, setPayload] = useState<ReportPayload | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        setLoading(true);
+        axios.get(`${API_BASE}/reports/${report.id}`)
+            .then(res => setPayload(res.data.payload ?? null))
+            .catch(error => console.error("Error fetching report detail:", error))
+            .finally(() => setLoading(false));
+    }, [report.id]);
 
     return ReactDom.createPortal(
         <>
-            <div className="fixed inset-0 bg-black/70 z-[1000]" />
-            <div className="flex flex-col items-center fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#eee] z-[1000] p-4 pb-8 px-8 rounded-lg min-w-fit max-w-[90%]">
-                <X size={40} className="ml-auto close-x-btn" onClick={closeModal} />
-                <div className="flex items-center gap-2 text-3xl font-semibold mb-8 w-full">
-                    <Calendar1 size={44} />
-                    Месечен Извештај за {report.month}-{report.year}
-                </div>
-                <div className="flex flex-col gap-6">
-                    <div className="flex gap-12">
-                        {item(<Vault color="var(--grey)" size={36} />, report.turnover, 'Промет')}
-                        {item(<Landmark color="var(--grey)" size={36} />, report.cashOut, 'Исплати')}
-                        {item(<Sigma color="var(--grey)" size={36} />, report.revenue, 'Приход')}
+            <div className="fixed inset-0 bg-black/70 z-[1000]" onClick={closeModal} />
+            <div className="flex flex-col gap-6 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#eee] z-[1000] p-8 rounded-lg w-[min(960px,94%)] max-h-[90vh] overflow-y-auto scrollbar-hidden">
+                <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-green/15 text-green">
+                            <CalendarFold size={20} />
+                        </span>
+                        <h1 className="text-2xl font-semibold">Извештај — {period(report)}</h1>
                     </div>
-                    <div className="flex gap-12">
-                        {item(<BanknoteArrowUp color="var(--grey)" size={36} />, report.grossProfit, 'Бруто Профит')}
-                        {item(<BanknoteX color="var(--dark-red, red)" size={36} />, report.expenses, 'Расходи')}
-                        {item(<Banknote color="var(--green)" size={36} />, report.netProfit, 'Нето Профит')}
-                    </div>
+                    <button className="close-x-btn" onClick={closeModal}><X size={28} /></button>
                 </div>
+
+                <ReportStats
+                    totalRevenue={report.totalRevenue}
+                    totalExpenses={report.totalExpenses}
+                    netProfit={report.netProfit}
+                    moneyGivenToClients={report.moneyGivenToClients}
+                />
+
+                {loading ? (
+                    <div className="flex justify-center py-8"><Loading /></div>
+                ) : !payload ? (
+                    <p className="text-center text-sm text-[#888] py-6">Нема детални податоци.</p>
+                ) : (
+                    <>
+                        <hr className="border-black/15" />
+                        <ReportBreakdown payload={payload} />
+                    </>
+                )}
             </div>
         </>,
         document.getElementById("portal")!

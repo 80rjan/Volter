@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from "axios";
-import { API_BASE } from "../api/config";
+import { API_BASE, EUR_TO_MKD } from "../api/config";
 
 interface GoldPriceResponse {
     currency: string;
@@ -23,25 +23,34 @@ export default function GoldPriceLive() {
             const res = await axios.get<GoldPriceResponse>(`${API_BASE}/gold/price`);
             setPrices(res.data);
             setError(false);
+            sessionStorage.setItem('goldPrice', JSON.stringify(res.data));
         } catch {
             setError(true);
         }
     };
 
     useEffect(() => {
+        // Held for the app session: reuse the price already fetched this session,
+        // otherwise fetch it once. No polling — the gold API quota is tight and a
+        // session-stable price is good enough. Reopening the app fetches a fresh one.
+        const cached = sessionStorage.getItem('goldPrice');
+        if (cached) {
+            try { setPrices(JSON.parse(cached)); return; } catch { /* fall through to fetch */ }
+        }
         fetchGoldPrice();
-        const interval = setInterval(fetchGoldPrice, 60000 * 5);
-        return () => clearInterval(interval);
     }, []);
 
     const row = (label: string, price: number | undefined) => (
-        <div className="flex items-center justify-between w-full gap-1 text-base font-bold text-orange-600">
+        // whitespace-nowrap keeps each row on one line so it never wraps (and changes
+        // height) while the nav is mid-animation — it's just clipped by the rail's
+        // overflow-hidden until the nav is wide enough.
+        <div className="flex items-center justify-between w-full gap-1 text-base font-bold text-orange-600 whitespace-nowrap">
             <span>{label}:</span>
             <div>
                 {price != null ? (
                     <div>
                         {price.toFixed(2)}€
-                        <span className="font-normal text-sm"> / {(price * 61.5).toFixed(0)} ден</span>
+                        <span className="font-normal text-sm"> / {(price * EUR_TO_MKD).toFixed(0)} ден</span>
                     </div>
                 ) : "—"}
             </div>

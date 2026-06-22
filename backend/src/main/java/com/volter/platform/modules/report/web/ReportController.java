@@ -1,7 +1,9 @@
 package com.volter.platform.modules.report.web;
 
 import com.volter.platform.modules.report.application.ReportService;
+import com.volter.platform.modules.report.application.dto.response.PeriodReportResponse;
 import com.volter.platform.modules.report.application.dto.response.ReportDetailedResponse;
+import com.volter.platform.modules.report.application.dto.response.StaffPerformanceResponse;
 import com.volter.platform.modules.report.application.dto.request.ReportFilterRequest;
 import com.volter.platform.modules.report.application.dto.response.ReportResponse;
 import com.volter.platform.modules.report.infrastructure.mapper.ReportMapper;
@@ -9,10 +11,13 @@ import com.volter.shared.security.StaffPrincipal;
 import com.volter.shared.web.PageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/reports")
@@ -31,7 +36,31 @@ public class ReportController {
     public ResponseEntity<PageResponse<ReportResponse>> list(@ModelAttribute ReportFilterRequest filter, Pageable pageable,
                                                              @AuthenticationPrincipal StaffPrincipal principal) {
         return ResponseEntity.ok(PageResponse.of(
-                reportService.list(filter, pageable, principal.staffId()), reportMapper::toResponse));
+                reportService.list(filter, pageable, principal.staffId(), principal.shopId()), reportMapper::toResponse));
+    }
+
+    /**
+     * Computes an on-the-fly summary for an arbitrary date range (same shape as a
+     * monthly report) for the caller's shop. Nothing is persisted.
+     */
+    @GetMapping("/period")
+    public ResponseEntity<PeriodReportResponse> period(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
+        return ResponseEntity.ok(reportService.periodSummary(dateFrom, dateTo));
+    }
+
+    /**
+     * Computes a staff member's performance for a date range on the fly (not persisted),
+     * for the caller's shop. Visible to the staff themselves and to their managers.
+     */
+    @GetMapping("/staff/{staffId}/period")
+    public ResponseEntity<StaffPerformanceResponse> staffPeriod(
+            @PathVariable Long staffId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @AuthenticationPrincipal StaffPrincipal principal) {
+        return ResponseEntity.ok(reportService.staffPerformancePeriod(staffId, dateFrom, dateTo, principal.staffId()));
     }
 
     /**
@@ -40,6 +69,6 @@ public class ReportController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<ReportDetailedResponse> get(@PathVariable Long id, @AuthenticationPrincipal StaffPrincipal principal) {
-        return ResponseEntity.ok(reportMapper.toDetailedResponse(reportService.get(id, principal.staffId())));
+        return ResponseEntity.ok(reportMapper.toDetailedResponse(reportService.get(id, principal.staffId(), principal.shopId())));
     }
 }

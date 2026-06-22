@@ -57,6 +57,14 @@ public class ShopService {
     }
 
     /**
+     * All shops. Used to populate pickers (e.g. assigning staff to a shop).
+     */
+    @Transactional(readOnly = true)
+    public List<Shop> listAll() {
+        return shopRepository.findAll();
+    }
+
+    /**
      * Creates a new shop based on the provided request data.
      * Validates that the code and schema name are unique.
      * Initializes the tenant schema for the new shop.

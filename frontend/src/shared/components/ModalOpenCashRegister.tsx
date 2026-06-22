@@ -1,5 +1,5 @@
 import ReactDom from "react-dom";
-import { X, CheckCheck, Landmark } from "lucide-react";
+import { X, CheckCheck, Landmark, TriangleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Loading from "./Loading.tsx";
@@ -11,21 +11,24 @@ interface CashRegisterOption {
 }
 
 interface Props {
+    registerId?: number;
     closeModal: () => void;
     refresh: () => void;
 }
 
-export default function ModalOpenCashRegister({ closeModal, refresh }: Props) {
+export default function ModalOpenCashRegister({ registerId, closeModal, refresh }: Props) {
     const [registers, setRegisters] = useState<CashRegisterOption[]>([]);
-    const [cashRegisterId, setCashRegisterId] = useState<number | "">("");
+    const [cashRegisterId, setCashRegisterId] = useState<number | "">(registerId ?? "");
     const [openingBalance, setOpeningBalance] = useState("");
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
     useEffect(() => {
-        axios.get(`${API_BASE}/cash-register/registers`)
+        axios.get(`${API_BASE}/cash-registers`)
             .then(res => {
                 setRegisters(res.data);
-                if (res.data.length > 0) setCashRegisterId(res.data[0].id);
+                if (registerId != null) setCashRegisterId(registerId);
+                else if (res.data.length > 0) setCashRegisterId(res.data[0].id);
             })
             .catch(err => console.error("Error fetching registers:", err));
     }, []);
@@ -34,12 +37,20 @@ export default function ModalOpenCashRegister({ closeModal, refresh }: Props) {
         e.preventDefault();
         if (cashRegisterId === "") return;
         setLoading(true);
-        axios.post(`${API_BASE}/cash-register`, {
-            cashRegisterId: Number(cashRegisterId),
+        setError("");
+        axios.post(`${API_BASE}/cash-registers/${cashRegisterId}/open-session`, {
             openingBalance: Number(openingBalance),
         })
             .then(() => { refresh(); closeModal(); })
-            .catch(err => console.error("Error opening session:", err))
+            .catch(err => {
+                const msg: string = err?.response?.data?.message ?? "";
+                // The backend rejects opening a second session on the same register.
+                if (/already has an OPEN session/i.test(msg)) {
+                    setError("Оваа каса веќе има отворена сесија. За да отворите нова, прво мора таа да се затвори.");
+                } else {
+                    setError(msg || "Грешка при отворање каса. Обидете се повторно.");
+                }
+            })
             .finally(() => setLoading(false));
     };
 
@@ -80,6 +91,11 @@ export default function ModalOpenCashRegister({ closeModal, refresh }: Props) {
                             required
                         />
                     </div>
+                    {error && (
+                        <div className="flex items-center gap-2 bg-red-500/10 text-red-600 rounded p-3 text-sm">
+                            <TriangleAlert size={18} className="shrink-0" /> {error}
+                        </div>
+                    )}
                     <button
                         type="submit"
                         disabled={loading}

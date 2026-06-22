@@ -4,6 +4,7 @@ import com.volter.identity.modules.staff.application.StaffService;
 import com.volter.shop.modules.expense.application.ExpenseService;
 import com.volter.shop.modules.expense.application.dto.ExpenseCreateRequest;
 import com.volter.shop.modules.expense.application.dto.ExpenseFilterRequest;
+import com.volter.shop.modules.expense.application.dto.ExpenseMonthlySummary;
 import com.volter.shop.modules.expense.application.dto.ExpenseResponse;
 import com.volter.shop.modules.expense.domain.model.Expense;
 import com.volter.shop.modules.expense.infrastructure.mapper.ExpenseMapper;
@@ -18,6 +19,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,6 +49,16 @@ public class ExpenseController {
                 page.stream().map(Expense::getStaffId).collect(Collectors.toSet()));
         return ResponseEntity.ok(PageResponse.of(page,
                 e -> expenseMapper.toResponse(e, staffNames.get(e.getStaffId()))));
+    }
+
+    /**
+     * Expenses the caller may see, grouped by month with per-category totals.
+     */
+    @GetMapping("/summary")
+    @PreAuthorize("hasAuthority('EXPENSE_READ')")
+    public ResponseEntity<List<ExpenseMonthlySummary>> summary(@ModelAttribute ExpenseFilterRequest filter,
+                                                               @AuthenticationPrincipal StaffPrincipal principal) {
+        return ResponseEntity.ok(expenseService.summarizeByMonth(filter, principal.staffId()));
     }
 
     /**

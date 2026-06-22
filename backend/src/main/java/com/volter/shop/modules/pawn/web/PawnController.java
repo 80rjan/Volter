@@ -39,8 +39,9 @@ public class PawnController {
      */
     @GetMapping
     @PreAuthorize("hasAuthority('PAWN_READ')")
-    public ResponseEntity<PageResponse<PawnContractResponse>> list(@ModelAttribute PawnFilterRequest filter, Pageable pageable) {
-        var page = pawnService.list(filter, pageable);
+    public ResponseEntity<PageResponse<PawnContractResponse>> list(@ModelAttribute PawnFilterRequest filter, Pageable pageable,
+                                                                   @AuthenticationPrincipal StaffPrincipal principal) {
+        var page = pawnService.list(filter, pageable, principal.staffId());
         Map<Long, String> staffNames = staffService.findStaffNames(
                 page.stream().map(PawnContract::getCreatedByStaffId).collect(Collectors.toSet()));
         return ResponseEntity.ok(PageResponse.of(page,
@@ -67,6 +68,19 @@ public class PawnController {
         PawnContract contract = pawnService.create(request, principal.staffId());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(pawnContractMapper.toResponse(contract, staffNameOf(contract)));
+    }
+
+    /**
+     * Edit the terms of an active pawn contract (principal, interest, duration).
+     * Changing the principal moves cash on the open session.
+     */
+    @PatchMapping("/{id}/contract")
+    @PreAuthorize("hasAuthority('PAWN_UPDATE')")
+    public ResponseEntity<PawnContractResponse> updateContract(@PathVariable Long id,
+                                                               @Valid @RequestBody PawnContractUpdateRequest request,
+                                                               @AuthenticationPrincipal StaffPrincipal principal) {
+        PawnContract contract = pawnService.updateContract(id, request, principal.staffId());
+        return ResponseEntity.ok(pawnContractMapper.toResponse(contract, staffNameOf(contract)));
     }
 
     /**

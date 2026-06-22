@@ -5,9 +5,11 @@ import com.volter.shop.modules.cashregister.domain.model.*;
 import com.volter.shop.modules.cashregister.domain.model.enums.CashRegisterSessionStatus;
 import com.volter.shop.modules.cashregister.domain.repository.*;
 import com.volter.identity.modules.staff.application.StaffService;
+import com.volter.platform.modules.notification.application.NotificationService;
+import com.volter.platform.modules.notification.domain.model.enums.NotificationType;
 import com.volter.shop.modules.cashregister.domain.specification.CashRegisterSessionSpecification;
 import com.volter.shop.modules.cashregister.domain.specification.DiscrepancySpecification;
-import com.volter.shop.modules.pawn.application.PawnService;
+import com.volter.shop.modules.pawn.application.PawnDueQueryService;
 import com.volter.shop.modules.transaction.application.TransactionService;
 import com.volter.shop.modules.transaction.domain.model.Transaction;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionType;
@@ -15,7 +17,6 @@ import com.volter.shop.shared.valueobject.Money;
 import com.volter.shared.web.exception.BusinessRuleException;
 import com.volter.shared.web.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
@@ -35,15 +36,9 @@ public class CashRegisterService {
     private final CashRegisterTransactionRepository cashTxRepository;
     private final CashRegisterSessionDiscrepancyRepository discrepancyRepository;
     private final TransactionService transactionService;
-
-    // todo: fix this so that no lazy is needed and no bean cycle exists.
-    // @Lazy breaks the CashRegisterService <-> PawnService bean cycle: PawnService depends on
-    // CashRegisterService for the session-balance invariant (applyTransaction), and this one
-    // read-only call (openSession's expected-interest seed) is the only edge back. Inject a
-    // lazy proxy so the cycle is resolved on first use rather than at construction.
-    @Lazy
-    private final PawnService pawnService;
+    private final PawnDueQueryService pawnDueQueryService;
     private final StaffService staffService;
+    private final NotificationService notificationService;
 
     // ----- registers -----
 
@@ -105,18 +100,44 @@ public class CashRegisterService {
         sessionRepository.findByCashRegister_IdAndStatus(registerId, CashRegisterSessionStatus.OPEN)
                 .ifPresent(s -> { throw new BusinessRuleException("Cash register with id " + registerId + " already has an OPEN session"); });
 
-        Money expectedInterest = new Money(
-            pawnService.listDueInDays(0).stream().mapToInt(p -> p.getInterestAmount().amount()).sum()
-        );
+        Money expectedInterest = pawnDueQueryService.totalInterestDue(0);
 
-        CashRegisterSession session = CashRegisterSession.open(register, staffId, request.openingBalance(), expectedInterest);
-        return sessionRepository.save(session);
+        CashRegisterSession session = sessionRepository.save(
+                CashRegisterSession.open(register, staffId, request.openingBalance(), expectedInterest));
+
+        flagOpeningDiscrepancy(register, session, request.openingBalance(), staffId);
+        return session;
+    }
+
+    /**
+     * If the new opening balance doesn't match the previous session's counted
+     * closing balance for this register (cash changed while the drawer was closed),
+     * record an OPENING discrepancy and notify the opener's manager.
+     */
+    private void flagOpeningDiscrepancy(CashRegister register, CashRegisterSession session, int openingBalance, Long staffId) {
+        sessionRepository.findFirstByCashRegister_IdAndStatusOrderByClosedAtDesc(register.getId(), CashRegisterSessionStatus.CLOSED)
+                .filter(prev -> prev.getClosingBalance() != null && prev.getClosingBalance() != openingBalance)
+                .ifPresent(prev -> {
+                    int prevClosing = prev.getClosingBalance();
+                    discrepancyRepository.save(CashRegisterSessionDiscrepancy.ofOpening(session, prevClosing, openingBalance));
+                    int diff = openingBalance - prevClosing;
+                    staffService.findManagerId(staffId).ifPresent(managerId ->
+                            notificationService.create(
+                                    managerId,
+                                    NotificationType.CASH_REGISTER_SESSION_DISCREPANCY,
+                                    "Несовпаѓање при отворање каса",
+                                    "Касата " + register.getCode() + " е отворена со " + openingBalance
+                                            + " ден., но последното затворање беше " + prevClosing
+                                            + " ден. (разлика " + diff + " ден.).",
+                                    null, null));
+                });
     }
 
     /**
      * Close a cash register session for the given cash register.
      * A register can have at most one OPEN session, which is the one to be closed.
-     * Only the staff member that has opened the session can close it.
+     * It can be closed by the staff member that opened it OR by a manager of that
+     * staff member (direct or indirect).
      * Closing balance is counted by the caller and provided in the request.
      * If there is discrepancy between the counted closing balance and the expected, a discrepancy record is created and linked to the session.
      */
@@ -124,8 +145,8 @@ public class CashRegisterService {
         CashRegisterSession session = sessionRepository.findByCashRegister_IdAndStatus(registerId, CashRegisterSessionStatus.OPEN)
                 .orElseThrow(() -> new BusinessRuleException("No OPEN session found for cash register with id " + registerId));
 
-        if (!Objects.equals(session.getStaffId(), staffId)) {
-            throw new AccessDeniedException("Only the operator of the session can close it");
+        if (!Objects.equals(session.getStaffId(), staffId) && !staffService.isManagerOf(staffId, session.getStaffId())) {
+            throw new AccessDeniedException("Only the operator of the session or their manager can close it");
         }
 
         CashRegisterSessionDiscrepancy discrepancy = session.close(request.countedClosingBalance());

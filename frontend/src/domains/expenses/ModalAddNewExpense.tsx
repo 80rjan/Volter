@@ -1,105 +1,107 @@
 import ReactDom from "react-dom";
-import { X, ClipboardPlus, CheckCheck } from 'lucide-react';
-import { useState } from "react";
+import { X, Wallet, CheckCheck, TriangleAlert } from "lucide-react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import Loading from "../../shared/components/Loading.tsx";
 import { API_BASE } from "../../shared/api/config.ts";
+import { resolveActiveSessionId } from "../../shared/utils/activeSession.ts";
+import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_LABEL } from "./types.ts";
 
 interface Props {
     closeModal: () => void;
     refresh: () => void;
 }
 
-const EXPENSE_TYPES = [
-    { value: 'RENT', label: 'Кирија' },
-    { value: 'SALARIES', label: 'Плати' },
-    { value: 'BILLS', label: 'Сметки' },
-    { value: 'UTILITIES', label: 'Комуналии' },
-    { value: 'SUPPLIES', label: 'Материјали' },
-    { value: 'MAINTENANCE', label: 'Одржување' },
-    { value: 'MARKETING', label: 'Маркетинг' },
-    { value: 'TRAVEL', label: 'Патувања' },
-    { value: 'OTHER', label: 'Останато' },
-];
+const inputClass = "bg-white border-none rounded text-base p-2 w-full shadow-[0_0_4px_rgba(0,0,0,0.2)]";
 
 export default function ModalAddNewExpense({ closeModal, refresh }: Props) {
-    const [formData, setFormData] = useState({
-        expenseType: 'RENT',
-        amount: '',
-        description: '',
-        date: new Date().toISOString().split('T')[0],
+    const [form, setForm] = useState({
+        category: "RENT",
+        amount: "",
+        description: "",
+        date: new Date().toISOString().split("T")[0],
     });
+    const [openSessionId, setOpenSessionId] = useState<number | null>(null);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
+    useEffect(() => {
+        // An expense moves money out of the active register's open session.
+        resolveActiveSessionId()
+            .then(setOpenSessionId)
+            .catch(() => setOpenSessionId(null));
+    }, []);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const h = (name: string, value: string) => setForm(prev => ({ ...prev, [name]: value }));
+
+    const submit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!openSessionId) { setError("Нема отворена каса — отворете каса пред да внесете расход."); return; }
+        const amount = Number(form.amount);
+        if (!form.amount.trim() || isNaN(amount) || amount <= 0) { setError("Внеси валидна сума."); return; }
         setLoading(true);
-        axios.post(`${API_BASE}/expenses/create`, {
-            expenseType: formData.expenseType,
-            amount: Number(formData.amount),
-            description: formData.description,
-            date: formData.date,
-            transactionDescription: formData.description,
+        setError("");
+        axios.post(`${API_BASE}/expenses`, {
+            category: form.category,
+            amount,
+            description: form.description.trim() || null,
+            date: form.date,
+            cashRegisterSessionId: openSessionId,
         })
             .then(() => { refresh(); closeModal(); })
-            .catch(err => console.error('Error adding expense:', err))
-            .finally(() => setLoading(false));
+            .catch(() => { setError("Грешка при внесување на расходот."); setLoading(false); });
     };
-
-    const inputClass = "border-none rounded-sm text-base p-2 shadow-[0_0_4px_rgba(0,0,0,0.2)] h-fit";
-    const selectClass = "border-none rounded-sm text-base p-2 shadow-[0_0_4px_rgba(0,0,0,0.2)] h-fit bg-white";
-    const labelClass = "text-[#666] text-sm -ml-1";
 
     return ReactDom.createPortal(
         <>
-            <div className="fixed inset-0 bg-black/70 z-[1000]" />
-            <div className="flex flex-col gap-8 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#eee] z-[1000] p-8 rounded-lg min-w-fit max-w-[90%]">
+            <div className="fixed inset-0 bg-black/70 z-[1000]" onClick={closeModal} />
+            <div className="flex flex-col gap-6 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#eee] z-[1000] p-8 rounded-lg w-[min(620px,92%)] max-h-[92vh] overflow-y-auto scrollbar-hidden">
                 <div className="flex justify-between">
                     <div className="flex items-center gap-2">
-                        <ClipboardPlus size={32} />
-                        <h1>Внеси Нов Расход</h1>
+                        <Wallet size={28} />
+                        <h1 className="text-2xl font-semibold">Внеси нов расход</h1>
                     </div>
-                    <button onClick={closeModal} className="[&_svg]:transition-all [&_svg]:duration-400 [&_svg:hover]:rotate-90">
-                        <X size={32} />
-                    </button>
+                    <button className="close-x-btn" onClick={closeModal}><X size={32} /></button>
                 </div>
-                <form className="flex flex-col items-center gap-6" onSubmit={handleSubmit}>
-                    <div className="grid grid-cols-2 gap-4 gap-x-12">
+
+                {!openSessionId && (
+                    <div className="flex items-center gap-2 bg-red-500/10 text-red-600 rounded p-3 text-sm">
+                        <TriangleAlert size={18} /> Нема отворена каса. Отворете каса за да можете да внесете расход.
+                    </div>
+                )}
+
+                <form onSubmit={submit} className="flex flex-col gap-6">
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-4">
                         <div className="flex flex-col gap-1">
-                            <p className={labelClass}>Тип на расход</p>
-                            <select name="expenseType" className={selectClass} value={formData.expenseType} onChange={handleChange} required>
-                                {EXPENSE_TYPES.map(t => (
-                                    <option key={t.value} value={t.value}>{t.label}</option>
-                                ))}
+                            <p className="text-[#666] text-sm">Тип на расход</p>
+                            <select className={inputClass} value={form.category} onChange={e => h("category", e.target.value)} required>
+                                {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{EXPENSE_CATEGORY_LABEL[c]}</option>)}
                             </select>
                         </div>
                         <div className="flex flex-col gap-1">
-                            <p className={labelClass}>Износ</p>
-                            <input name="amount" type="number" className={inputClass} onChange={handleChange} required />
+                            <p className="text-[#666] text-sm">Износ</p>
+                            <input className={inputClass} type="number" value={form.amount} onChange={e => h("amount", e.target.value)} required />
                         </div>
                         <div className="flex flex-col gap-1">
-                            <p className={labelClass}>Датум</p>
-                            <input name="date" type="date" className={inputClass} value={formData.date} onChange={handleChange} required />
+                            <p className="text-[#666] text-sm">Датум</p>
+                            <input className={inputClass} type="date" value={form.date} onChange={e => h("date", e.target.value)} required />
                         </div>
                         <div className="flex flex-col gap-1">
-                            <p className={labelClass}>Опис</p>
-                            <input name="description" className={inputClass} onChange={handleChange} />
+                            <p className="text-[#666] text-sm">Опис</p>
+                            <input className={inputClass} value={form.description} onChange={e => h("description", e.target.value)} />
                         </div>
                     </div>
-                    <div className="flex gap-4 items-center">
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="flex justify-center items-center gap-2 px-32 py-2 rounded bg-green text-white text-2xl shadow-[0_0_8px_rgba(0,0,0,0.2)] transition-all duration-400 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                            <CheckCheck size={28} /> Потврди
+
+                    {error && <p className="text-red-500 text-sm">{error}</p>}
+
+                    <div className="flex gap-4 items-center justify-center mt-2">
+                        <button type="submit" disabled={loading || !openSessionId}
+                                className="group relative overflow-hidden flex justify-center items-center gap-2 px-16 py-2.5 rounded bg-green text-white text-base font-semibold shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100">
+                            {loading ? <Loading width={26} height={26} /> : (<>
+                                <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[180%]" />
+                                <CheckCheck size={22} /> Потврди
+                            </>)}
                         </button>
-                        {loading && <Loading width={40} height={40} />}
                     </div>
                 </form>
             </div>

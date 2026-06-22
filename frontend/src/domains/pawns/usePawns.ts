@@ -11,50 +11,71 @@ const CATEGORY_TO_ITEM_TYPE: Record<PawnRowType['Category'], string> = {
     Electronics: 'ELECTRONIC', Gold: 'GOLD', Watch: 'WATCH', Vehicle: 'VEHICLE', Other: 'OTHER',
 };
 
+// JPA property paths on the PawnContract entity (used as Spring Data `sort`).
+// These must match the entity exactly or Spring Data throws -> HTTP 500.
 export const SORT_FIELD: Record<string, string> = {
-    'Valid Until': 'period.maturityDate',
-    Name: 'customer.name',
+    'Valid Until': 'dueDate',
+    Name: 'customer.fullName',
     'Client Id': 'customer.id',
-    Category: 'item.itemType',
+    Category: 'item.type',
     About: 'item.description',
-    'Item Cost': 'amount.amount',
-    Provision: 'interest.amount',
-    'Days Left': 'period.maturityDate',
+    'Item Cost': 'principalAmount.amount',
+    Provision: 'interestAmount.amount',
+    'Days Left': 'dueDate',
 };
 
 function mapPawnResponse(r: any): PawnRowType {
-    const today = new Date();
-    const daysLeft = Math.floor((new Date(r.maturityDate).getTime() - today.getTime()) / 86400000);
+    const DAY = 86400000;
+    // Whole-calendar-day difference (later - earlier), ignoring time-of-day, so a
+    // date column (midnight) and a timestamp on the same day count as 0 days apart.
+    const dayDiff = (later: string, earlier: string) =>
+        Math.round((Date.parse(later.substring(0, 10)) - Date.parse(earlier.substring(0, 10))) / DAY);
 
-    var about:string = "";
-    switch (r.item.itemType) {
+    const now = new Date();
+    const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+    // ACTIVE: days remaining until due (negative = overdue).
+    // Settled (REDEEMED/FORFEITED): due - settlement date, so settling late
+    // (after the due date) is negative.
+    let daysLeft: number;
+    if (r.status === 'ACTIVE') {
+        daysLeft = dayDiff(r.dueDate, todayIso);
+    } else {
+        const settledAt = r.status === 'REDEEMED' ? r.redeemedAt : r.forfeitedAt;
+        daysLeft = settledAt ? dayDiff(r.dueDate, settledAt) : 0;
+    }
+
+    // Type-specific details live in the item's free-form `attributes` JSON map.
+    const attr = r.item?.attributes ?? {};
+    let about = "";
+    switch (r.item?.type) {
         case 'GOLD':
-            about = `${r.item.pieceType ?? ''} ${r.item.weightGrams ?? ''}гр ${r.item.carats ?? ''}к`.trim();
-            break;
-        case 'ELECTRONIC':
-            about = `${r.item.brand ?? ''} ${r.item.category ?? ''} ${r.item.year ?? ''}`.trim();
-            break;
-        case 'VEHICLE':
-            about = `${r.item.brand ?? ''} ${r.item.model ?? ''} ${r.item.year ?? ''}`.trim();
+            about = `${attr.weightGrams ?? attr.grams ?? ''}гр ${attr.carats ?? attr.karat ?? ''}к`.trim();
             break;
         case 'WATCH':
-            about = `${r.item.brand ?? ''} ${r.item.model ?? ''} ${r.item.material ?? ''}`.trim();
+            about = `${attr.brand ?? ''} ${attr.model ?? ''}`.trim();
             break;
-        case 'OTHER':
-            about = `${r.item.category ?? ''} ${r.item.material ?? ''}`.trim();
+        case 'ELECTRONIC':
+            about = `${attr.brand ?? ''} ${r.item?.description ?? ''}`.trim();
             break;
+        case 'VEHICLE':
+            about = `${attr.brand ?? attr.make ?? ''} ${attr.model ?? attr.plate ?? ''}`.trim();
+            break;
+        default:
+            about = `${r.item?.description ?? ''}`.trim();
     }
     return {
         Id: r.id,
         'Client Id': r.customerId,
         Name: r.customerName,
-        Category: ITEM_TYPE_TO_CATEGORY[r.item?.itemType] ?? 'Other',
+        Category: ITEM_TYPE_TO_CATEGORY[r.item?.type] ?? 'Other',
+        Status: r.status,
         About: about,
-        'Item Cost': r.amount,
-        Provision: r.interest,
+        'Item Cost': r.principalAmount,
+        Provision: r.interestAmount,
         'Days Left': daysLeft,
-        'Valid Until': r.maturityDate,
-        'Total Days': r.defaultDurationDays,
+        'Valid Until': r.dueDate,
+        'Total Days': r.termDays,
     };
 }
 
@@ -67,6 +88,8 @@ export function usePawns() {
     const [searchByEmbg, setSearchByEmbg] = useState("");
     const [searchByTel, setSearchByTel] = useState("");
     const [searchByCategory, setSearchByCategory] = useState("");
+    const [searchByStatus, setSearchByStatus] = useState("ACTIVE");
+    const [searchByStaff, setSearchByStaff] = useState("");
     const [refresh, setRefresh] = useState(false);
     const page = useRef(0);
     const size = 60;
@@ -78,7 +101,7 @@ export function usePawns() {
     const [refreshCashReg, setRefreshCashReg] = useState(false);
     const fetchedPawnIds = useRef(new Set<string>());
 
-    const fetchPawns = (pg: number, order: string, direction: string, name: string, embg: string, tel: string, cat: string, isLoading: boolean) => {
+    const fetchPawns = (pg: number, order: string, direction: string, name: string, embg: string, tel: string, cat: string, status: string, staff: string, isLoading: boolean) => {
         if (isFetching) return;
         setIsFetching(true);
         setLoading(isLoading);
@@ -87,13 +110,15 @@ export function usePawns() {
         const params = new URLSearchParams({
             page: String(pg),
             size: String(size),
-            sort: `${SORT_FIELD[order] ?? 'period.maturityDate'},${direction}`,
-            active: 'true',
+            sort: `${SORT_FIELD[order] ?? 'dueDate'},${direction}`,
         });
-        if (name) params.set('customerName', name);
-        if (embg) params.set('customerEmbg', embg);
-        if (tel) params.set('customerPhoneNumber', tel);
+        // Param names must match PawnFilterRequest exactly or the filter is ignored.
+        if (status) params.set('status', status);
+        if (name) params.set('customerFullName', name);
+        if (embg) params.set('customerNationalId', embg);
+        if (tel) params.set('customerPhone', tel);
         if (cat) params.set('itemType', CATEGORY_TO_ITEM_TYPE[cat as PawnRowType['Category']] ?? cat);
+        if (staff) params.set('createdByStaffId', staff);
 
         axios.get(`${API_BASE}/pawns?${params}`)
             .then(res => {
@@ -101,7 +126,9 @@ export function usePawns() {
                 const newUnique = pawns.filter(p => !fetchedPawnIds.current.has(`${p.Category}_${p.Id}`));
                 newUnique.forEach(p => fetchedPawnIds.current.add(`${p.Category}_${p.Id}`));
                 setAllPawns(prev => [...prev, ...newUnique]);
-                setIsLastPage(res.data.page ? res.data.page.number >= res.data.page.totalPages - 1 : true);
+                // Backend returns a flat PageResponse ({ page, totalPages, last, ... }),
+                // so trust its `last` flag rather than a nested page object.
+                setIsLastPage(res.data.last ?? (res.data.page >= res.data.totalPages - 1));
             })
             .catch(error => console.error("Error fetching pawns:", error))
             .finally(() => { setLoading(false); isFetchingRef.current = false; setIsFetching(false); });
@@ -112,19 +139,19 @@ export function usePawns() {
         const handleScroll = () => {
             if (el.scrollHeight - el.scrollTop - el.clientHeight <= el.scrollHeight * 0.3 && !isLastPage && !isFetchingRef.current) {
                 page.current += 1;
-                fetchPawns(page.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, searchByCategory, false);
+                fetchPawns(page.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, searchByCategory, searchByStatus, searchByStaff, false);
             }
         };
         el.addEventListener("scroll", handleScroll);
         return () => el.removeEventListener("scroll", handleScroll);
-    }, [isLastPage, refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, searchByCategory]);
+    }, [isLastPage, refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, searchByCategory, searchByStatus, searchByStaff]);
 
     useEffect(() => {
         fetchedPawnIds.current.clear();
         setAllPawns([]);
         page.current = 0;
-        fetchPawns(0, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, searchByCategory, true);
-    }, [refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, searchByCategory]);
+        fetchPawns(0, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, searchByCategory, searchByStatus, searchByStaff, true);
+    }, [refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, searchByCategory, searchByStatus, searchByStaff]);
 
     const handleOrder = (by: string, index: number) => {
         const newDir = new Array(orderDirectionArr.current.length).fill(0);
@@ -139,6 +166,10 @@ export function usePawns() {
         loading,
         searchByCategory,
         setSearchByCategory,
+        searchByStatus,
+        setSearchByStatus,
+        searchByStaff,
+        setSearchByStaff,
         setSearchByName,
         setSearchByEmbg,
         setSearchByTel,

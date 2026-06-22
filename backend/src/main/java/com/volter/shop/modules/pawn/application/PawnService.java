@@ -21,14 +21,19 @@ import com.volter.shop.modules.transaction.domain.model.Transaction;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionDirection;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionType;
 import com.volter.shop.shared.valueobject.Money;
+import com.volter.identity.modules.staff.application.StaffService;
+import com.volter.platform.modules.notification.application.NotificationService;
+import com.volter.platform.modules.notification.domain.model.enums.NotificationType;
+import com.volter.shared.web.exception.BusinessRuleException;
 import com.volter.shared.web.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -44,13 +49,27 @@ public class PawnService {
     private final CashRegisterService cashRegisterService;
     private final TransactionService transactionService;
     private final SaleService saleService;
+    private final StaffService staffService;
+    private final NotificationService notificationService;
 
     /**
-     * List pawn contracts with optional filters.
+     * List pawn contracts with optional filters. When filtering by the opening staff
+     * member, the choice is restricted to the caller's own team (themselves + their
+     * subordinates), so a manager can only narrow to staff below them.
      */
     @Transactional(readOnly = true)
-    public Page<PawnContract> list(PawnFilterRequest filter, Pageable pageable) {
-        return contractRepository.findAll(PawnContractSpecification.matches(filter), pageable);
+    public Page<PawnContract> list(PawnFilterRequest filter, Pageable pageable, Long callerStaffId) {
+        Specification<PawnContract> spec = PawnContractSpecification.matches(filter);
+        if (filter.createdByStaffId() != null) {
+            spec = spec.and(PawnContractSpecification.createdByStaffIn(visibleStaffIds(callerStaffId)));
+        }
+        return contractRepository.findAll(spec, pageable);
+    }
+
+    private List<Long> visibleStaffIds(Long callerStaffId) {
+        List<Long> ids = new ArrayList<>(staffService.findSubordinateStaffIds(callerStaffId));
+        ids.add(callerStaffId);
+        return ids;
     }
 
     /**
@@ -129,14 +148,73 @@ public class PawnService {
         contract.redeem();
         itemService.markRedeemed(contract.getItem(), staffId);
 
+        // The amount the staff member collected is the final redemption price.
+        Money paid = new Money(request.paidAmount());
         Transaction tx = transactionService.record(
-                staffId, session, TransactionType.PAWN, contract.totalDue(),
+                staffId, session, TransactionType.PAWN, paid,
                 TransactionDirection.IN, "Pawn redemption");
-        pawnTxRepository.save(PawnTransaction.record(tx, contract, PawnTransactionAction.REDEEMED));
+        PawnTransaction pawnTx = pawnTxRepository.save(
+                PawnTransaction.record(tx, contract, PawnTransactionAction.REDEEMED));
 
         cashRegisterService.applyTransaction(tx);
 
+        // Risk flag: if less than expected (principal + interest, plus a late
+        // penalty when overdue) was collected, notify the staff member's manager.
+        Money expected = contract.expectedRedemptionAmount();
+        if (paid.isLessThan(expected)) {
+            flagUnderpaidRedemption(staffId, contract, paid, expected, pawnTx.getId());
+        }
+
         return contract;
+    }
+
+    /**
+     * Edit the terms of an ACTIVE pawn contract. Interest and term are applied
+     * directly (term shifts the due date); changing the principal moves cash and
+     * is recorded as an ADJUSTED pawn transaction against an open session:
+     * raising it pays the customer the difference (OUT), lowering it takes it back (IN).
+     */
+    public PawnContract updateContract(Long contractId, PawnContractUpdateRequest request, Long staffId) {
+        PawnContract contract = loadContract(contractId);
+        if (!contract.isActive()) {
+            throw new BusinessRuleException("Only active pawn contracts can be edited");
+        }
+
+        int delta = request.principalAmount() - contract.getPrincipalAmount().amount();
+        if (delta != 0) {
+            if (request.cashRegisterSessionId() == null) {
+                throw new BusinessRuleException("An open cash register session is required to change the principal amount");
+            }
+            CashRegisterSession session = cashRegisterService.requireOpenSession(request.cashRegisterSessionId());
+
+            // delta > 0: more cash handed out (OUT); delta < 0: cash returned (IN).
+            TransactionDirection direction = delta > 0 ? TransactionDirection.OUT : TransactionDirection.IN;
+            String note = delta > 0 ? "Pawn principal increased" : "Pawn principal decreased";
+            Transaction tx = transactionService.record(
+                    staffId, session, TransactionType.PAWN, new Money(Math.abs(delta)), direction, note);
+            pawnTxRepository.save(PawnTransaction.record(tx, contract, PawnTransactionAction.ADJUSTED));
+            cashRegisterService.applyTransaction(tx);
+        }
+
+        contract.updateTerms(new Money(request.principalAmount()), new Money(request.interestAmount()), request.termDays());
+        return contract;
+    }
+
+    /**
+     * Notify the staff member's manager about an underpaid redemption, pointing
+     * the risk flag at the created pawn transaction.
+     */
+    private void flagUnderpaidRedemption(Long staffId, PawnContract contract,
+                                         Money paid, Money expected, Long pawnTransactionId) {
+        staffService.findManagerId(staffId).ifPresent(managerId ->
+                notificationService.create(
+                        managerId,
+                        NotificationType.RISK_FLAG,
+                        "Намалена исплата при затворање залог",
+                        "Залог #" + contract.getId() + " е затворен со " + paid.amount()
+                                + " ден., помалку од очекуваните " + expected.amount() + " ден.",
+                        "pawn_transaction",
+                        pawnTransactionId));
     }
 
     /**
@@ -152,18 +230,6 @@ public class PawnService {
     }
 
     // HELPERS
-
-    /**
-     * List pawn contracts that are due from today within the next given number of days.
-     */
-    public List<PawnContract> listDueInDays(int days) {
-        return contractRepository.findAll(PawnContractSpecification.matches(
-                PawnFilterRequest.builder()
-                        .dueFrom(LocalDate.now())
-                        .dueTo(LocalDate.now().plusDays(days))
-                        .build()
-        ));
-    }
 
     /**
      * Helper to load contract by id or throw 404 if not found.

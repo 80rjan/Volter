@@ -13,7 +13,14 @@ import java.util.Optional;
 
 public interface CashRegisterSessionRepository extends JpaRepository<CashRegisterSession, Long>, JpaSpecificationExecutor<CashRegisterSession> {
 
+    // open-in-view is disabled; callers (e.g. close-session) map the returned
+    // session to a response that reads the parent register's code, so pre-fetch it.
+    @EntityGraph(attributePaths = "cashRegister")
     Optional<CashRegisterSession> findByCashRegister_IdAndStatus(Long cashRegisterId, CashRegisterSessionStatus status);
+
+    // The most recently closed session for a register, to compare its counted
+    // closing balance against a new session's opening balance.
+    Optional<CashRegisterSession> findFirstByCashRegister_IdAndStatusOrderByClosedAtDesc(Long cashRegisterId, CashRegisterSessionStatus status);
 
     // open-in-view is disabled; the session response (mapped in the controller)
     // needs the parent register's code, so pre-fetch the register.

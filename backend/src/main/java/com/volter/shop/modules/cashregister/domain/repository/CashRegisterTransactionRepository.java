@@ -23,13 +23,13 @@ public interface CashRegisterTransactionRepository extends JpaRepository<CashReg
                     select
                         new com.volter.shop.modules.cashregister.application.dto.CashRegisterSummary(
                             count(*),
-                            coalesce(sum(case when crt.transaction.direction = :inDirection then crt.transaction.amount.amount else 0 end), 0),
-                            coalesce(sum(case when crt.transaction.direction = :outDirection then crt.transaction.amount.amount else 0 end), 0),
-                            coalesce(sum(case when crt.transaction.direction = :inDirection then crt.transaction.amount.amount else 0 end), 0) -
-                            coalesce(sum(case when crt.transaction.direction = :outDirection then crt.transaction.amount.amount else 0 end), 0),
-                            coalesce(sum(case when crt.action = :withdrawalAction then crt.transaction.amount.amount else 0 end), 0),
-                            coalesce(sum(case when crt.action = :depositAction then crt.transaction.amount.amount else 0 end), 0),
-                            coalesce(sum(case when crt.action = :adjustmentAction then crt.transaction.amount.amount else 0 end), 0)
+                            coalesce(sum(case when crt.transaction.direction = :inDirection then crt.transaction.amount.amount else 0 end), 0L),
+                            coalesce(sum(case when crt.transaction.direction = :outDirection then crt.transaction.amount.amount else 0 end), 0L),
+                            coalesce(sum(case when crt.transaction.direction = :inDirection then crt.transaction.amount.amount else 0 end), 0L) -
+                            coalesce(sum(case when crt.transaction.direction = :outDirection then crt.transaction.amount.amount else 0 end), 0L),
+                            coalesce(sum(case when crt.action = :withdrawalAction then crt.transaction.amount.amount else 0 end), 0L),
+                            coalesce(sum(case when crt.action = :depositAction then crt.transaction.amount.amount else 0 end), 0L),
+                            coalesce(sum(case when crt.action = :adjustmentAction then crt.transaction.amount.amount else 0 end), 0L)
                         )
                     from CashRegisterTransaction crt
                     where cast(crt.transaction.createdAt as date) >= :from
@@ -55,10 +55,10 @@ public interface CashRegisterTransactionRepository extends JpaRepository<CashReg
                             crt.transaction.cashRegisterSession.id,
                             cast(crt.transaction.cashRegisterSession.openedAt as LocalDate),
                             count(*),
-                            coalesce(sum(case when crt.transaction.direction = :inDirection then crt.transaction.amount.amount else 0 end), 0),
-                            coalesce(sum(case when crt.transaction.direction = :outDirection then crt.transaction.amount.amount else 0 end), 0),
-                            coalesce(sum(case when crt.transaction.direction = :inDirection then crt.transaction.amount.amount else 0 end), 0) -
-                            coalesce(sum(case when crt.transaction.direction = :outDirection then crt.transaction.amount.amount else 0 end), 0)
+                            coalesce(sum(case when crt.transaction.direction = :inDirection then crt.transaction.amount.amount else 0 end), 0L),
+                            coalesce(sum(case when crt.transaction.direction = :outDirection then crt.transaction.amount.amount else 0 end), 0L),
+                            coalesce(sum(case when crt.transaction.direction = :inDirection then crt.transaction.amount.amount else 0 end), 0L) -
+                            coalesce(sum(case when crt.transaction.direction = :outDirection then crt.transaction.amount.amount else 0 end), 0L)
                         )
                     from CashRegisterTransaction crt
                     where cast(crt.transaction.createdAt as date) >= :from

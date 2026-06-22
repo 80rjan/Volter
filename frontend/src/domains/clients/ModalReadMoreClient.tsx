@@ -1,173 +1,165 @@
-import React, { useEffect } from "react";
 import ReactDom from "react-dom";
-import { UserRound, X, DollarSign, Sigma, History } from "lucide-react";
+import { useState } from "react";
 import axios from "axios";
+import { X, UserRound, Phone, Pencil, CheckCheck } from "lucide-react";
 import Loading from "../../shared/components/Loading.tsx";
-import { ClientRow } from "./types.ts";
 import { API_BASE } from "../../shared/api/config.ts";
+import { Customer } from "./types.ts";
+import { useAuth } from "../../GlobalContext.tsx";
 
 interface Props {
-    client: ClientRow;
-    updateTelephones: (tel1: string, tel2: string) => void;
-    closeModal: () => void;
+    client: Customer;
+    closeModal: (e?: React.MouseEvent) => void;
+    onUpdated: (updated: Customer) => void;
 }
 
-export default function ModalReadMoreClient({ client, updateTelephones, closeModal }: Props) {
-    const [pawns, setPawns] = React.useState<any[]>([]);
-    const [transactions, setTransactions] = React.useState<any[]>([]);
-    const [loading, setLoading] = React.useState(false);
-    const [updateTelephone, setUpdateTelephone] = React.useState(false);
-    const [telephones, setTelephones] = React.useState({
-        telephone1: client["Telephone 1"],
-        telephone2: client["Telephone 2"],
-    });
-    const [loadingTelephoneUpdate, setLoadingTelephoneUpdate] = React.useState(false);
+const date = (s: string | null | undefined) => (s ? String(s).substring(0, 10) : "—");
+const inputCls = "bg-white border-none rounded text-base p-2 shadow-[0_0_4px_rgba(0,0,0,0.2)] w-full";
 
-    const getCat: Record<string, string> = {
-        Electronics: "Електроника", Watch: "Часовници", Vehicle: "Возила",
-        Gold: "Злато", Other: "Останато", Sale: "Продажба",
-        Insert: "Внес Каса", Remove: "Излез Каса", Expense: "Расходи",
-    };
-
-    const updateTelephoneNumbers = () => {
-        setLoadingTelephoneUpdate(true);
-        // TODO: No customer update endpoint in Spring Boot backend yet
-        axios.post(`${API_BASE}/customers/${client.Id}/telephones`, {
-            phoneNumber: telephones.telephone1,
-            reservePhoneNumber: telephones.telephone2,
-        })
-            .then(() => {
-                updateTelephones(telephones.telephone1, telephones.telephone2);
-                setUpdateTelephone(false);
-            })
-            .catch(err => console.error("Error updating telephones:", err))
-            .finally(() => setLoadingTelephoneUpdate(false));
-    };
-
-    useEffect(() => {
-        setLoading(true);
-        // TODO: No customer details endpoint in Spring Boot backend yet
-        axios.get(`${API_BASE}/customers/${client.Id}/details`)
-            .then(res => { setPawns(res.data.pawns ?? []); setTransactions(res.data.transactions ?? []); })
-            .catch(() => { setPawns([]); setTransactions([]); })
-            .finally(() => setLoading(false));
-    }, []);
-
-    const pawnHeaderCols = "grid-cols-[1.5fr_3fr_repeat(3,1fr)_1.5fr]";
-    const txHeaderCols = "grid-cols-[1.5fr_3fr_repeat(4,1fr)_1.5fr]";
-
-    const tableHeader = (cols: string, headers: string[]) => (
-        <div className={`grid place-items-center text-center ${cols} px-2 py-2 border-b-2 border-black/20 text-[#eee] bg-[#666]`}>
-            {headers.map(h => <div key={h} className="text-xs font-medium flex items-center">{h}</div>)}
+function Field({ label, value }: { label: string; value: React.ReactNode }) {
+    return (
+        <div className="flex flex-col gap-0.5">
+            <span className="text-[#666] text-xs">{label}</span>
+            <span className="text-sm font-medium break-words">{value || "—"}</span>
         </div>
     );
+}
+
+function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+    return (
+        <div className="flex flex-col gap-3">
+            <span className="flex items-center gap-2 font-medium">{icon}{title}</span>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-3">{children}</div>
+        </div>
+    );
+}
+
+function EditField({ label, value, onChange, type = "text" }:
+    { label: string; value: string; onChange: (v: string) => void; type?: string }) {
+    return (
+        <div className="flex flex-col gap-1">
+            <span className="text-[#666] text-xs">{label}</span>
+            <input className={inputCls} type={type} value={value} onChange={e => onChange(e.target.value)} />
+        </div>
+    );
+}
+
+const divider = <hr className="border-black/15" />;
+
+export default function ModalReadMoreClient({ client, closeModal, onUpdated }: Props) {
+    const { can } = useAuth();
+    const canWrite = can("CUSTOMER_WRITE");
+
+    const [editing, setEditing] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [form, setForm] = useState({
+        fullName: client.fullName,
+        phonePrimary: client.phonePrimary,
+        phoneSecondary: client.phoneSecondary ?? "",
+        address: client.address,
+        city: client.city,
+    });
+
+    const set = (k: keyof typeof form) => (v: string) => setForm(prev => ({ ...prev, [k]: v }));
+
+    const save = () => {
+        if (!form.fullName.trim() || !form.phonePrimary.trim() || !form.address.trim() || !form.city.trim()) {
+            setError("Пополни ги задолжителните полиња.");
+            return;
+        }
+        setLoading(true);
+        setError("");
+        axios.patch(`${API_BASE}/customers/${client.id}`, form)
+            .then(res => { onUpdated(res.data); setEditing(false); })
+            .catch(() => setError("Зачувувањето не успеа, обидете се повторно."))
+            .finally(() => setLoading(false));
+    };
+
+    const cancelEdit = () => {
+        setForm({
+            fullName: client.fullName,
+            phonePrimary: client.phonePrimary,
+            phoneSecondary: client.phoneSecondary ?? "",
+            address: client.address,
+            city: client.city,
+        });
+        setError("");
+        setEditing(false);
+    };
 
     return ReactDom.createPortal(
         <>
-            <div className="fixed inset-0 bg-black/70 z-[1000]" />
-            <div className="flex flex-col items-center fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#eee] z-[1000] p-4 rounded-lg min-w-[95%] overflow-hidden max-h-[90%]">
-                <X size={32} className="ml-auto close-x-btn shrink-0" onClick={closeModal} />
-
-                {/* Client info */}
-                <div className="flex flex-col gap-1 text-3xl font-semibold w-full">
-                    <div className="flex items-center gap-2 whitespace-nowrap">
-                        <UserRound size={32} />
-                        {client.Name}
-                        <div className="text-xl font-normal mt-1">({client["Date Joined"].split("T")[0]})</div>
-                    </div>
-                    <div className="flex items-center gap-4 whitespace-nowrap h-full">
-                        {[['Град:', client.City], ['Ембг:', client.Embg]].map(([lbl, val]) => (
-                            <span key={lbl} className="flex items-center gap-2 text-base font-normal">
-                                <p>{lbl}</p><p>{val}</p>
-                            </span>
-                        ))}
-                        <span className="flex items-center gap-2 text-base font-normal">
-                            <p>Телефон:</p>
-                            {loadingTelephoneUpdate ? <Loading width={32} height={32} /> : updateTelephone ? (
-                                <div className="flex items-center gap-2">
-                                    <input type="text" defaultValue={client["Telephone 1"]} onChange={e => setTelephones({ ...telephones, telephone1: e.target.value })} className="w-full text-base p-1 border-2 border-green rounded" />
-                                    <input type="text" defaultValue={client["Telephone 2"]} onChange={e => setTelephones({ ...telephones, telephone2: e.target.value })} className="w-full text-base p-1 border-2 border-green rounded" />
-                                    <button onClick={updateTelephoneNumbers} className="ml-1 h-full px-4 py-1 text-sm bg-green text-white rounded shadow-[0_2px_8px_rgba(0,0,0,0.3)] hover:scale-105 transition-all duration-300">Зачувај</button>
-                                    <X className="close-x-btn" onClick={() => setUpdateTelephone(false)} />
-                                </div>
-                            ) : (
-                                <>
-                                    <p>{client["Telephone 1"]}{client["Telephone 2"].trim() !== "" ? ` / ${client["Telephone 2"]}` : ""}</p>
-                                    <button onClick={() => setUpdateTelephone(true)} className="ml-1 px-4 py-1 text-sm bg-green text-white rounded shadow-[0_2px_8px_rgba(0,0,0,0.3)] hover:scale-105 transition-all duration-300">Измени/Додади телефон</button>
-                                </>
-                            )}
+            <div className="fixed inset-0 bg-black/70 z-[1000]" onClick={closeModal} />
+            <div className="flex flex-col gap-6 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#eee] z-[1000] p-8 rounded-lg w-[min(820px,92%)] max-h-[90vh] overflow-y-auto scrollbar-hidden">
+                <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-green/15 text-green">
+                            <UserRound size={20} />
                         </span>
+                        <h1 className="text-2xl font-semibold">{client.fullName}</h1>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        {canWrite && !editing && (
+                            <button onClick={() => setEditing(true)}
+                                className="flex items-center gap-2 px-4 py-2 rounded text-sm font-medium border border-green/60 text-green hover:bg-green hover:text-white transition-all">
+                                <Pencil size={16} /> Измени
+                            </button>
+                        )}
+                        <button className="close-x-btn" onClick={closeModal}><X size={28} /></button>
                     </div>
                 </div>
 
-                {/* Statistics */}
-                <div className="flex justify-evenly items-center gap-8 my-8">
-                    {[
-                        { icon: <Sigma color="var(--grey)" size={40} />, val: client["Total Pawns"], label: 'Вкупно залози' },
-                        { icon: <History color="var(--grey)" size={40} />, val: client["Active Pawns"], label: 'Активни залози' },
-                        { icon: <DollarSign color="var(--grey)" size={40} />, val: client["Money Pawns"], label: 'Вредност на залози' },
-                        { icon: <DollarSign color="var(--green)" size={40} />, val: client["Money Provision"], label: 'Очекуван приход' },
-                    ].map(({ icon, val, label }) => (
-                        <div key={label} className="flex items-center leading-none gap-4 whitespace-nowrap">
-                            <div className="shrink-0">{icon}</div>
+                {!editing ? (
+                    <>
+                        <Section icon={<UserRound size={20} />} title="Лични податоци">
+                            <Field label="Име и презиме" value={client.fullName} />
+                            <Field label="ЕМБГ" value={client.nationalId} />
+                            <Field label="Клиент од" value={date(client.createdAt)} />
+                            <Field label="Изменет на" value={date(client.updatedAt)} />
+                        </Section>
+
+                        {divider}
+
+                        <Section icon={<Phone size={20} />} title="Контакт">
+                            <Field label="Телефон" value={client.phonePrimary} />
+                            <Field label="Телефон 2" value={client.phoneSecondary} />
+                            <Field label="Адреса" value={client.address} />
+                            <Field label="Град" value={client.city} />
+                        </Section>
+                    </>
+                ) : (
+                    <div className="flex flex-col gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4">
+                            <EditField label="Име и презиме" value={form.fullName} onChange={set("fullName")} />
+                            {/* ЕМБГ е непроменлив идентификатор. */}
                             <div className="flex flex-col gap-1">
-                                <h1 className="text-3xl">{Number(val).toLocaleString("de-DE")}</h1>
-                                <p className="font-normal text-base">{label}</p>
+                                <span className="text-[#666] text-xs">ЕМБГ (непроменливо)</span>
+                                <input className={`${inputCls} opacity-60 cursor-not-allowed`} value={client.nationalId} disabled />
                             </div>
+                            <EditField label="Град" value={form.city} onChange={set("city")} />
+                            <EditField label="Телефон" value={form.phonePrimary} onChange={set("phonePrimary")} />
+                            <EditField label="Телефон 2" value={form.phoneSecondary} onChange={set("phoneSecondary")} />
+                            <EditField label="Адреса" value={form.address} onChange={set("address")} />
                         </div>
-                    ))}
-                </div>
 
-                {/* Tables */}
-                <div className="grid grid-cols-2 gap-8 overflow-hidden">
-                    <div className="flex flex-col overflow-hidden">
-                        <h2 className="font-semibold text-xl mb-1">Залози</h2>
-                        <div className="flex flex-col bg-white rounded-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] overflow-hidden">
-                            {tableHeader(pawnHeaderCols, ['Категорија', 'Опис', 'Вредност', 'Провизија', 'Рок', 'Валидно до'])}
-                            <div className="overflow-y-auto flex flex-col scrollbar-thin">
-                                {loading ? Array.from({ length: 10 }).map((_, i) => (
-                                    <div key={i} style={{ background: i % 2 === 1 ? '#f0f0f0' : '#fff' }} className="px-2 py-1">
-                                        <div className="skeleton-shimmer" />
-                                    </div>
-                                )) : pawns.map((pawn, i) => (
-                                    <div key={i} style={{ background: i % 2 === 1 ? '#f0f0f0' : '#fff' }} className={`grid place-items-center text-center ${pawnHeaderCols}`}>
-                                        <span className="text-sm">{getCat[pawn.category]}</span>
-                                        <span className="text-sm">{pawn.description}</span>
-                                        <span className="text-sm">{Number(pawn.price_pawned).toLocaleString("de-DE")}</span>
-                                        <span className="text-sm">{Number(pawn.provision).toLocaleString("de-DE")}</span>
-                                        <span className={`text-sm font-normal ${pawn.days_left < 0 ? 'text-red-500' : 'text-green'}`}>{pawn.days_left}</span>
-                                        <span className="text-sm whitespace-nowrap">{pawn.date_to.split("T")[0]}</span>
-                                    </div>
-                                ))}
-                            </div>
+                        {error && <span className="text-red-500 text-sm">{error}</span>}
+
+                        <div className="flex gap-3 items-center justify-end">
+                            <button type="button" onClick={cancelEdit} disabled={loading}
+                                className="px-5 py-2 rounded bg-black/10 text-sm hover:bg-black/15 transition-colors">
+                                Откажи
+                            </button>
+                            <button type="button" onClick={save} disabled={loading}
+                                className="group relative overflow-hidden flex items-center justify-center gap-2 px-6 py-2 rounded text-white font-medium bg-green shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40">
+                                {loading ? <Loading width={24} height={24} /> : (<>
+                                    <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[180%]" />
+                                    <CheckCheck size={20} /> Зачувај
+                                </>)}
+                            </button>
                         </div>
                     </div>
-                    <div className="flex flex-col overflow-hidden">
-                        <h2 className="font-semibold text-xl mb-1">Трансакции</h2>
-                        <div className="flex flex-col bg-white rounded-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] overflow-hidden">
-                            {tableHeader(txHeaderCols, ['Категорија', 'Опис', 'Дадено', 'Земено', 'Профит', 'Отстапување', 'Датум'])}
-                            <div className="overflow-y-auto flex flex-col scrollbar-thin">
-                                {loading ? Array.from({ length: 10 }).map((_, i) => (
-                                    <div key={i} style={{ background: i % 2 === 1 ? '#f0f0f0' : '#fff' }} className="px-2 py-1">
-                                        <div className="skeleton-shimmer" />
-                                    </div>
-                                )) : transactions.map((tx, i) => (
-                                    <div key={i} style={{ background: i % 2 === 1 ? '#f0f0f0' : '#fff' }} className={`grid place-items-center text-center ${txHeaderCols}`}>
-                                        <span className="text-sm">{getCat[tx.category]}</span>
-                                        <span className="text-sm">{tx.description}</span>
-                                        <span className="text-sm italic">{Number(tx.money_given).toLocaleString("de-DE")}</span>
-                                        <span className="text-sm italic">{Number(tx.money_got).toLocaleString("de-DE")}</span>
-                                        <span className="text-sm italic">{Number(tx.profit).toLocaleString("de-DE")}</span>
-                                        <span className={`text-sm italic font-normal ${Number(tx.money_diff) === 0 ? '' : Number(tx.money_diff) < 0 ? 'text-red-500' : 'text-green'}`}>
-                                            {Number(tx.money_diff).toLocaleString("de-DE")}
-                                        </span>
-                                        <span className="text-sm whitespace-nowrap">{tx.date.split("T")[0]}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                )}
             </div>
         </>,
         document.getElementById("portal")!

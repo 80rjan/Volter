@@ -12,15 +12,15 @@ import java.util.Optional;
 
 public interface SaleRepository extends JpaRepository<Sale, Long>, JpaSpecificationExecutor<Sale> {
 
-    // open-in-view is disabled; the response (mapped in the controller) needs the
-    // customer name, so pre-fetch the customer to avoid a lazy load after the
-    // transaction closes.
+    // open-in-view is disabled; responses are mapped in the controller after the
+    // transaction closes, and they read both the customer and the item, so
+    // pre-fetch both to avoid a lazy load on a detached entity.
 
     @Override
-    @EntityGraph(attributePaths = "customer")
+    @EntityGraph(attributePaths = {"customer", "item"})
     Optional<Sale> findById(Long id);
 
     @Override
-    @EntityGraph(attributePaths = "customer")
+    @EntityGraph(attributePaths = {"customer", "item"})
     Page<Sale> findAll(Specification<Sale> spec, Pageable pageable);
 }

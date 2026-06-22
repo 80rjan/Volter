@@ -1,6 +1,8 @@
 package com.volter.platform.modules.notification.web;
 
 import com.volter.platform.modules.notification.application.NotificationService;
+import com.volter.platform.modules.notification.application.dto.NotificationDetailResponse;
+import com.volter.platform.modules.notification.application.dto.NotificationDetailResult;
 import com.volter.platform.modules.notification.application.dto.NotificationFilterRequest;
 import com.volter.platform.modules.notification.application.dto.NotificationResponse;
 import com.volter.platform.modules.notification.application.dto.UnreadCountResponse;
@@ -31,6 +33,18 @@ public class NotificationController {
                                                                    Pageable pageable,
                                                                    @AuthenticationPrincipal StaffPrincipal principal) {
         return ResponseEntity.ok(PageResponse.of(notificationService.list(principal.staffId(), filter, pageable), notificationMapper::toResponse));
+    }
+
+    /**
+     * Detailed view of a notification, including a reference to the domain entity
+     * it points at (PAWN contract / SALE) so the client can fetch its full details.
+     */
+    @GetMapping("/{id}/detail")
+    public ResponseEntity<NotificationDetailResponse> detail(@PathVariable Long id,
+                                                             @AuthenticationPrincipal StaffPrincipal principal) {
+        NotificationDetailResult result = notificationService.detail(principal.staffId(), id);
+        return ResponseEntity.ok(new NotificationDetailResponse(
+                notificationMapper.toResponse(result.notification()), result.entityKind(), result.entityId()));
     }
 
     /**

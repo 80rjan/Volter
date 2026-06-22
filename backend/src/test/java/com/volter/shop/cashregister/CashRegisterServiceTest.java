@@ -19,7 +19,7 @@ import com.volter.shop.modules.cashregister.domain.repository.CashRegisterSessio
 import com.volter.shop.modules.cashregister.domain.repository.CashRegisterSessionRepository;
 import com.volter.shop.modules.cashregister.domain.repository.CashRegisterTransactionRepository;
 import com.volter.identity.modules.staff.application.StaffService;
-import com.volter.shop.modules.pawn.application.PawnService;
+import com.volter.shop.modules.pawn.application.PawnDueQueryService;
 import com.volter.shop.modules.transaction.application.TransactionService;
 import com.volter.shop.modules.transaction.domain.model.Transaction;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionDirection;
@@ -55,7 +55,7 @@ class CashRegisterServiceTest {
     @Mock private CashRegisterTransactionRepository cashTxRepository;
     @Mock private CashRegisterSessionDiscrepancyRepository discrepancyRepository;
     @Mock private TransactionService transactionService;
-    @Mock private PawnService pawnService;
+    @Mock private PawnDueQueryService pawnDueQueryService;
     @Mock private StaffService staffService;
 
     @InjectMocks
@@ -109,7 +109,7 @@ class CashRegisterServiceTest {
             when(cashRegisterRepository.findById(1L)).thenReturn(Optional.of(mock(CashRegister.class)));
             when(sessionRepository.findByCashRegister_IdAndStatus(1L, CashRegisterSessionStatus.OPEN))
                     .thenReturn(Optional.empty());
-            when(pawnService.listDueInDays(0)).thenReturn(java.util.List.of());
+            when(pawnDueQueryService.totalInterestDue(0)).thenReturn(new Money(0));
             when(sessionRepository.save(any(CashRegisterSession.class))).thenAnswer(inv -> inv.getArgument(0));
 
             CashRegisterSession session = service.openSession(1L, new SessionOpenRequest(500), 3L);

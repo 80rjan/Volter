@@ -32,8 +32,9 @@ public class SaleController {
      */
     @GetMapping
     @PreAuthorize("hasAuthority('SALE_READ')")
-    public ResponseEntity<PageResponse<SaleResponse>> list(@ModelAttribute SaleFilterRequest filter, Pageable pageable) {
-        return ResponseEntity.ok(PageResponse.of(saleService.list(filter, pageable), saleMapper::toResponse));
+    public ResponseEntity<PageResponse<SaleResponse>> list(@ModelAttribute SaleFilterRequest filter, Pageable pageable,
+                                                           @AuthenticationPrincipal StaffPrincipal principal) {
+        return ResponseEntity.ok(PageResponse.of(saleService.list(filter, pageable, principal.staffId()), saleMapper::toResponse));
     }
 
     /**

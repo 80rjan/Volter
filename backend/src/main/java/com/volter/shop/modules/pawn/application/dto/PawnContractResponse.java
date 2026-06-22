@@ -20,6 +20,8 @@ public record PawnContractResponse(
         LocalDate dueDate,
         PawnContractStatus status,
         long daysOverdue,
+        OffsetDateTime redeemedAt,
+        OffsetDateTime forfeitedAt,
         OffsetDateTime createdAt
 ) {
 }

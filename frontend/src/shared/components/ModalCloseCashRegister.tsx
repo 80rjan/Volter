@@ -6,18 +6,20 @@ import Loading from "./Loading.tsx";
 import { API_BASE } from "../api/config.ts";
 
 interface Props {
+    registerId: number;
+    expectedBalance?: number;
     closeModal: () => void;
     refresh: () => void;
 }
 
-export default function ModalCloseCashRegister({ closeModal, refresh }: Props) {
+export default function ModalCloseCashRegister({ registerId, expectedBalance, closeModal, refresh }: Props) {
     const [closingBalance, setClosingBalance] = useState("");
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        axios.put(`${API_BASE}/cash-register/close`, { closingBalance: Number(closingBalance) })
+        axios.post(`${API_BASE}/cash-registers/${registerId}/close-session`, { countedClosingBalance: Number(closingBalance) })
             .then(() => { refresh(); closeModal(); })
             .catch(err => console.error("Error closing session:", err))
             .finally(() => setLoading(false));
@@ -38,7 +40,7 @@ export default function ModalCloseCashRegister({ closeModal, refresh }: Props) {
                 </div>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     <div className="flex flex-col gap-1">
-                        <p className="text-[#666]">Крајна состојба (ден)</p>
+                        <p className="text-[#666]">Изброена крајна состојба (ден)</p>
                         <input
                             className={inputClass}
                             type="number"
@@ -46,6 +48,11 @@ export default function ModalCloseCashRegister({ closeModal, refresh }: Props) {
                             onChange={e => setClosingBalance(e.target.value)}
                             required
                         />
+                        {expectedBalance != null && (
+                            <p className="text-xs text-[#666] mt-1">
+                                Очекувано: {Number(expectedBalance).toLocaleString("de-DE")} ден — отстапување создава раздолжување.
+                            </p>
+                        )}
                     </div>
                     <button
                         type="submit"

@@ -73,6 +73,12 @@ public class StaffRole {
         this.revokedAt = OffsetDateTime.now();
     }
 
+    /** Re-activates a previously revoked grant (the unique (staff, role, shop) row is reused). */
+    public void regrant() {
+        this.status = StaffRoleStatus.GRANTED;
+        this.revokedAt = null;
+    }
+
     public boolean isGranted() {
         return status == StaffRoleStatus.GRANTED;
     }
