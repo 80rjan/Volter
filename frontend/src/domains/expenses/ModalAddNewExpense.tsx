@@ -54,14 +54,14 @@ export default function ModalAddNewExpense({ closeModal, refresh }: Props) {
 
     return ReactDom.createPortal(
         <>
-            <div className="fixed inset-0 bg-black/70 z-[1000]" onClick={closeModal} />
+            <div className="fixed inset-0 bg-black/70 z-[1000]" onClick={loading ? undefined : closeModal} />
             <div className="flex flex-col gap-6 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#eee] z-[1000] p-8 rounded-lg w-[min(620px,92%)] max-h-[92vh] overflow-y-auto scrollbar-hidden">
                 <div className="flex justify-between">
                     <div className="flex items-center gap-2">
                         <Wallet size={28} />
                         <h1 className="text-2xl font-semibold">Внеси нов расход</h1>
                     </div>
-                    <button className="close-x-btn" onClick={closeModal}><X size={32} /></button>
+                    <button className="close-x-btn disabled:opacity-40 disabled:cursor-not-allowed" onClick={closeModal} disabled={loading}><X size={32} /></button>
                 </div>
 
                 {!openSessionId && (
@@ -94,14 +94,14 @@ export default function ModalAddNewExpense({ closeModal, refresh }: Props) {
 
                     {error && <p className="text-red-500 text-sm">{error}</p>}
 
-                    <div className="flex gap-4 items-center justify-center mt-2">
-                        <button type="submit" disabled={loading || !openSessionId}
-                                className="group relative overflow-hidden flex justify-center items-center gap-2 px-16 py-2.5 rounded bg-green text-white text-base font-semibold shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100">
-                            {loading ? <Loading width={26} height={26} /> : (<>
+                    <div className="flex gap-4 items-center justify-center mt-2 min-h-[44px]">
+                        {loading ? <Loading width={30} height={30} /> : (
+                            <button type="submit" disabled={!openSessionId}
+                                    className="group relative overflow-hidden flex justify-center items-center gap-2 px-16 py-2.5 rounded bg-green text-white text-base font-semibold shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100">
                                 <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[180%]" />
                                 <CheckCheck size={22} /> Потврди
-                            </>)}
-                        </button>
+                            </button>
+                        )}
                     </div>
                 </form>
             </div>

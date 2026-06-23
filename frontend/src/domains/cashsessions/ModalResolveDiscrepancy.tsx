@@ -36,7 +36,7 @@ export default function ModalResolveDiscrepancy({ discrepancy, onResolved, close
 
     return ReactDom.createPortal(
         <>
-            <div className="fixed inset-0 bg-black/70 z-[1100]" onClick={closeModal} />
+            <div className="fixed inset-0 bg-black/70 z-[1100]" onClick={loading ? undefined : closeModal} />
             <div className="flex flex-col gap-5 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#eee] z-[1100] p-7 rounded-lg w-[min(520px,92%)]">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -45,7 +45,7 @@ export default function ModalResolveDiscrepancy({ discrepancy, onResolved, close
                         </span>
                         <h1 className="text-xl font-semibold">Реши отстапување</h1>
                     </div>
-                    <button className="close-x-btn" onClick={closeModal}><X size={24} /></button>
+                    <button className="close-x-btn disabled:opacity-40 disabled:cursor-not-allowed" onClick={closeModal} disabled={loading}><X size={24} /></button>
                 </div>
 
                 <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
@@ -63,18 +63,18 @@ export default function ModalResolveDiscrepancy({ discrepancy, onResolved, close
 
                 {error && <span className="text-red-500 text-sm">{error}</span>}
 
-                <div className="flex gap-3 items-center justify-end">
+                <div className="flex gap-3 items-center justify-end min-h-[40px]">
                     <button type="button" onClick={closeModal} disabled={loading}
-                            className="px-5 py-2 rounded bg-black/10 text-sm hover:bg-black/15 transition-colors">
+                            className="px-5 py-2 rounded bg-black/10 text-sm hover:bg-black/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                         Откажи
                     </button>
-                    <button type="button" onClick={submit} disabled={loading}
-                            className="group relative overflow-hidden flex items-center justify-center gap-2 px-6 py-2 rounded text-white font-medium bg-green shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40">
-                        {loading ? <Loading width={24} height={24} /> : (<>
+                    {loading ? <Loading width={28} height={28} /> : (
+                        <button type="button" onClick={submit}
+                                className="group relative overflow-hidden flex items-center justify-center gap-2 px-6 py-2 rounded text-white font-medium bg-green shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40">
                             <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[180%]" />
                             <CheckCheck size={20} /> Потврди
-                        </>)}
-                    </button>
+                        </button>
+                    )}
                 </div>
             </div>
         </>,

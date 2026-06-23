@@ -145,18 +145,18 @@ export default function ModalReadMoreClient({ client, closeModal, onUpdated }: P
 
                         {error && <span className="text-red-500 text-sm">{error}</span>}
 
-                        <div className="flex gap-3 items-center justify-end">
+                        <div className="flex gap-3 items-center justify-end min-h-[40px]">
                             <button type="button" onClick={cancelEdit} disabled={loading}
-                                className="px-5 py-2 rounded bg-black/10 text-sm hover:bg-black/15 transition-colors">
+                                className="px-5 py-2 rounded bg-black/10 text-sm hover:bg-black/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                                 Откажи
                             </button>
-                            <button type="button" onClick={save} disabled={loading}
-                                className="group relative overflow-hidden flex items-center justify-center gap-2 px-6 py-2 rounded text-white font-medium bg-green shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40">
-                                {loading ? <Loading width={24} height={24} /> : (<>
+                            {loading ? <Loading width={28} height={28} /> : (
+                                <button type="button" onClick={save}
+                                    className="group relative overflow-hidden flex items-center justify-center gap-2 px-6 py-2 rounded text-white font-medium bg-green shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40">
                                     <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[180%]" />
                                     <CheckCheck size={20} /> Зачувај
-                                </>)}
-                            </button>
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}

@@ -240,3 +240,6 @@
 {"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/domains/expenses/ModalAddNewExpense.tsx","timestamp":1782135774755,"sessionId":null}
 {"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/shared/components/GoldPriceLive.tsx","timestamp":1782143112909,"sessionId":null}
 {"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/domains/pawns/ModalShowMessagePawn.tsx","timestamp":1782148835362,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/nginx.conf","timestamp":1782214179068,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/docker-compose.prod.yml","timestamp":1782214186652,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/docker-compose.prod.yml","timestamp":1782214195857,"sessionId":null}

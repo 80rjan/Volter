@@ -61,11 +61,11 @@ export default function ModalEditPawnItem({ item, closeModal, onSaved }: Props) 
 
     return ReactDom.createPortal(
         <>
-            <div className="fixed inset-0 bg-black/70 z-[1100]" onClick={closeModal} />
+            <div className="fixed inset-0 bg-black/70 z-[1100]" onClick={busy ? undefined : closeModal} />
             <div className="flex flex-col gap-5 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#eee] z-[1100] p-8 rounded-lg w-[min(560px,92%)] max-h-[90vh] overflow-y-auto scrollbar-hidden">
                 <div className="flex justify-between items-center">
                     <h1 className="flex items-center gap-2 text-xl font-semibold"><Package size={20} /> Измени предмет</h1>
-                    <button className="close-x-btn" onClick={closeModal}><X size={26} /></button>
+                    <button className="close-x-btn disabled:opacity-40 disabled:cursor-not-allowed" onClick={closeModal} disabled={busy}><X size={26} /></button>
                 </div>
                 <div className="flex flex-col gap-4">
                     <div className="flex flex-col gap-1">
@@ -95,12 +95,14 @@ export default function ModalEditPawnItem({ item, closeModal, onSaved }: Props) 
                     {keys.length === 0 && <p className="text-xs text-[#888]">Овој предмет нема дополнителни атрибути.</p>}
                     {error && <p className="text-red-500 text-sm">{error}</p>}
                 </div>
-                <div className="flex justify-end gap-3">
-                    <button onClick={closeModal} disabled={busy} className="px-5 py-2 rounded bg-black/10 text-sm hover:bg-black/15 transition-colors">Откажи</button>
-                    <button onClick={save} disabled={busy}
-                        className="flex items-center justify-center gap-2 px-6 py-2 rounded text-white font-medium bg-green shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all hover:scale-105 disabled:opacity-40">
-                        {busy ? <Loading width={20} height={20} /> : <><CheckCheck size={20} /> Зачувај</>}
-                    </button>
+                <div className="flex justify-end items-center gap-3 min-h-[40px]">
+                    <button onClick={closeModal} disabled={busy} className="px-5 py-2 rounded bg-black/10 text-sm hover:bg-black/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">Откажи</button>
+                    {busy ? <Loading width={26} height={26} /> : (
+                        <button onClick={save}
+                            className="flex items-center justify-center gap-2 px-6 py-2 rounded text-white font-medium bg-green shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all hover:scale-105 disabled:opacity-40">
+                            <CheckCheck size={20} /> Зачувај
+                        </button>
+                    )}
                 </div>
             </div>
         </>,

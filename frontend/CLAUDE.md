@@ -5,14 +5,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-# From the project root (../):
-npm run dev               # Start backend + frontend + Electron together (development)
-npm run start-frontend    # Start only the Vite dev server
-npm run build             # Build the Electron distributable (runs electron-builder)
-
 # From this directory (frontend/):
 npm run dev               # Vite dev server on all interfaces (--host)
 npm run build             # Vite production build → dist/
+npm run preview           # Serve the production build locally
 npm run lint              # ESLint
 ```
 
@@ -20,13 +16,13 @@ There is no test suite in the frontend. Lint is the only static check.
 
 ## What this app is
 
-Volter A&B is an **Electron desktop app** for a Macedonian pawn shop. The UI is entirely in Macedonian. The frontend is a Vite + React SPA embedded inside Electron; in production, Electron loads `frontend/dist/index.html` as a static file. In development, the Vite dev server runs separately and Electron points at `http://localhost:5173` (or the built file).
+Volter A&B is a **web app** (Vite + React SPA) for a Macedonian pawn shop. The UI is entirely in Macedonian. `npm run build` produces a static `dist/` bundle that can be served by any static host. In development the Vite dev server runs on `http://localhost:5173`.
 
-The backend is a separate Node.js Express server (in `../backend/`) that Electron spawns as a child process on startup. All API calls go to `http://localhost:3000`.
+The backend is a separate **Spring Boot (Java) server** (in `../backend/`). All API calls go to `http://localhost:8080` (configured in `src/shared/api/config.ts`).
 
 ## Architecture
 
-**Routing**: `HashRouter` is used (not `BrowserRouter`) because the app loads as a local file in production. Routes are defined in `src/App.tsx`.
+**Routing**: `HashRouter` is used (not `BrowserRouter`), so routes resolve under any static host without server-side rewrite rules. Routes are defined in `src/App.tsx`.
 
 **State**: No global state manager. Each page component owns its own state via `useState`/`useRef`. `GlobalContext.tsx` exists but is currently empty — not in use.
 
@@ -49,7 +45,7 @@ src/
     types.ts      (CashRegisterData, ClientRecord — used across domains)
 ```
 
-**API layer**: All data fetching is done with `axios` directly inside domain files. The only abstraction is `src/shared/api/CashRegister.ts`, which has a special branch for `window.electronAPI` (an IPC bridge) vs. HTTP. The rest of the app always hits `http://localhost:3000` directly.
+**API layer**: All data fetching is done with `axios` directly inside domain files, hitting `http://localhost:8080` (configured in `src/shared/api/config.ts`). `src/shared/api/CashRegister.ts` is a thin wrapper around the cash-register endpoint.
 
 **Document generation**: `src/domains/pawns/documents/` contains print-ready React components (loan agreements, pawn receipts) rendered with `jspdf` + `html2canvas`. `src/shared/utils/numberInWordsMkd.ts` converts numbers to Macedonian words for use in legal documents.
 

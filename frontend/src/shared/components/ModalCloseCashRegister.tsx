@@ -36,7 +36,7 @@ export default function ModalCloseCashRegister({ registerId, expectedBalance, cl
                         <LockKeyhole size={28} />
                         <h1 className="text-xl font-semibold">Затвори Каса</h1>
                     </div>
-                    <button className="close-x-btn" onClick={closeModal}><X size={28} /></button>
+                    <button className="close-x-btn disabled:opacity-40 disabled:cursor-not-allowed" onClick={closeModal} disabled={loading}><X size={28} /></button>
                 </div>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     <div className="flex flex-col gap-1">
@@ -54,13 +54,16 @@ export default function ModalCloseCashRegister({ registerId, expectedBalance, cl
                             </p>
                         )}
                     </div>
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="flex justify-center items-center gap-2 px-8 py-2 rounded bg-red-500 text-white text-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed mt-2"
-                    >
-                        {loading ? <Loading width={24} height={24} /> : <><CheckCheck size={22} /> Затвори</>}
-                    </button>
+                    {loading ? (
+                        <div className="flex justify-center items-center mt-2 min-h-[40px]"><Loading width={28} height={28} /></div>
+                    ) : (
+                        <button
+                            type="submit"
+                            className="flex justify-center items-center gap-2 px-8 py-2 rounded bg-red-500 text-white text-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed mt-2"
+                        >
+                            <CheckCheck size={22} /> Затвори
+                        </button>
+                    )}
                 </form>
             </div>
         </>,

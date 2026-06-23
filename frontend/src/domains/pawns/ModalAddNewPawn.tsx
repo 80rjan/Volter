@@ -6,6 +6,7 @@ import { Autocomplete, TextField } from "@mui/material";
 import Loading from "../../shared/components/Loading.tsx";
 import { API_BASE } from "../../shared/api/config.ts";
 import { resolveActiveSessionId } from "../../shared/utils/activeSession.ts";
+import { downloadPawnCreationDocs, pawnDocDataFromTerms } from "../../shared/utils/pawnDocuments.tsx";
 import {
     ItemFormData, ITEM_FORM_DEFAULTS, Handle, inputClass, selectClass,
     ItemTypeSelect, ItemFields, DescField, buildAttributes, GoldPriceStrip,
@@ -180,6 +181,21 @@ export default function ModalAddNewPawn({ closeModal, refresh }: Props) {
                 issueDate: formData.issueDate,
                 cashRegisterSessionId: openSessionId,
             });
+
+            // Download the loan + pawn agreements for the staff member to print.
+            // Customer fields come from the picked record (existing) or the form (new).
+            const cust = mode === "existing" && selected
+                ? selected
+                : { fullName: formData.fullName, city: formData.city, address: formData.address, nationalId: formData.nationalId, phonePrimary: formData.phonePrimary };
+            try {
+                await downloadPawnCreationDocs(
+                    pawnDocDataFromTerms(cust, Number(formData.principalAmount), Number(formData.termDays), formData.issueDate),
+                    formData.description,
+                );
+            } catch (docErr) {
+                console.error("Error generating pawn documents:", docErr);
+            }
+
             closeModal();
             refresh();
         } catch (err) {
@@ -199,7 +215,7 @@ export default function ModalAddNewPawn({ closeModal, refresh }: Props) {
                         <CopyPlus size={32} />
                         <h1 className="text-2xl font-semibold">Внеси Нов Залог</h1>
                     </div>
-                    <button className="close-x-btn" onClick={closeModal}><X size={32} /></button>
+                    <button className="close-x-btn disabled:opacity-40 disabled:cursor-not-allowed" onClick={closeModal} disabled={loading}><X size={32} /></button>
                 </div>
 
                 {!openSessionId && (
@@ -302,14 +318,14 @@ export default function ModalAddNewPawn({ closeModal, refresh }: Props) {
 
                     {error && <p className="text-red-500 text-sm">{error}</p>}
 
-                    <div className="flex gap-4 items-center justify-center mt-2">
-                        <button type="submit" disabled={loading || !openSessionId}
-                                className="group relative overflow-hidden flex justify-center items-center gap-2 px-16 py-2.5 rounded bg-green text-white text-base font-semibold shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100">
-                            {loading ? <Loading width={26} height={26} /> : (<>
+                    <div className="flex gap-4 items-center justify-center mt-2 min-h-[44px]">
+                        {loading ? <Loading width={30} height={30} /> : (
+                            <button type="submit" disabled={!openSessionId}
+                                    className="group relative overflow-hidden flex justify-center items-center gap-2 px-16 py-2.5 rounded bg-green text-white text-base font-semibold shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100">
                                 <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[180%]" />
                                 <CheckCheck size={22} /> Потврди
-                            </>)}
-                        </button>
+                            </button>
+                        )}
                     </div>
                 </form>
             </div>

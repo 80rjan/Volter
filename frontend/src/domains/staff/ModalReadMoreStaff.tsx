@@ -169,7 +169,7 @@ export default function ModalReadMoreStaff({ staffId, managers, managerName, clo
 
     return ReactDom.createPortal(
         <>
-            <div className="fixed inset-0 bg-black/70 z-[1000]" onClick={closeModal} />
+            <div className="fixed inset-0 bg-black/70 z-[1000]" onClick={busy ? undefined : closeModal} />
             <div className="flex flex-col gap-6 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#eee] z-[1000] p-8 rounded-lg w-[min(880px,92%)] max-h-[90vh] overflow-y-auto scrollbar-hidden">
                 {loading || !detail ? (
                     <div className="flex justify-center py-10"><Loading /></div>
@@ -188,12 +188,12 @@ export default function ModalReadMoreStaff({ staffId, managers, managerName, clo
                             </div>
                             <div className="flex items-center gap-3">
                                 {!editing && !detail.deletedAt && (
-                                    <button onClick={() => setEditing(true)}
-                                            className="flex items-center gap-2 px-4 py-2 rounded text-sm font-medium border border-green/60 text-green hover:bg-green hover:text-white transition-all">
+                                    <button onClick={() => setEditing(true)} disabled={busy}
+                                            className="flex items-center gap-2 px-4 py-2 rounded text-sm font-medium border border-green/60 text-green hover:bg-green hover:text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed">
                                         <Pencil size={16} /> Измени
                                     </button>
                                 )}
-                                <button className="close-x-btn" onClick={closeModal}><X size={28} /></button>
+                                <button className="close-x-btn disabled:opacity-40 disabled:cursor-not-allowed" onClick={closeModal} disabled={busy}><X size={28} /></button>
                             </div>
                         </div>
 
@@ -249,13 +249,13 @@ export default function ModalReadMoreStaff({ staffId, managers, managerName, clo
                                 <div className="flex gap-3 items-center justify-end">
                                     <button onClick={() => { setEditing(false); setError(""); }} disabled={busy}
                                             className="px-5 py-2 rounded bg-black/10 text-sm hover:bg-black/15 transition-colors">Откажи</button>
-                                    <button onClick={save} disabled={busy}
-                                            className="group relative overflow-hidden flex items-center justify-center gap-2 px-6 py-2 rounded text-white font-medium bg-green shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed">
-                                        {busyAction === "save" ? <Loading width={20} height={20} /> : (<>
+                                    {busyAction === "save" ? <Loading width={26} height={26} /> : (
+                                        <button onClick={save} disabled={busy}
+                                                className="group relative overflow-hidden flex items-center justify-center gap-2 px-6 py-2 rounded text-white font-medium bg-green shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed">
                                             <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[180%]" />
                                             <CheckCheck size={20} /> Зачувај
-                                        </>)}
-                                    </button>
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -354,10 +354,12 @@ export default function ModalReadMoreStaff({ staffId, managers, managerName, clo
                                                     {roleOptions.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                                                 </select>
                                             </div>
-                                            <button onClick={assignShop} disabled={busy}
-                                                    className="flex items-center justify-center gap-2 px-4 py-2 rounded bg-green text-white text-sm font-medium shadow-[0_0_4px_rgba(0,0,0,0.2)] hover:scale-105 transition-all disabled:opacity-40">
-                                                {busyAction === "assign" ? spin : <><Plus size={16} /> Додели</>}
-                                            </button>
+                                            {busyAction === "assign" ? <Loading width={24} height={24} /> : (
+                                                <button onClick={assignShop} disabled={busy}
+                                                        className="flex items-center justify-center gap-2 px-4 py-2 rounded bg-green text-white text-sm font-medium shadow-[0_0_4px_rgba(0,0,0,0.2)] hover:scale-105 transition-all disabled:opacity-40">
+                                                    <Plus size={16} /> Додели
+                                                </button>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -387,8 +389,10 @@ export default function ModalReadMoreStaff({ staffId, managers, managerName, clo
                                         {confirmDelete ? (
                                             <div className="flex items-center gap-2">
                                                 <span className="text-sm text-red-500">Сигурно?</span>
-                                                <button onClick={softDelete} disabled={busy}
-                                                        className={`${statusBtn} bg-red-500 text-white hover:bg-red-600`}>{busyAction === "delete" ? spin : "Да, избриши"}</button>
+                                                {busyAction === "delete" ? <Loading width={24} height={24} /> : (
+                                                    <button onClick={softDelete} disabled={busy}
+                                                            className={`${statusBtn} bg-red-500 text-white hover:bg-red-600`}>Да, избриши</button>
+                                                )}
                                                 <button onClick={() => setConfirmDelete(false)} disabled={busy}
                                                         className={`${statusBtn} bg-black/10 hover:bg-black/15`}>Откажи</button>
                                             </div>

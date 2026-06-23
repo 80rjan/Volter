@@ -9,6 +9,7 @@ import { PawnRow, PawnDetailed } from "./types.ts";
 import { API_BASE } from "../../shared/api/config.ts";
 import { useAuth } from "../../GlobalContext.tsx";
 import { resolveActiveSessionId } from "../../shared/utils/activeSession.ts";
+import { downloadExtensionDocById, downloadRedemptionDoc } from "../../shared/utils/pawnDocuments.tsx";
 
 interface Props {
     pawn: PawnRow;
@@ -47,6 +48,8 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
             const sessionId = await getOpenSessionId();
             if (!sessionId) { setSuccessMsg("Нема отворена каса"); setInfoMsg(""); setModalExtendPawn(false); setModalSuccessMsg(true); return; }
             await axios.post(`${API_BASE}/pawns/${id}/extend`, { interestPaid: provision, fee: 0, cashRegisterSessionId: sessionId });
+            // Download the annex (Анекс на договор за заем) for the staff member to print.
+            downloadExtensionDocById(id).catch(err => console.error("Error generating annex:", err));
             setSuccessMsg("Успешно продолжен залог");
             setInfoMsg(`Додадени се ${provision.toLocaleString("de-DE")} во каса!`);
             setModalExtendPawn(false);
@@ -63,6 +66,8 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
             const sessionId = await getOpenSessionId();
             if (!sessionId) { setSuccessMsg("Нема отворена каса"); setInfoMsg(""); setModalRedeemPawn(false); setModalSuccessMsg(true); return; }
             await axios.post(`${API_BASE}/pawns/${id}/redeem`, { paidAmount: priceClosed, cashRegisterSessionId: sessionId });
+            // Download the return-of-item receipt for the staff member to print.
+            downloadRedemptionDoc(pawn.Name).catch(err => console.error("Error generating receipt:", err));
             setSuccessMsg("Успешно затворен залог");
             setInfoMsg("Залогот е затворен!");
             setModalRedeemPawn(false);

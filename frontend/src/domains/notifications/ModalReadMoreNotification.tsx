@@ -125,11 +125,13 @@ export default function ModalReadMoreNotification({ notificationId, closeModal, 
                         )}
 
                         {!n.read && (
-                            <div className="flex justify-end">
-                                <button onClick={markRead} disabled={busy}
-                                    className="flex items-center justify-center gap-2 px-6 py-2 rounded text-white font-medium bg-green shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all hover:scale-105 disabled:opacity-40">
-                                    {busy ? <Loading width={20} height={20} /> : <><CheckCheck size={20} /> Означи како прочитано</>}
-                                </button>
+                            <div className="flex justify-end items-center min-h-[40px]">
+                                {busy ? <Loading width={26} height={26} /> : (
+                                    <button onClick={markRead}
+                                        className="flex items-center justify-center gap-2 px-6 py-2 rounded text-white font-medium bg-green shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all hover:scale-105 disabled:opacity-40">
+                                        <CheckCheck size={20} /> Означи како прочитано
+                                    </button>
+                                )}
                             </div>
                         )}
                     </>

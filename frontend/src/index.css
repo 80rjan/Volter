@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+/* Bundled Liberation Sans (metric-compatible with Arial, full Macedonian Cyrillic
+   coverage). Used to render the printable legal documents so their PDF output is
+   byte-for-byte identical on every device, regardless of installed fonts. */
+@font-face {
+  font-family: "VolterDoc";
+  src: url("./assets/fonts/LiberationSans-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "VolterDoc";
+  src: url("./assets/fonts/LiberationSans-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --color-green: #006040;
   --color-dark-red: #8b0000;

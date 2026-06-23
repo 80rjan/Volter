@@ -1,6 +1,6 @@
 # Ignore .env files (for environment variables)
-.env
-backend/.env
+**/.env*
+# Per-environment compose secrets (the *.example templates ARE committed).
 node_modules
 frontend/dist
 /dist
