@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
-import { ChevronUp, ChevronDown, Minus, Ellipsis, Lock } from "lucide-react";
+import { ChevronUp, ChevronDown, Minus, Ellipsis, Lock, Plus } from "lucide-react";
 import Loading from "../../shared/components/Loading.tsx";
 import CashRegister from "../../shared/components/CashRegister.tsx";
 import ModalReadMoreCashSession from "./ModalReadMoreCashSession.tsx";
+import ModalCreateCashRegister from "./ModalCreateCashRegister.tsx";
 import { CashSession, Discrepancy } from "./types.ts";
 import { API_BASE } from "../../shared/api/config.ts";
 import { useAuth } from "../../GlobalContext.tsx";
@@ -45,6 +46,7 @@ export default function CashSessions() {
     const { can } = useAuth();
     const allowed = can("CASH_REGISTER_SESSION_READ");
     const canDiscRead = can("CASH_REGISTER_SESSION_DISCREPANCY_READ");
+    const canManage = can("CASH_REGISTER_MANAGE");
 
     const [sessions, setSessions] = useState<CashSession[]>([]);
     const [discMap, setDiscMap] = useState<Record<number, Discrepancy>>({});
@@ -72,12 +74,17 @@ export default function CashSessions() {
 
     const [selected, setSelected] = useState<CashSession | null>(null);
     const [modalDetail, setModalDetail] = useState(false);
+    const [showCreate, setShowCreate] = useState(false);
 
-    useEffect(() => {
-        if (!allowed) return;
+    const fetchRegisters = () => {
         axios.get(`${API_BASE}/cash-registers`)
             .then(res => setRegisters(res.data ?? []))
             .catch(() => setRegisters([]));
+    };
+
+    useEffect(() => {
+        if (!allowed) return;
+        fetchRegisters();
     }, [allowed]);
 
     const fetchSessions = (pg: number, order: string, direction: string, isLoading: boolean) => {
@@ -187,6 +194,14 @@ export default function CashSessions() {
                     </div>
                 ) : (
                     <>
+                        {canManage && (
+                            <div className="flex justify-end">
+                                <button onClick={() => setShowCreate(true)}
+                                        className="flex items-center gap-2 px-4 py-2 rounded bg-green text-white text-sm font-medium shadow-[0_0_4px_rgba(0,0,0,0.2)] hover:scale-105 transition-all">
+                                    <Plus size={16} /> Нова каса
+                                </button>
+                            </div>
+                        )}
                         <div className="grid grid-cols-[2fr_2fr_2fr_1fr_1fr_.5fr] items-center w-full gap-3 flex-wrap">
                             <select className={inputClass} style={{ color: filterStaff ? "#000" : "#888" }} value={filterStaff} onChange={e => setFilterStaff(e.target.value)}>
                                 <option value="">Сите вработени</option>
@@ -271,6 +286,13 @@ export default function CashSessions() {
                     discrepancy={discMap[selected.id] ?? null}
                     onResolved={onResolved}
                     closeModal={() => { setModalDetail(false); setSelected(null); }}
+                />
+            )}
+
+            {showCreate && (
+                <ModalCreateCashRegister
+                    closeModal={() => setShowCreate(false)}
+                    onCreated={() => { fetchRegisters(); reloadAll(); }}
                 />
             )}
         </div>

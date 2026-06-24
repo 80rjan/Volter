@@ -12,6 +12,8 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: volter_db_prod
+    ports:
+      - "127.0.0.1:5432:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}

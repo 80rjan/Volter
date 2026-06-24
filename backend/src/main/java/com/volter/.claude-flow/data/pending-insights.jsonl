@@ -11,3 +11,16 @@
 {"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/transaction/application/TransactionService.java","timestamp":1781974248944,"sessionId":null}
 {"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/transaction/web/TransactionController.java","timestamp":1781974255388,"sessionId":null}
 {"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/transaction/web/TransactionController.java","timestamp":1781974258833,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/domains/transactions/Transactions.tsx","timestamp":1782295117375,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/domains/cashsessions/ModalCreateCashRegister.tsx","timestamp":1782295133523,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/domains/cashsessions/CashSessions.tsx","timestamp":1782295152814,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/domains/cashsessions/CashSessions.tsx","timestamp":1782295158518,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/domains/cashsessions/CashSessions.tsx","timestamp":1782295165742,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/domains/cashsessions/CashSessions.tsx","timestamp":1782295172333,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/domains/cashsessions/CashSessions.tsx","timestamp":1782295178670,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/domains/authevents/types.ts","timestamp":1782295185494,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/domains/authevents/AuthEvents.tsx","timestamp":1782295207309,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/App.tsx","timestamp":1782295212498,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/App.tsx","timestamp":1782295218616,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/shared/components/Nav.tsx","timestamp":1782295223809,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/shared/components/Nav.tsx","timestamp":1782295255886,"sessionId":null}

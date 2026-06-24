@@ -6,7 +6,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
     Tag, CalendarFold, Calendar1, Handshake,
-    ArrowLeftRight, BanknoteArrowDown, UserRound, LogOut, Landmark, Users, BarChart3, Bell,
+    ArrowLeftRight, BanknoteArrowDown, UserRound, LogOut, Landmark, Users, BarChart3, Bell, ScrollText,
 } from "lucide-react";
 import GoldPriceLive from "./GoldPriceLive.tsx";
 import { useAuth } from "../../GlobalContext.tsx";
@@ -20,6 +20,7 @@ const links: { to: string; label: string; Icon: any; end?: boolean; perm?: strin
     { to: "/clients", label: "Клиенти", Icon: UserRound, perm: "CUSTOMER_READ" },
     { to: "/cash-sessions", label: "Каса", Icon: Landmark, perm: "CASH_REGISTER_SESSION_READ" },
     { to: "/staff", label: "Вработени", Icon: Users, perm: "STAFF_MANAGE" },
+    { to: "/auth-events", label: "Записи за најава", Icon: ScrollText, perm: "AUDIT_READ" },
     { to: "/notifications", label: "Известувања", Icon: Bell },
     { to: "/expenses", label: "Расходи", Icon: BanknoteArrowDown, perm: "EXPENSE_READ" },
     { to: "/report", label: "Извештај", Icon: CalendarFold, perm: "REPORT_READ" },

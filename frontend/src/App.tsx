@@ -10,6 +10,7 @@ import Notifications from "./domains/notifications/Notifications.tsx";
 import Expenses from "./domains/expenses/Expenses.tsx";
 import Clients from "./domains/clients/Clients.tsx";
 import CashSessions from "./domains/cashsessions/CashSessions.tsx";
+import AuthEvents from "./domains/authevents/AuthEvents.tsx";
 import Staff from "./domains/staff/Staff.tsx";
 import Login from "./domains/auth/Login.tsx";
 import Nav from "./shared/components/Nav.tsx";
@@ -37,6 +38,7 @@ export default function App() {
                     <Route path="/transactions" element={<Transactions />} />
                     <Route path="/clients" element={<Clients />} />
                     <Route path="/cash-sessions" element={<CashSessions />} />
+                    <Route path="/auth-events" element={<AuthEvents />} />
                     <Route path="/staff" element={<Staff />} />
                     <Route path="/notifications" element={<Notifications />} />
                     <Route path="/expenses" element={<Expenses />} />

@@ -98,7 +98,7 @@ export default function Transactions() {
                 const newUnique = txns.filter(t => !fetchedIds.current.has(t.id));
                 newUnique.forEach(t => fetchedIds.current.add(t.id));
                 setAllTransactions(prev => [...prev, ...newUnique]);
-                setIsLastPage(res.data.page ? res.data.page.number >= res.data.page.totalPages - 1 : true);
+                setIsLastPage(res.data.last ?? true);
             })
             .catch(error => console.error("Error fetching transactions:", error))
             .finally(() => { setLoading(false); isFetchingRef.current = false; });

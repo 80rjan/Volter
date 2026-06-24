@@ -20,11 +20,11 @@
 --      (your bootstrap super-admin). Note its id.
 --
 -- RUN ONCE PER SHOP. Map each legacy shop_id to its new tenant schema and run:
---   psql -d NEWDB \
---     -v tenant_schema=shop_xxx \
---     -v legacy_shop_id=1 \
---     -v migration_staff_id=1 \
---     -f sql/legacy_migration.sql
+   psql -d volter \
+     -v tenant_schema=shop-mk-skopje-centar \
+     -v legacy_shop_id=777 \
+     -v migration_staff_id=1 \
+     -f sql/legacy_migration.sql
 --
 -- MIGRATES : customers, pawn items + contracts (as ACTIVE), sales (as
 --            AVAILABLE), expenses, and the transaction ledger (parked on a
@@ -41,7 +41,7 @@
 --     national_id constraint.
 -- ============================================================
 
-set ON_ERROR_STOP on
+\set ON_ERROR_STOP on
 
 -- Unqualified table names resolve to the target tenant schema; legacy.* and
 -- public.* are always qualified.
