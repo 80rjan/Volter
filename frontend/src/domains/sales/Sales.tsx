@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { Plus, ChevronUp, ChevronDown, Minus } from "lucide-react";
+import { Plus, ChevronUp, ChevronDown, Minus, Tag, Banknote, Gem } from "lucide-react";
 import ModalAddNewSale from "./ModalAddNewSale.tsx";
 import SaleRowComponent from "./Sale.tsx";
 import CashRegister from "../../shared/components/CashRegister.tsx";
@@ -62,6 +62,7 @@ export default function Sales() {
     const { can } = useAuth();
     const team = useTeam();
     const [allSales, setAllSales] = useState<SaleRow[]>([]);
+    const [summary, setSummary] = useState({ count: 0, totalPurchase: 0, totalGoldGrams: 0 });
     const [orderBy, setOrderBy] = useState("Date Bought");
     const orderDirectionArr = useRef([0, 0, 0, 0, 0, 0, -1]);
     const [orderDirection, setOrderDirection] = useState("DESC");
@@ -124,6 +125,22 @@ export default function Sales() {
         fetchSales(0, orderBy, orderDirection, searchByStatus, searchByName, searchByStaff, true);
     }, [refresh, orderBy, orderDirection, searchByStatus, searchByName, searchByStaff]);
 
+    // Totals over the whole filtered set (server-side, not just loaded pages).
+    const fetchSummary = () => {
+        const params = new URLSearchParams();
+        if (searchByStatus) params.set("status", searchByStatus);
+        if (searchByName) params.set("customerFullName", searchByName);
+        if (searchByStaff) params.set("createdByStaffId", searchByStaff);
+        axios.get(`${API_BASE}/sales/summary?${params}`)
+            .then(res => setSummary(res.data))
+            .catch(error => console.error("Error fetching sale summary:", error));
+    };
+
+    useEffect(() => {
+        fetchSummary();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [refresh, searchByStatus, searchByName, searchByStaff]);
+
     const handleOrder = (by: string, index: number) => {
         const newDir = new Array(orderDirectionArr.current.length).fill(0);
         newDir[index] = orderDirectionArr.current[index] === 0 ? 1 : orderDirectionArr.current[index] === 1 ? -1 : 1;
@@ -185,6 +202,13 @@ export default function Sales() {
                             <SaleRowComponent key={index} sale={sale} refresh={() => setRefresh(prev => !prev)} isOdd={index % 2 !== 0} />
                         ))}
                     </div>
+                </div>
+
+                {/* Totals for the currently filtered (available) sales. */}
+                <div className="flex w-full justify-between flex-wrap items-center gap-x-6 gap-y-1 bg-[#f4f4f4] border border-black/10 rounded-lg px-5 py-1.5 text-xs text-[#666]">
+                    <span className="flex items-center gap-1.5"><Tag size={15} className="text-green" /> Продажби: <b className="text-[#333]">{summary.count}</b></span>
+                    <span className="flex items-center gap-1.5"><Banknote size={15} className="text-green" /> Дадени пари: <b className="text-[#333]">{summary.totalPurchase.toLocaleString("de-DE")} ден</b></span>
+                    <span className="flex items-center gap-1.5"><Gem size={15} className="text-green" /> Злато: <b className="text-[#333]">{summary.totalGoldGrams.toLocaleString("de-DE", { maximumFractionDigits: 2 })} гр</b></span>
                 </div>
 
                 <CashRegister refreshDependency={refresh} />

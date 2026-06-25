@@ -1,0 +1,12 @@
+{
+  "id": "session-1782395286002",
+  "startedAt": "2026-06-25T13:48:06.002Z",
+  "cwd": "/Users/borjan/Projects/Volter/frontend",
+  "context": {},
+  "metrics": {
+    "edits": 7,
+    "commands": 0,
+    "tasks": 0,
+    "errors": 0
+  }
+}

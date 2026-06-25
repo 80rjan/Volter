@@ -1,10 +1,10 @@
 import ReactDom from "react-dom";
 import { X, Wallet, CheckCheck, TriangleAlert } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
 import Loading from "../../shared/components/Loading.tsx";
 import { API_BASE } from "../../shared/api/config.ts";
-import { resolveActiveSessionId } from "../../shared/utils/activeSession.ts";
+import CashSessionSelect from "../../shared/components/CashSessionSelect.tsx";
 import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_LABEL } from "./types.ts";
 
 interface Props {
@@ -12,7 +12,7 @@ interface Props {
     refresh: () => void;
 }
 
-const inputClass = "bg-white border-none rounded text-base p-2 w-full shadow-[0_0_4px_rgba(0,0,0,0.2)]";
+const inputClass = "bg-white border-none rounded text-base p-2 w-full shadow-[0_0_4px_rgba(0,0,0,0.2)] h-full";
 
 export default function ModalAddNewExpense({ closeModal, refresh }: Props) {
     const [form, setForm] = useState({
@@ -24,13 +24,6 @@ export default function ModalAddNewExpense({ closeModal, refresh }: Props) {
     const [openSessionId, setOpenSessionId] = useState<number | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-
-    useEffect(() => {
-        // An expense moves money out of the active register's open session.
-        resolveActiveSessionId()
-            .then(setOpenSessionId)
-            .catch(() => setOpenSessionId(null));
-    }, []);
 
     const h = (name: string, value: string) => setForm(prev => ({ ...prev, [name]: value }));
 
@@ -71,24 +64,30 @@ export default function ModalAddNewExpense({ closeModal, refresh }: Props) {
                 )}
 
                 <form onSubmit={submit} className="flex flex-col gap-6">
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                        <div className="flex flex-col gap-1">
-                            <p className="text-[#666] text-sm">Тип на расход</p>
-                            <select className={inputClass} value={form.category} onChange={e => h("category", e.target.value)} required>
-                                {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{EXPENSE_CATEGORY_LABEL[c]}</option>)}
-                            </select>
+                    <div className="flex flex-col gap-3">
+                        <div className="flex gap-3 items-center flex-wrap">
+                            <span className="flex items-center gap-2 font-medium"><Wallet size={20} /> Податоци за расходот</span>
+                            <CashSessionSelect value={openSessionId} onChange={setOpenSessionId} inline />
                         </div>
-                        <div className="flex flex-col gap-1">
-                            <p className="text-[#666] text-sm">Износ</p>
-                            <input className={inputClass} type="number" value={form.amount} onChange={e => h("amount", e.target.value)} required />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <p className="text-[#666] text-sm">Датум</p>
-                            <input className={inputClass} type="date" value={form.date} onChange={e => h("date", e.target.value)} required />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <p className="text-[#666] text-sm">Опис</p>
-                            <input className={inputClass} value={form.description} onChange={e => h("description", e.target.value)} />
+                        <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                            <div className="flex flex-col gap-1">
+                                <p className="text-[#666] text-sm">Тип на расход</p>
+                                <select className={inputClass} value={form.category} onChange={e => h("category", e.target.value)} required>
+                                    {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{EXPENSE_CATEGORY_LABEL[c]}</option>)}
+                                </select>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <p className="text-[#666] text-sm">Износ</p>
+                                <input className={inputClass} type="number" value={form.amount} onChange={e => h("amount", e.target.value)} required />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <p className="text-[#666] text-sm">Датум</p>
+                                <input className={inputClass} type="date" value={form.date} onChange={e => h("date", e.target.value)} required />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <p className="text-[#666] text-sm">Опис</p>
+                                <input className={inputClass} value={form.description} onChange={e => h("description", e.target.value)} />
+                            </div>
                         </div>
                     </div>
 

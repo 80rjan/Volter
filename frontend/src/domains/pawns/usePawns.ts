@@ -24,6 +24,9 @@ export const SORT_FIELD: Record<string, string> = {
     'Days Left': 'dueDate',
 };
 
+// One column in the (possibly multi-column) sort chain. First = primary.
+export type SortItem = { key: string; dir: "ASC" | "DESC" };
+
 function mapPawnResponse(r: any): PawnRowType {
     const DAY = 86400000;
     // Whole-calendar-day difference (later - earlier), ignoring time-of-day, so a
@@ -81,9 +84,8 @@ function mapPawnResponse(r: any): PawnRowType {
 
 export function usePawns() {
     const [allPawns, setAllPawns] = useState<PawnRowType[]>([]);
-    const [orderBy, setOrderBy] = useState("Valid Until");
-    const orderDirectionArr = useRef([0, 0, 0, 0, 0, 0, 1]);
-    const [orderDirection, setOrderDirection] = useState("ASC");
+    const [summary, setSummary] = useState({ count: 0, totalPrincipal: 0, totalInterest: 0, totalGoldGrams: 0 });
+    const [sorts, setSorts] = useState<SortItem[]>([{ key: "Valid Until", dir: "ASC" }]);
     const [searchByName, setSearchByName] = useState("");
     const [searchByEmbg, setSearchByEmbg] = useState("");
     const [searchByTel, setSearchByTel] = useState("");
@@ -101,17 +103,16 @@ export function usePawns() {
     const [refreshCashReg, setRefreshCashReg] = useState(false);
     const fetchedPawnIds = useRef(new Set<string>());
 
-    const fetchPawns = (pg: number, order: string, direction: string, name: string, embg: string, tel: string, cat: string, status: string, staff: string, isLoading: boolean) => {
+    const fetchPawns = (pg: number, sortList: SortItem[], name: string, embg: string, tel: string, cat: string, status: string, staff: string, isLoading: boolean) => {
         if (isFetching) return;
         setIsFetching(true);
         setLoading(isLoading);
         isFetchingRef.current = true;
 
-        const params = new URLSearchParams({
-            page: String(pg),
-            size: String(size),
-            sort: `${SORT_FIELD[order] ?? 'dueDate'},${direction}`,
-        });
+        const params = new URLSearchParams({ page: String(pg), size: String(size) });
+        // Multiple `sort` params => multi-column ordering (first = primary, then tie-breakers).
+        const active = sortList.length ? sortList : [{ key: 'Valid Until', dir: 'ASC' as const }];
+        active.forEach(s => params.append('sort', `${SORT_FIELD[s.key] ?? 'dueDate'},${s.dir}`));
         // Param names must match PawnFilterRequest exactly or the filter is ignored.
         if (status) params.set('status', status);
         if (name) params.set('customerFullName', name);
@@ -139,30 +140,61 @@ export function usePawns() {
         const handleScroll = () => {
             if (el.scrollHeight - el.scrollTop - el.clientHeight <= el.scrollHeight * 0.3 && !isLastPage && !isFetchingRef.current) {
                 page.current += 1;
-                fetchPawns(page.current, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, searchByCategory, searchByStatus, searchByStaff, false);
+                fetchPawns(page.current, sorts, searchByName, searchByEmbg, searchByTel, searchByCategory, searchByStatus, searchByStaff, false);
             }
         };
         el.addEventListener("scroll", handleScroll);
         return () => el.removeEventListener("scroll", handleScroll);
-    }, [isLastPage, refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, searchByCategory, searchByStatus, searchByStaff]);
+    }, [isLastPage, refresh, sorts, searchByName, searchByEmbg, searchByTel, searchByCategory, searchByStatus, searchByStaff]);
 
     useEffect(() => {
         fetchedPawnIds.current.clear();
         setAllPawns([]);
         page.current = 0;
-        fetchPawns(0, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, searchByCategory, searchByStatus, searchByStaff, true);
-    }, [refresh, orderBy, orderDirection, searchByName, searchByEmbg, searchByTel, searchByCategory, searchByStatus, searchByStaff]);
+        fetchPawns(0, sorts, searchByName, searchByEmbg, searchByTel, searchByCategory, searchByStatus, searchByStaff, true);
+    }, [refresh, sorts, searchByName, searchByEmbg, searchByTel, searchByCategory, searchByStatus, searchByStaff]);
 
-    const handleOrder = (by: string, index: number) => {
-        const newDir = new Array(orderDirectionArr.current.length).fill(0);
-        newDir[index] = orderDirectionArr.current[index] === 0 ? 1 : orderDirectionArr.current[index] === 1 ? -1 : 1;
-        orderDirectionArr.current = newDir;
-        setOrderDirection(newDir.includes(-1) ? "DESC" : "ASC");
-        setOrderBy(by);
+    // Totals over the whole filtered set (server-side, not just loaded pages).
+    const fetchSummary = () => {
+        const params = new URLSearchParams();
+        if (searchByStatus) params.set("status", searchByStatus);
+        if (searchByName) params.set("customerFullName", searchByName);
+        if (searchByEmbg) params.set("customerNationalId", searchByEmbg);
+        if (searchByTel) params.set("customerPhone", searchByTel);
+        if (searchByCategory) params.set("itemType", CATEGORY_TO_ITEM_TYPE[searchByCategory as PawnRowType["Category"]] ?? searchByCategory);
+        if (searchByStaff) params.set("createdByStaffId", searchByStaff);
+        axios.get(`${API_BASE}/pawns/summary?${params}`)
+            .then(res => setSummary(res.data))
+            .catch(error => console.error("Error fetching pawn summary:", error));
+    };
+
+    useEffect(() => {
+        fetchSummary();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [refresh, searchByName, searchByEmbg, searchByTel, searchByCategory, searchByStatus, searchByStaff]);
+
+    // Plain click = sort by this column alone (toggling its direction).
+    // Shift+click = add/cycle this column in the chain (ASC -> DESC -> removed),
+    // so e.g. due date + name keeps same-due-date pawns grouped and name-ordered.
+    const handleOrder = (key: string, additive: boolean) => {
+        setSorts(prev => {
+            const idx = prev.findIndex(s => s.key === key);
+            if (!additive) {
+                if (prev.length === 1 && idx === 0) {
+                    return [{ key, dir: prev[0].dir === "ASC" ? "DESC" : "ASC" }];
+                }
+                return [{ key, dir: "ASC" }];
+            }
+            if (idx === -1) return [...prev, { key, dir: "ASC" }];
+            if (prev[idx].dir === "ASC") return prev.map((s, i) => (i === idx ? { ...s, dir: "DESC" } : s));
+            const filtered = prev.filter(s => s.key !== key);
+            return filtered.length ? filtered : [{ key: "Valid Until", dir: "ASC" }];
+        });
     };
 
     return {
         allPawns,
+        summary,
         loading,
         searchByCategory,
         setSearchByCategory,
@@ -174,7 +206,7 @@ export function usePawns() {
         setSearchByEmbg,
         setSearchByTel,
         scrollablePawnsRef,
-        orderDirectionArr,
+        sorts,
         handleOrder,
         onRefresh: () => setRefresh(prev => !prev),
         onRefreshCashReg: () => setRefreshCashReg(prev => !prev),

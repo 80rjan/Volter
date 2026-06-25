@@ -66,11 +66,12 @@ async function renderToPdf(node: ReactElement, filename: string, paginated: bool
     }
 }
 
-/** On pawn creation: the loan agreement + the pawn (rachen zalog) agreement. */
+/** On pawn creation: loan agreement + pawn (rachen zalog) agreement + return receipt. */
 export async function downloadPawnCreationDocs(data: PawnDocData, pawnInfo: string): Promise<void> {
     const props = { ...data, idCard: data.idCard ?? "" };
     await renderToPdf(<DogovorZaZaem {...props} />, "Dogovor_za_zaem.pdf", true);
     await renderToPdf(<DogovorZaRacenZalog {...props} pawnInfo={pawnInfo} />, "Dogovor_za_racen_zalog.pdf", true);
+    await renderToPdf(<PotvrdaZaVratenPredmet fullName={data.fullName} />, "Potvrda_za_vrakanje_na_zalozhen_predmet.pdf", false);
 }
 
 /** Compute the day count + due date from issue date and term, then download. */

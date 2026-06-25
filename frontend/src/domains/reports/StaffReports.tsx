@@ -82,7 +82,7 @@ export default function StaffReports() {
     const [selected, setSelected] = useState<Row | null>(null);
 
     const load = () => {
-        if (!allowed || team.length === 0) return;
+        if (!allowed || team.length === 0 || !from || !to) return;
         setLoading(true);
         Promise.all(team.map(staff =>
             axios.get(`${API_BASE}/reports/staff/${staff.id}/period`, { params: { dateFrom: from, dateTo: to } })
@@ -111,14 +111,15 @@ export default function StaffReports() {
                         <div className="flex items-center gap-3 flex-wrap">
                             <div className="flex items-center gap-2">
                                 <span className="text-xs text-[#666]">Од</span>
-                                <input type="date" className={inputClass} value={from} onChange={e => setFrom(e.target.value)} />
+                                <input type="date" style={{ color: from ? "#000" : "#888" }} className={inputClass} value={from} onChange={e => setFrom(e.target.value)} />
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-xs text-[#666]">До</span>
-                                <input type="date" className={inputClass} value={to} onChange={e => setTo(e.target.value)} />
+                                <input type="date" style={{ color: to ? "#000" : "#888" }} className={inputClass} value={to} onChange={e => setTo(e.target.value)} />
                             </div>
                             <button onClick={load} disabled={loading}
-                                    className="flex items-center gap-2 px-4 py-2 rounded bg-green text-white text-sm font-medium shadow-[0_0_4px_rgba(0,0,0,0.2)] hover:scale-105 transition-all disabled:opacity-40">
+                                    className="group relative overflow-hidden flex items-center gap-2 px-5 py-2 rounded bg-green text-white text-sm font-semibold shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 disabled:opacity-40">
+                                <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[180%]" />
                                 Прикажи
                             </button>
                         </div>

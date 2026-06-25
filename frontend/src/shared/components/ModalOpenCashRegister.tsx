@@ -101,8 +101,9 @@ export default function ModalOpenCashRegister({ registerId, closeModal, refresh 
                     ) : (
                         <button
                             type="submit"
-                            className="flex justify-center items-center gap-2 px-8 py-2 rounded bg-green text-white text-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed mt-2"
+                            className="group relative overflow-hidden flex justify-center items-center gap-2 px-8 py-2 rounded bg-green text-white text-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed mt-2"
                         >
+                            <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[180%]" />
                             <CheckCheck size={22} /> Потврди
                         </button>
                     )}

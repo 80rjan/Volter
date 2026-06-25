@@ -38,6 +38,16 @@ public class SaleController {
     }
 
     /**
+     * Aggregate totals (count, money given, gold grams) over the filtered set.
+     */
+    @GetMapping("/summary")
+    @PreAuthorize("hasAuthority('SALE_READ')")
+    public ResponseEntity<SaleSummaryResponse> summary(@ModelAttribute SaleFilterRequest filter,
+                                                       @AuthenticationPrincipal StaffPrincipal principal) {
+        return ResponseEntity.ok(saleService.summarize(filter, principal.staffId()));
+    }
+
+    /**
      * Get details of a specific sale by its ID.
      */
     @GetMapping("/{id}")

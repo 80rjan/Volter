@@ -14,7 +14,7 @@ export const selectClass = "bg-white border-none! shadow-[0_0_4px_rgba(0,0,0,0.2
 export interface ItemFormData {
     type: ItemType;
     description: string;
-    weightGrams: string; carats: string; pieceType: string; pricePerGram: string;
+    weightGrams: string; carats: string; pieceType: string;
     brand: string; model: string; year: string; material: string;
     electronicCategory: string; otherCategory: string;
     vehicleType: string; registrationNumber: string; mileage: string; numberOfKeys: string;
@@ -26,7 +26,7 @@ export interface ItemFormData {
 
 export const ITEM_FORM_DEFAULTS: ItemFormData = {
     type: "ELECTRONIC", description: "",
-    weightGrams: "", carats: "", pieceType: "", pricePerGram: "",
+    weightGrams: "", carats: "", pieceType: "",
     brand: "", model: "", year: "", material: "",
     electronicCategory: "", otherCategory: "",
     vehicleType: "", registrationNumber: "", mileage: "", numberOfKeys: "",
@@ -83,7 +83,6 @@ export function ItemFields({ f, h }: { f: ItemFormData; h: Handle }) {
                         </select>
                     </div>
                     <Text label="Тип парче" name="pieceType" h={h} />
-                    <Text label="Цена по грам" name="pricePerGram" h={h} type="number" step="0.01" />
                 </>
             );
         case "ELECTRONIC":
@@ -138,10 +137,15 @@ export function DescField({ h }: { h: Handle }) {
     );
 }
 
-export function buildAttributes(f: ItemFormData): Record<string, unknown> {
+export function buildAttributes(f: ItemFormData, basePrice = 0): Record<string, unknown> {
     switch (f.type) {
-        case "GOLD":
-            return { weightGrams: Number(f.weightGrams), carats: f.carats, pieceType: f.pieceType, pricePerGram: Number(f.pricePerGram) };
+        case "GOLD": {
+            // Price per gram is derived (base price / weight), never entered by hand.
+            // basePrice = the pawn principal or the sale purchase price.
+            const grams = Number(f.weightGrams);
+            const pricePerGram = grams > 0 ? Math.round((basePrice / grams) * 100) / 100 : 0;
+            return { weightGrams: grams, carats: f.carats, pieceType: f.pieceType, pricePerGram };
+        }
         case "ELECTRONIC":
             return { brand: f.brand, category: f.electronicCategory, year: Number(f.year) };
         case "WATCH":

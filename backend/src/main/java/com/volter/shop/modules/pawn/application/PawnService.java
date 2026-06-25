@@ -6,6 +6,7 @@ import com.volter.shop.modules.customer.application.CustomerService;
 import com.volter.shop.modules.customer.domain.model.Customer;
 import com.volter.shop.modules.inventory.application.ItemService;
 import com.volter.shop.modules.inventory.domain.model.Item;
+import com.volter.shop.modules.inventory.domain.model.enums.ItemType;
 import com.volter.shop.modules.pawn.application.dto.*;
 import com.volter.shop.modules.pawn.domain.model.PawnContract;
 import com.volter.shop.modules.pawn.domain.model.PawnContractExtension;
@@ -70,6 +71,33 @@ public class PawnService {
         List<Long> ids = new ArrayList<>(staffService.findSubordinateStaffIds(callerStaffId));
         ids.add(callerStaffId);
         return ids;
+    }
+
+    /** Totals over the whole filtered set (the summary bar under the pawns table). */
+    @Transactional(readOnly = true)
+    public PawnSummaryResponse summarize(PawnFilterRequest filter, Long callerStaffId) {
+        Specification<PawnContract> spec = PawnContractSpecification.matches(filter);
+        if (filter.createdByStaffId() != null) {
+            spec = spec.and(PawnContractSpecification.createdByStaffIn(visibleStaffIds(callerStaffId)));
+        }
+        List<PawnContract> list = contractRepository.findAll(spec);
+        long principal = list.stream().mapToLong(p -> p.getPrincipalAmount().amount()).sum();
+        long interest = list.stream().mapToLong(p -> p.getInterestAmount().amount()).sum();
+        double goldGrams = list.stream()
+                .filter(p -> p.getItem() != null && p.getItem().getType() == ItemType.GOLD)
+                .mapToDouble(p -> goldWeightGrams(p.getItem()))
+                .sum();
+        return new PawnSummaryResponse(list.size(), principal, interest, goldGrams);
+    }
+
+    /** Read the gold weight (grams) from an item's free-form attributes; 0 if absent/unparseable. */
+    private static double goldWeightGrams(Item item) {
+        Object w = item.getAttributes() == null ? null : item.getAttributes().get("weightGrams");
+        if (w instanceof Number n) return n.doubleValue();
+        if (w != null) {
+            try { return Double.parseDouble(w.toString()); } catch (NumberFormatException ignored) { /* fall through */ }
+        }
+        return 0;
     }
 
     /**

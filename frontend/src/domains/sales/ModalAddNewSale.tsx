@@ -5,7 +5,7 @@ import axios from "axios";
 import { Autocomplete, TextField } from "@mui/material";
 import Loading from "../../shared/components/Loading.tsx";
 import { API_BASE } from "../../shared/api/config.ts";
-import { resolveActiveSessionId } from "../../shared/utils/activeSession.ts";
+import CashSessionSelect from "../../shared/components/CashSessionSelect.tsx";
 import {
     ItemFormData, ITEM_FORM_DEFAULTS, Handle, inputClass,
     ItemTypeSelect, ItemFields, DescField, buildAttributes, GoldPriceStrip,
@@ -60,10 +60,6 @@ export default function ModalAddNewSale({ closeModal, refresh }: Props) {
         axios.get(`${API_BASE}/customers`, { params: { size: 1_000_000, sort: "fullName,ASC" } })
             .then(res => setCustomers(res.data.content ?? []))
             .catch(err => console.error("Error fetching customers:", err));
-        // A sale's purchase moves money, so it needs the active register's open session.
-        resolveActiveSessionId()
-            .then(setOpenSessionId)
-            .catch(err => console.error("Error fetching cash sessions:", err));
     }, []);
 
     useEffect(() => {
@@ -111,7 +107,7 @@ export default function ModalAddNewSale({ closeModal, refresh }: Props) {
                     origin: "PURCHASE",
                     initialStatus: "IN_SALE",
                     description: formData.description,
-                    attributes: buildAttributes(formData),
+                    attributes: buildAttributes(formData, Number(formData.purchasePrice)),
                 },
                 purchasePrice: Number(formData.purchasePrice),
                 cashRegisterSessionId: openSessionId,
@@ -214,11 +210,16 @@ export default function ModalAddNewSale({ closeModal, refresh }: Props) {
 
                     {/* Section: purchase */}
                     <div className="flex flex-col gap-3">
-                        <span className="flex items-center gap-2 font-medium"><Coins size={20} /> Податоци за откупот</span>
-                        <div className="flex flex-col gap-1 max-w-[12rem]">
-                            <p className="-ml-1 text-[#666]">Откупна цена</p>
-                            <input className={inputClass} name="purchasePrice" type="number" value={formData.purchasePrice}
-                                   onChange={e => h(e.target.name, e.target.value)} required />
+                        <div className="flex gap-3 items-center flex-wrap">
+                            <span className="flex items-center gap-2 font-medium"><Coins size={20} /> Податоци за откупот</span>
+                            <CashSessionSelect value={openSessionId} onChange={setOpenSessionId} inline />
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-8 gap-y-3 max-w-md">
+                            <div className="flex flex-col gap-1">
+                                <p className="-ml-1 text-[#666]">Откупна цена</p>
+                                <input className={inputClass} name="purchasePrice" type="number" value={formData.purchasePrice}
+                                       onChange={e => h(e.target.name, e.target.value)} required />
+                            </div>
                         </div>
                     </div>
 

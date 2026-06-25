@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface PawnContractRepository extends JpaRepository<PawnContract, Long>, JpaSpecificationExecutor<PawnContract> {
@@ -25,4 +26,10 @@ public interface PawnContractRepository extends JpaRepository<PawnContract, Long
     @Override
     @EntityGraph(attributePaths = {"customer", "item"})
     Page<PawnContract> findAll(Specification<PawnContract> spec, Pageable pageable);
+
+    // For the totals bar: aggregate over the whole filtered set. Eager-load the
+    // item so summing gold weight (in item.attributes) doesn't trigger N+1.
+    @Override
+    @EntityGraph(attributePaths = {"item"})
+    List<PawnContract> findAll(Specification<PawnContract> spec);
 }

@@ -43,6 +43,7 @@ services:
     environment:
       # Profile is intrinsic to this file → demo seeding ON.
       SPRING_PROFILES_ACTIVE: dev
+      TZ: Europe/Skopje
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}

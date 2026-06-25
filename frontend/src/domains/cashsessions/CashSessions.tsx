@@ -177,7 +177,7 @@ export default function CashSessions() {
 
     const clearFilters = () => { setFilterStaff(""); setFilterRegister(""); setFilterStatus(""); setFilterDiscrepancy(""); setFilterFrom(""); setFilterTo(""); };
     const hasFilters = filterStaff || filterRegister || filterStatus || filterDiscrepancy || filterFrom || filterTo;
-    const inputClass = "bg-white border-none rounded text-sm px-2 py-2 shadow-[0_0_8px_rgba(0,0,0,0.2)]";
+    const inputClass = "bg-white border-none rounded text-xs font-medium px-2 py-2 w-full shadow-sm";
 
     const headers: [string, string | null, number][] = [
         ["Каса", "Code", 0], ["Статус", "Status", 1], ["Отворена", "Opened", 2], ["Затворена", "Closed", 3],
@@ -194,15 +194,7 @@ export default function CashSessions() {
                     </div>
                 ) : (
                     <>
-                        {canManage && (
-                            <div className="flex justify-end">
-                                <button onClick={() => setShowCreate(true)}
-                                        className="flex items-center gap-2 px-4 py-2 rounded bg-green text-white text-sm font-medium shadow-[0_0_4px_rgba(0,0,0,0.2)] hover:scale-105 transition-all">
-                                    <Plus size={16} /> Нова каса
-                                </button>
-                            </div>
-                        )}
-                        <div className="grid grid-cols-[2fr_2fr_2fr_1fr_1fr_.5fr] items-center w-full gap-3 flex-wrap">
+                        <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_1fr_1fr_1.5fr] w-full gap-3">
                             <select className={inputClass} style={{ color: filterStaff ? "#000" : "#888" }} value={filterStaff} onChange={e => setFilterStaff(e.target.value)}>
                                 <option value="">Сите вработени</option>
                                 {team.map(s => <option key={s.id} value={s.id}>{s.fullName}</option>)}
@@ -232,7 +224,17 @@ export default function CashSessions() {
                                 <input type="date" style={{color: filterTo ? "#000": "#888"}} className={inputClass} value={filterTo} onChange={e => setFilterTo(e.target.value)} />
                             </div>
                             {hasFilters && (
-                                <button onClick={clearFilters} className="text-xs text-[#666] underline hover:text-black transition-colors">Исчисти филтри</button>
+                                <button onClick={clearFilters} className="whitespace-nowrap text-xs text-[#666] underline hover:text-black transition-colors">Исчисти филтри</button>
+                            )}
+                            {canManage && (
+                                <div className="flex col-start-8 justify-center">
+                                    <button onClick={() => setShowCreate(true)}
+                                            className="group relative overflow-hidden whitespace-nowrap flex items-center gap-2 px-4 py-2 rounded bg-green text-white text-sm font-semibold shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105">
+                                        <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[180%]" />
+                                        <Plus size={16} color="white" strokeWidth={3} className="transition-transform duration-500 group-hover:rotate-90" />
+                                        Креирај нова каса
+                                    </button>
+                                </div>
                             )}
                         </div>
 

@@ -44,7 +44,7 @@ export default function GoldPriceLive() {
         // whitespace-nowrap keeps each row on one line so it never wraps (and changes
         // height) while the nav is mid-animation — it's just clipped by the rail's
         // overflow-hidden until the nav is wide enough.
-        <div className="flex items-center justify-between w-full gap-1 text-base font-bold text-orange-600 whitespace-nowrap">
+        <div className="flex items-center justify-between w-full gap-1  text-sm font-bold text-orange-600 whitespace-nowrap">
             <span>{label}:</span>
             <div>
                 {price != null ? (

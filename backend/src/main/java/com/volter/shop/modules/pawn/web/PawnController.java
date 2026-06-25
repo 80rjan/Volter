@@ -49,6 +49,16 @@ public class PawnController {
     }
 
     /**
+     * Aggregate totals (count, money given, interest, gold grams) over the filtered set.
+     */
+    @GetMapping("/summary")
+    @PreAuthorize("hasAuthority('PAWN_READ')")
+    public ResponseEntity<PawnSummaryResponse> summary(@ModelAttribute PawnFilterRequest filter,
+                                                       @AuthenticationPrincipal StaffPrincipal principal) {
+        return ResponseEntity.ok(pawnService.summarize(filter, principal.staffId()));
+    }
+
+    /**
      * Get details of a specific pawn contract by its ID.
      */
     @GetMapping("/{id}")

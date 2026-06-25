@@ -89,7 +89,7 @@ export default function Notifications() {
         setItems(prev => prev.map(n => n.id === updated.id ? updated : n));
 
     const hasUnread = items.some(n => !n.read);
-    const inputClass = "bg-white border-none rounded text-sm px-2 py-2 shadow-[0_0_8px_rgba(0,0,0,0.2)]";
+    const inputClass = "bg-white border-none rounded text-xs font-medium px-2 py-2 h-full shadow-sm";
 
     return (
         <div className="h-screen flex pl-16">

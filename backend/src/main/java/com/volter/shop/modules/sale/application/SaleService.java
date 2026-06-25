@@ -6,9 +6,11 @@ import com.volter.shop.modules.customer.application.CustomerService;
 import com.volter.shop.modules.customer.domain.model.Customer;
 import com.volter.shop.modules.inventory.application.ItemService;
 import com.volter.shop.modules.inventory.domain.model.Item;
+import com.volter.shop.modules.inventory.domain.model.enums.ItemType;
 import com.volter.shop.modules.sale.application.dto.SaleCreateRequest;
 import com.volter.shop.modules.sale.application.dto.SaleFilterRequest;
 import com.volter.shop.modules.sale.application.dto.SaleSellRequest;
+import com.volter.shop.modules.sale.application.dto.SaleSummaryResponse;
 import com.volter.shop.modules.sale.domain.model.Sale;
 import com.volter.shop.modules.sale.domain.model.SaleTransaction;
 import com.volter.shop.modules.sale.domain.model.enums.SaleTransactionAction;
@@ -61,6 +63,34 @@ public class SaleService {
             spec = spec.and(SaleSpecification.createdByStaffIn(visible));
         }
         return saleRepository.findAll(spec, pageable);
+    }
+
+    /** Totals over the whole filtered set (the summary bar under the sales table). */
+    @Transactional(readOnly = true)
+    public SaleSummaryResponse summarize(SaleFilterRequest filter, Long callerStaffId) {
+        Specification<Sale> spec = SaleSpecification.matches(filter);
+        if (filter.createdByStaffId() != null) {
+            List<Long> visible = new ArrayList<>(staffService.findSubordinateStaffIds(callerStaffId));
+            visible.add(callerStaffId);
+            spec = spec.and(SaleSpecification.createdByStaffIn(visible));
+        }
+        List<Sale> list = saleRepository.findAll(spec);
+        long purchase = list.stream().mapToLong(s -> s.getPurchasePrice().amount()).sum();
+        double goldGrams = list.stream()
+                .filter(s -> s.getItem() != null && s.getItem().getType() == ItemType.GOLD)
+                .mapToDouble(s -> goldWeightGrams(s.getItem()))
+                .sum();
+        return new SaleSummaryResponse(list.size(), purchase, goldGrams);
+    }
+
+    /** Read the gold weight (grams) from an item's free-form attributes; 0 if absent/unparseable. */
+    private static double goldWeightGrams(Item item) {
+        Object w = item.getAttributes() == null ? null : item.getAttributes().get("weightGrams");
+        if (w instanceof Number n) return n.doubleValue();
+        if (w != null) {
+            try { return Double.parseDouble(w.toString()); } catch (NumberFormatException ignored) { /* fall through */ }
+        }
+        return 0;
     }
 
     /**

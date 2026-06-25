@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface SaleRepository extends JpaRepository<Sale, Long>, JpaSpecificationExecutor<Sale> {
@@ -23,4 +24,10 @@ public interface SaleRepository extends JpaRepository<Sale, Long>, JpaSpecificat
     @Override
     @EntityGraph(attributePaths = {"customer", "item"})
     Page<Sale> findAll(Specification<Sale> spec, Pageable pageable);
+
+    // For the totals bar: aggregate over the whole filtered set. Eager-load the
+    // item so summing gold weight (in item.attributes) doesn't trigger N+1.
+    @Override
+    @EntityGraph(attributePaths = {"item"})
+    List<Sale> findAll(Specification<Sale> spec);
 }

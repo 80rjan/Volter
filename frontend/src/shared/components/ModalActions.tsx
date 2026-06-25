@@ -1,8 +1,8 @@
 import ReactDom from "react-dom";
 import { X, RotateCcw, HandCoins, ShoppingCart, Coins, CheckCheck, Ban, TriangleAlert } from 'lucide-react';
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Loading from "./Loading.tsx";
-import { resolveActiveSessionId } from "../utils/activeSession.ts";
+import CashSessionSelect from "./CashSessionSelect.tsx";
 
 interface Props {
     pawnAction: 'redeem' | 'extend' | 'forfeit' | 'cancel' | null;
@@ -42,14 +42,10 @@ export default function ModalActions({
     // forfeit/cancel are confirm-only and don't.
     const requiresSession = !isConfirmOnly;
 
+    // The session the action records into — chosen via the selector below, which
+    // also syncs the active register so the parent's session resolution matches.
     const [openSessionId, setOpenSessionId] = useState<number | null>(null);
     const [sessionChecked, setSessionChecked] = useState(!requiresSession);
-    useEffect(() => {
-        if (!requiresSession) return;
-        resolveActiveSessionId()
-            .then(id => setOpenSessionId(id))
-            .finally(() => setSessionChecked(true));
-    }, [requiresSession]);
     const noSession = requiresSession && sessionChecked && openSessionId == null;
 
     const penaltyPrice = (daysLeft ?? 0) < 0
@@ -114,6 +110,8 @@ export default function ModalActions({
                             {category !== "sale" && info("Казна", Math.round(penaltyPrice).toLocaleString("de-DE"))}
                             {pawnAction === "extend" && info("Префрлени денови", carryOverDays.toLocaleString("de-DE"))}
                         </div>
+                        <CashSessionSelect value={openSessionId} onChange={setOpenSessionId}
+                                           onLoaded={() => setSessionChecked(true)} />
                         <div className="grid grid-cols-2 gap-4">
                             <div className="flex flex-col gap-1">
                                 <span className="text-[#666] text-xs">Сума</span>

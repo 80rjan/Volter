@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import PawnRow from "./Pawn.tsx";
-import { Plus, ChevronUp, ChevronDown, Minus } from "lucide-react";
+import {Plus, ChevronUp, ChevronDown, Minus, Handshake, Banknote, Percent, Gem, Coins} from "lucide-react";
 import ModalAddNewPawn from "./ModalAddNewPawn.tsx";
 import CashRegister from "../../shared/components/CashRegister.tsx";
 import Loading from "../../shared/components/Loading.tsx";
@@ -25,14 +25,10 @@ const statusOptions = [
 
 const cols = "grid-cols-[3rem_1.5fr_1fr_2fr_repeat(4,1fr)_1.5fr_0.5fr]";
 
-const headerItems: [string, string, number][] = [
-    ["Код", "Client Id", 0], ["Име", "Name", 1], ["Категорија", "Category", 2],
-    ["Опис", "About", 3], ["Вредност", "Item Cost", 4], ["Провизија", "Provision", 5], ["Рок", "Days Left", 6],
+const headerItems: [string, string][] = [
+    ["Код", "Client Id"], ["Име", "Name"], ["Категорија", "Category"],
+    ["Опис", "About"], ["Вредност", "Item Cost"], ["Провизија", "Provision"], ["Рок", "Days Left"],
 ];
-
-function SortIcon({ dir }: { dir: number }) {
-    return dir === 0 ? <Minus size={14} /> : dir === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />;
-}
 
 export default function Pawns() {
     const { can } = useAuth();
@@ -40,12 +36,12 @@ export default function Pawns() {
 
     const team = useTeam();
     const {
-        allPawns, loading,
+        allPawns, summary, loading,
         searchByCategory, setSearchByCategory,
         searchByStatus, setSearchByStatus,
         searchByStaff, setSearchByStaff,
         setSearchByName, setSearchByEmbg, setSearchByTel,
-        scrollablePawnsRef, orderDirectionArr, handleOrder,
+        scrollablePawnsRef, sorts, handleOrder,
         onRefresh, onRefreshCashReg,
         refreshDependency, refreshCashRegDependency,
     } = usePawns();
@@ -99,11 +95,21 @@ export default function Pawns() {
 
                 <div className="flex flex-col bg-white rounded-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] overflow-hidden flex-1 min-h-0">
                     <div className={`grid place-items-center ${cols} px-2 py-2 border-b-2 border-black/20 text-[#eee] bg-[#666]`}>
-                        {headerItems.map(([label, key, idx]) => (
-                            <div key={key} className="text-xs font-medium flex items-center cursor-pointer" onClick={() => handleOrder(key, idx)}>
-                                {label} <SortIcon dir={orderDirectionArr.current[idx]} />
-                            </div>
-                        ))}
+                        {headerItems.map(([label, key]) => {
+                            const i = sorts.findIndex(s => s.key === key);
+                            const active = i !== -1;
+                            return (
+                                <div key={key} title="Кликни за подредување · Shift+клик за повеќекратно подредување"
+                                     className="text-xs font-medium flex items-center gap-1 cursor-pointer select-none"
+                                     onClick={e => handleOrder(key, e.shiftKey)}>
+                                    {label}
+                                    {active
+                                        ? (sorts[i].dir === "DESC" ? <ChevronDown size={14} /> : <ChevronUp size={14} />)
+                                        : <Minus size={14} />}
+                                    {active && sorts.length > 1 && <span className="text-[10px] leading-none text-white/70">{i + 1}</span>}
+                                </div>
+                            );
+                        })}
                         <div className="text-xs font-medium cursor-default">Валидно до</div>
                         <div className="text-xs font-medium cursor-default">Акции</div>
                         <div className="text-xs font-medium cursor-default">Повеќе</div>
@@ -120,6 +126,14 @@ export default function Pawns() {
                             />
                         ))}
                     </div>
+                </div>
+
+                {/* Totals for the currently filtered (active) pawns. */}
+                <div className="flex w-full justify-between items-center gap-x-6 gap-y-1 bg-[#f4f4f4] border border-black/10 rounded-lg px-5 py-1.5 text-xs text-[#666]">
+                    <span className="flex items-center gap-1.5"><Handshake size={15} className="text-green" /> Залози: <b className="text-[#333]">{summary.count}</b></span>
+                    <span className="flex items-center gap-1.5"><Banknote size={15} className="text-green" /> Дадени пари: <b className="text-[#333]">{summary.totalPrincipal.toLocaleString("de-DE")} ден</b></span>
+                    <span className="flex items-center gap-1.5"><Percent size={15} className="text-green" /> Камата за наплата: <b className="text-[#333]">{summary.totalInterest.toLocaleString("de-DE")} ден</b></span>
+                    <span className="flex items-center gap-1.5"><Coins size={15} className="text-green" /> Злато: <b className="text-[#333]">{summary.totalGoldGrams.toLocaleString("de-DE", { maximumFractionDigits: 2 })} гр</b></span>
                 </div>
 
                 <CashRegister refreshDependency={refreshDependency} refreshDependencyAdjustPawn={refreshCashRegDependency} />

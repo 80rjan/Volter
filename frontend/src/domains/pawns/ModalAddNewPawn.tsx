@@ -5,7 +5,7 @@ import axios from "axios";
 import { Autocomplete, TextField } from "@mui/material";
 import Loading from "../../shared/components/Loading.tsx";
 import { API_BASE } from "../../shared/api/config.ts";
-import { resolveActiveSessionId } from "../../shared/utils/activeSession.ts";
+import CashSessionSelect from "../../shared/components/CashSessionSelect.tsx";
 import { downloadPawnCreationDocs, pawnDocDataFromTerms } from "../../shared/utils/pawnDocuments.tsx";
 import {
     ItemFormData, ITEM_FORM_DEFAULTS, Handle, inputClass, selectClass,
@@ -123,9 +123,6 @@ export default function ModalAddNewPawn({ closeModal, refresh }: Props) {
         axios.get(`${API_BASE}/customers`, { params: { size: 1_000_000, sort: "fullName,ASC" } })
             .then(res => setCustomers(res.data.content ?? []))
             .catch(err => console.error("Error fetching customers:", err));
-        resolveActiveSessionId()
-            .then(setOpenSessionId)
-            .catch(err => console.error("Error fetching cash sessions:", err));
     }, []);
 
     useEffect(() => {
@@ -173,7 +170,7 @@ export default function ModalAddNewPawn({ closeModal, refresh }: Props) {
                     origin: "PAWN",
                     initialStatus: "IN_PAWN",
                     description: formData.description,
-                    attributes: buildAttributes(formData),
+                    attributes: buildAttributes(formData, Number(formData.principalAmount)),
                 },
                 principalAmount: Number(formData.principalAmount),
                 interestAmount: Number(formData.interestAmount),
@@ -294,7 +291,10 @@ export default function ModalAddNewPawn({ closeModal, refresh }: Props) {
 
                     {/* Section: pawn */}
                     <div className="flex flex-col gap-3">
-                        <span className="flex items-center gap-2 font-medium"><Coins size={20} /> Податоци за залогот</span>
+                        <div className="flex gap-3 items-center flex-wrap">
+                            <span className="flex items-center gap-2 font-medium"><Coins size={20} /> Податоци за залогот</span>
+                            <CashSessionSelect value={openSessionId} onChange={setOpenSessionId} inline />
+                        </div>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-3 max-w-3xl">
                             <PriceAndProvision f={formData} h={h} />
                             <TermAndIssue f={formData} h={h} />

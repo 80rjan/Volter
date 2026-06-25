@@ -12,10 +12,8 @@ export default function PeriodReport() {
     const { can } = useAuth();
     const allowed = can("REPORT_READ");
 
-    const today = new Date().toISOString().split("T")[0];
-    const monthStart = `${today.substring(0, 7)}-01`;
-    const [dateFrom, setDateFrom] = useState(monthStart);
-    const [dateTo, setDateTo] = useState(today);
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
     const [report, setReport] = useState<PeriodReportData | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -48,17 +46,18 @@ export default function PeriodReport() {
                             <h1 className="text-xl font-semibold mr-auto">Периодичен извештај</h1>
                             <div className="flex items-center gap-2">
                                 <span className="text-xs text-[#666]">Од</span>
-                                <input type="date" className={inputClass} value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+                                <input type="date" style={{ color: dateFrom ? "#000" : "#888" }} className={inputClass} value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-xs text-[#666]">До</span>
-                                <input type="date" className={inputClass} value={dateTo} onChange={e => setDateTo(e.target.value)} />
+                                <input type="date" style={{ color: dateTo ? "#000" : "#888" }} className={inputClass} value={dateTo} onChange={e => setDateTo(e.target.value)} />
                             </div>
                             <button
                                 onClick={run}
                                 disabled={loading}
-                                className="flex items-center gap-2 bg-green h-fit text-white rounded px-5 py-2 text-sm shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 disabled:opacity-40 shrink-0"
+                                className="group relative overflow-hidden flex items-center gap-2 bg-green h-fit text-white rounded px-5 py-2 text-sm shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 disabled:opacity-40 shrink-0"
                             >
+                                <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[180%]" />
                                 <Search size={16} /> Прикажи
                             </button>
                         </div>

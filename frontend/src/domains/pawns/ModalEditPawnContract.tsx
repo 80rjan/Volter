@@ -5,7 +5,7 @@ import { X, CheckCheck, FileText } from "lucide-react";
 import Loading from "../../shared/components/Loading.tsx";
 import { API_BASE } from "../../shared/api/config.ts";
 import { PawnDetailed } from "./types.ts";
-import { resolveActiveSessionId } from "../../shared/utils/activeSession.ts";
+import CashSessionSelect from "../../shared/components/CashSessionSelect.tsx";
 
 interface Props {
     pawn: PawnDetailed;
@@ -24,6 +24,8 @@ export default function ModalEditPawnContract({ pawn, closeModal, onSaved }: Pro
     const [termDays, setTermDays] = useState(pawn.termDays === 15 ? "15" : "30");
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
+    // Selected when the value changes (the difference moves cash on that session).
+    const [sessionId, setSessionId] = useState<number | null>(null);
 
     const delta = Number(principal) - pawn.principalAmount;
     const principalChanged = Number.isFinite(delta) && delta !== 0;
@@ -31,18 +33,14 @@ export default function ModalEditPawnContract({ pawn, closeModal, onSaved }: Pro
     const save = async () => {
         if (!principal.trim() || !interest.trim() || !termDays.trim()) { setError("Пополни ги сите полиња."); return; }
         if (Number(termDays) < 1) { setError("Времетраењето мора да биде барем 1 ден."); return; }
+        if (principalChanged && !sessionId) { setError("Изберете каса за промена на вредноста."); return; }
         setBusy(true); setError("");
         try {
-            let sessionId: number | null = null;
-            if (principalChanged) {
-                sessionId = await resolveActiveSessionId();
-                if (!sessionId) { setError("Нема отворена каса за промена на вредноста."); setBusy(false); return; }
-            }
             await axios.patch(`${API_BASE}/pawns/${pawn.id}/contract`, {
                 principalAmount: Number(principal),
                 interestAmount: Number(interest),
                 termDays: Number(termDays),
-                cashRegisterSessionId: sessionId,
+                cashRegisterSessionId: principalChanged ? sessionId : null,
             });
             onSaved();
         } catch (err: any) {
@@ -81,6 +79,9 @@ export default function ModalEditPawnContract({ pawn, closeModal, onSaved }: Pro
                                 ? `Ќе се издадат ${Math.abs(delta).toLocaleString("de-DE")} ден од каса (доплата на клиент).`
                                 : `Ќе се вратат ${Math.abs(delta).toLocaleString("de-DE")} ден во каса (поврат од клиент).`}
                         </p>
+                    )}
+                    {principalChanged && (
+                        <CashSessionSelect value={sessionId} onChange={setSessionId} />
                     )}
                     {error && <p className="text-red-500 text-sm">{error}</p>}
                 </div>

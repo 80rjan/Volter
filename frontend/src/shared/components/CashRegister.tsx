@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Landmark, CalendarClock, Plus, Minus, LockKeyhole, Coins, Wallet } from "lucide-react";
+import {Landmark, CalendarClock, Plus, Minus, LockKeyhole, Coins, Wallet, Percent} from "lucide-react";
 import ModalAdjustCashRegister from "./ModalAdjustCashRegister.tsx";
 import ModalOpenCashRegister from "./ModalOpenCashRegister.tsx";
 import ModalCloseCashRegister from "./ModalCloseCashRegister.tsx";
@@ -106,26 +106,26 @@ export default function CashRegister({ refreshDependency, refreshDependencyAdjus
                         )}
                     </>
                 ) : (
-                    <>
-                        <div className="flex items-center gap-5 flex-wrap">
+                    <div className="grid grid-cols-[3fr_1fr] w-full">
+                        <div className="flex items-center justify-between gap-5 flex-wrap w-full">
                             <div className={item} title="Каса">
                                 {registerSelect}
                                 <p className={val + " font-normal opacity-60"}>/ {money(session.openingBalance)}</p>
                             </div>
                             <div className={item} title="Тековно салдо"><Wallet size={20} /><p className={val}>{money(session.currentBalance)}</p></div>
-                            <div className={item} title="Очекувана провизија"><Coins size={20} /><p className={val}>{money(session.expectedInterest)}</p></div>
+                            <div className={item} title="Очекувана провизија"><Percent size={20} /><p className={val}>{money(session.expectedInterest)}</p></div>
                             <div className={item} title="Отворена">
                                 <CalendarClock size={20} />
                                 <p className={val}>{session.openedAt?.substring(0, 10)} {session.openedAt?.substring(11, 16)}</p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3 svg-hover">
+                        <div className="flex items-center justify-end gap-3 svg-hover">
                             {canWrite && <Minus size={22} color="var(--dark-red)" className="cursor-pointer" onClick={() => setShowWithdraw(true)} />}
                             {canWrite && <Plus size={22} color="var(--green)" className="cursor-pointer" onClick={() => setShowDeposit(true)} />}
-                            {canManage && <LockKeyhole size={20} color="#888" className="cursor-pointer" onClick={() => setShowClose(true)} />}
+                            {canManage && <LockKeyhole size={20} color="#666" className="cursor-pointer" onClick={() => setShowClose(true)} />}
                         </div>
-                    </>
+                    </div>
                 )}
             </div>
 
