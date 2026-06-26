@@ -1,12 +1,19 @@
 # =====================================================================
 # Volter — PRODUCTION stack (e.g. DigitalOcean)
 #
-#   docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
+#   docker compose --env-file .env.prod -f docker-compose.prod.yml pull
+#   docker compose --env-file .env.prod -f docker-compose.prod.yml up -d
+#
+# The droplet does NOT build anything: the backend/frontend images are built
+# and pushed to GHCR by the CI/CD pipeline (.github/workflows/ci-cd.yml) and
+# pulled here. By default the `latest` tag is used; pin a specific build by
+# setting IMAGE_TAG (e.g. IMAGE_TAG=sha-1a2b3c4) in .env.prod to deploy or roll
+# back to an exact image.
 #
 # The backend runs the `prod` profile, so demo data is NOT seeded — only
 # schema + reference data (roles/permissions). The frontend is the static
-# production build served by nginx. Secrets come from .env.prod (never
-# committed; copy from .env.prod and fill in real values).
+# production build served by nginx (VITE_API_BASE=/api is baked into the image
+# at build time in CI). Secrets come from .env.prod (never committed).
 # =====================================================================
 services:
   postgres:
@@ -39,9 +46,7 @@ services:
     restart: always
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/80rjan/volter-backend:${IMAGE_TAG:-latest}
     container_name: volter_backend_prod
     environment:
       # Profile is intrinsic to this file → demo seeding OFF.
@@ -69,12 +74,7 @@ services:
     restart: always
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.prod
-      args:
-        # Baked into the static bundle at build time. Use /api for same-origin.
-        VITE_API_BASE: ${VITE_API_BASE}
+    image: ghcr.io/80rjan/volter-frontend:${IMAGE_TAG:-latest}
     container_name: volter_frontend_prod
     # Bound to localhost only — public access is via the Cloudflare tunnel, not a
     # published port. This 127.0.0.1 bind is just for on-droplet debugging

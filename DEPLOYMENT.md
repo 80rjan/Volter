@@ -141,6 +141,62 @@ docker compose --env-file .env.dev -f docker-compose.dev.yml up postgres
 
 ---
 
+## CI/CD (GitHub Actions → GHCR)
+
+`.github/workflows/ci-cd.yml` builds in Actions (never on the droplet) and publishes to GHCR:
+`ghcr.io/80rjan/volter-backend` and `ghcr.io/80rjan/volter-frontend`. Image build auth uses the
+built-in `GITHUB_TOKEN` — no secrets needed for the build itself.
+
+| Trigger | Gate (tests + lint/build) | Images published | Auto-deploy |
+|---|---|---|---|
+| PR to `main` | ✅ | — | — |
+| Push to `main` | ✅ | `edge`, `sha-<commit>` | — |
+| Push tag `vX.Y.Z` | ✅ | `X.Y.Z`, `X.Y`, `X`, `latest`, `sha-<commit>` | ✅ to droplet |
+
+So `main` is integration (the `edge` tag is the latest main build, handy for a staging check), and
+**production is driven by version tags**. `latest` always points at the newest release.
+
+### Releasing (semantic versioning)
+
+You choose the bump based on the change:
+
+```bash
+git tag v1.4.3 && git push origin v1.4.3   # bug fix      → patch
+git tag v1.5.0 && git push origin v1.5.0   # new feature  → minor
+git tag v2.0.0 && git push origin v2.0.0   # breaking     → major
+```
+
+Pushing the tag runs the gate, builds + publishes the versioned images, then auto-deploys that exact
+version to the droplet. To deploy/roll back **manually** instead, pin `IMAGE_TAG` (see *Common operations*).
+
+### Auto-deploy setup (one-time)
+
+The deploy job reaches the droplet over **Tailscale** (no inbound ports opened — same posture as the
+Cloudflare tunnel; chosen because the containerized `cloudflared` can't reach the host's SSH without
+host networking). Set this up once:
+
+1. **Tailscale on the droplet:** install Tailscale and `tailscale up`. In the Tailscale admin console
+   create an **OAuth client** (scopes: `auth_keys`, tagged `tag:ci`) and an ACL that lets `tag:ci`
+   SSH to the droplet.
+2. **Deploy SSH key:** generate a keypair; add the **public** key to the droplet user's
+   `~/.ssh/authorized_keys`; keep the **private** key for the secret below.
+3. **GitHub repo secrets** (Settings → Secrets and variables → Actions):
+
+   | Secret | Value |
+   |---|---|
+   | `TS_OAUTH_CLIENT_ID` / `TS_OAUTH_SECRET` | Tailscale OAuth client credentials |
+   | `DROPLET_HOST` | droplet's Tailscale IP or MagicDNS name |
+   | `DROPLET_USER` | SSH user on the droplet (e.g. the deploy user) |
+   | `DROPLET_SSH_KEY` | the **private** deploy key (full contents) |
+   | `DROPLET_PROJECT_DIR` | path to the repo on the droplet (holds the compose file + `.env.prod`) |
+
+   The droplet must also be logged in to GHCR (step 4) so the pull succeeds.
+
+Until these secrets exist the `deploy` job simply fails (the build still publishes); set them before
+pushing your first `v*` tag.
+
+---
+
 ## Deploying to production (DigitalOcean)
 
 ### 1. Droplet
@@ -162,15 +218,31 @@ docker compose --env-file .env.dev -f docker-compose.dev.yml up postgres
   - Subdomain `erp`, your domain
   - Service: **HTTP**, URL **`frontend:80`** (cloudflared reaches the frontend container by name on the compose network)
 
-### 4. Start the stack
+### 4. Authenticate the droplet to GHCR
+
+Images are built by CI and published to the GitHub Container Registry (GHCR) as
+`ghcr.io/80rjan/volter-backend` and `ghcr.io/80rjan/volter-frontend`. If the
+packages are private, the droplet must log in once so it can pull them:
 
 ```bash
-docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
+# PAT needs only the read:packages scope. Create at:
+# GitHub → Settings → Developer settings → Personal access tokens (classic)
+echo "<PAT>" | docker login ghcr.io -u 80rjan --password-stdin
+```
+
+The login is persisted in `~/.docker/config.json`, so this is a one-time step
+(skip it entirely if you make the GHCR packages public).
+
+### 5. Start the stack
+
+```bash
+docker compose --env-file .env.prod -f docker-compose.prod.yml pull
+docker compose --env-file .env.prod -f docker-compose.prod.yml up -d
 ```
 
 `erp.<your-domain>` should now load through the tunnel.
 
-### 5. Lock it down — Cloudflare Access
+### 6. Lock it down — Cloudflare Access
 
 - Zero Trust → **Access → Applications → Add → Self-hosted**; domain `erp.<your-domain>`.
 - Login method: **One-time PIN** (email code; no Google needed).
@@ -184,7 +256,7 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
 
   `Include` = who; `Require` = an extra AND-condition. Shop staff get in only with an allowlisted email **and** from the shop IP; the super admin gets in with just their email, from anywhere.
 
-### 6. DigitalOcean firewall
+### 7. DigitalOcean firewall
 
 - Create a Cloud Firewall: **inbound = SSH (22) only**; outbound = all (cloudflared needs it).
 - Nothing else is published, so the droplet is invisible to the public internet.
@@ -202,9 +274,13 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml logs -f backend
 # Restart one service
 docker compose --env-file .env.prod -f docker-compose.prod.yml restart backend
 
-# Update after pulling new code
-git pull
-docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
+# Manual deploy of the newest RELEASE (latest = newest vX.Y.Z tag)
+docker compose --env-file .env.prod -f docker-compose.prod.yml pull
+docker compose --env-file .env.prod -f docker-compose.prod.yml up -d
+
+# Roll back / pin to a specific version (any published tag: 1.4.2, 1.4, sha-1a2b3c4)
+IMAGE_TAG=1.4.2 docker compose --env-file .env.prod -f docker-compose.prod.yml pull
+IMAGE_TAG=1.4.2 docker compose --env-file .env.prod -f docker-compose.prod.yml up -d
 
 # On-droplet debug of the frontend (not public)
 curl http://localhost:8081

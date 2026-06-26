@@ -1,0 +1,178 @@
+name: CI/CD
+
+# Triggers:
+#   - PR to main          → quality gate only (tests + lint/build). Nothing published.
+#   - push to main        → gate, then build images tagged `edge` + `sha-<commit>`.
+#                           (Integration builds — NOT deployed to production.)
+#   - push a vX.Y.Z tag   → gate, then build images tagged X.Y.Z / X.Y / X /
+#                           latest / sha-<commit>, then auto-deploy that version
+#                           to the droplet.
+#
+# Cut a release with semver (you choose the bump):
+#   bug fix      → patch   git tag v1.4.3   && git push origin v1.4.3
+#   new feature  → minor   git tag v1.5.0   && git push origin v1.5.0
+#   breaking     → major   git tag v2.0.0   && git push origin v2.0.0
+on:
+  push:
+    branches: [main]
+    tags: ["v*.*.*"]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------- quality gate
+  backend-test:
+    name: Backend tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Run tests
+        working-directory: backend
+        run: |
+          chmod +x mvnw
+          ./mvnw -B clean test
+
+  frontend-check:
+    name: Frontend lint & build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+  # ------------------------------------------------- build & publish images (CD)
+  # Runs on any push to main (→ edge) or a version tag (→ semver), after the gate.
+  build-and-push:
+    name: Build & push images to GHCR
+    needs: [backend-test, frontend-check]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # required to push to GHCR with GITHUB_TOKEN
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # ---- backend ----
+      # Tag logic (same for both images):
+      #   main push  → edge, sha-<commit>
+      #   vX.Y.Z tag → X.Y.Z, X.Y, X, latest, sha-<commit>
+      - name: Backend image metadata
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/volter-backend
+          tags: |
+            type=raw,value=edge,enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha,format=short
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+
+      - name: Build & push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+
+      # ---- frontend ----
+      # VITE_API_BASE is baked into the static bundle at build time. In prod it is
+      # always same-origin "/api", so it is hardcoded here (the image build never
+      # sees .env.prod).
+      - name: Frontend image metadata
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/volter-frontend
+          tags: |
+            type=raw,value=edge,enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha,format=short
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+
+      - name: Build & push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile.prod
+          push: true
+          build-args: |
+            VITE_API_BASE=/api
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+  # ----------------------------------------------------------- auto-deploy (CD)
+  # Only on a version tag. Connects to the droplet over Tailscale (zero inbound
+  # ports) and runs the pull + up with the released version pinned via IMAGE_TAG.
+  deploy:
+    name: Deploy to droplet
+    needs: build-and-push
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve version from tag
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Connect to tailnet
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Add deploy SSH key
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.DROPLET_SSH_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+
+      - name: Pull & restart on droplet (version ${{ steps.ver.outputs.version }})
+        run: |
+          ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=accept-new \
+            "${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_HOST }}" \
+            "cd '${{ secrets.DROPLET_PROJECT_DIR }}' && \
+             export IMAGE_TAG='${{ steps.ver.outputs.version }}' && \
+             docker compose --env-file .env.prod -f docker-compose.prod.yml pull && \
+             docker compose --env-file .env.prod -f docker-compose.prod.yml up -d && \
+             docker image prune -f"
