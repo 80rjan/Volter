@@ -1,0 +1,83 @@
+# ДЕМОНСТРАЦИЈА: MongoDB Replica Set со 3 инстанци (1 PRIMARY + 2 SECONDARY).
+# ВАЖНО: апликацијата (backend) НЕ ја користи оваа база — таа останува на PostgreSQL.
+# Овој Mongo Replica Set постои само како демонстрација на повеќереплична база.
+apiVersion: v1
+kind: Service
+metadata:
+  name: volter-mongo
+  namespace: volter
+  labels:
+    app.kubernetes.io/name: mongo
+    app.kubernetes.io/part-of: volter
+spec:
+  clusterIP: None          # headless: директно кон pod-овите, без виртуелно IP
+  selector:
+    app.kubernetes.io/name: mongo
+  ports:
+    - name: mongo
+      port: 27017
+      targetPort: mongo
+---
+# 2) StatefulSet — за разлика од Postgres овде replicas: 3. Секој pod добива:
+#    - стабилно име (volter-mongo-0/-1/-2),
+#    - сопствен перзистентен диск преку volumeClaimTemplates,
+#    - стабилен DNS преку headless Service-от погоре.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: volter-mongo
+  namespace: volter
+  labels:
+    app.kubernetes.io/name: mongo
+    app.kubernetes.io/part-of: volter
+spec:
+  serviceName: volter-mongo      # мора да одговара на headless Service-от погоре
+  replicas: 3                    # три инстанци = вистински replica set (1 primary + 2 secondary)
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mongo
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mongo
+        app.kubernetes.io/part-of: volter
+    spec:
+      securityContext:
+        fsGroup: 999             # mongodb корисникот во официјалниот имиџ
+      terminationGracePeriodSeconds: 15
+      containers:
+        - name: mongo
+          image: mongo:7         # multi-arch (amd64 + arm64) → се повлекува директно
+          command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+          ports:
+            - name: mongo
+              containerPort: 27017
+          volumeMounts:
+            - name: mongodata
+              mountPath: /data/db
+          readinessProbe:
+            exec:
+              command: ["mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+  # Секоја од 3-те реплики добива свој диск од овој шаблон.
+  volumeClaimTemplates:
+    - metadata:
+        name: mongodata
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 2Gi

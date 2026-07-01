@@ -1,0 +1,98 @@
+# 1) Headless Service (clusterIP: None) — дава стабилен мрежен идентитет на pod-овите.
+#    Pod-от е достапен на `volter-postgres-0.volter-postgres`, а самото име
+#    `volter-postgres` се користи како host за поврзување од backend-от.
+apiVersion: v1
+kind: Service
+metadata:
+  name: volter-postgres
+  namespace: volter
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/part-of: volter
+spec:
+  clusterIP: None          # headless: без виртуелно IP, директно кон pod-овите
+  selector:
+    app.kubernetes.io/name: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+---
+# 2) StatefulSet — стабилно име на pod (volter-postgres-0) и стабилен диск преку
+#    volumeClaimTemplates: секој pod добива сопствен PersistentVolumeClaim што
+#    преживува рестарт и репланирање на pod-от.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: volter-postgres
+  namespace: volter
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/part-of: volter
+spec:
+  serviceName: volter-postgres      # мора да одговара на headless Service-от погоре
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres
+        app.kubernetes.io/part-of: volter
+    spec:
+      securityContext:
+        fsGroup: 999                # postgres корисникот во официјалниот имиџ
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: volter-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: volter-secrets
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: volter-config
+                  key: POSTGRES_DB
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata   # поддиректориум, не самиот mount
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""]
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+  # Секој replica добива свој диск од овој шаблон — ова е суштината на StatefulSet.
+  volumeClaimTemplates:
+    - metadata:
+        name: pgdata
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi

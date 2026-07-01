@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: volter-backend
+  namespace: volter
+  labels:
+    app.kubernetes.io/name: backend
+    app.kubernetes.io/part-of: volter
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: backend
+        app.kubernetes.io/part-of: volter
+    spec:
+      # GHCR имиџите се приватни → потребен е imagePullSecret (се создава одделно,
+      # види документацијата: `kubectl create secret docker-registry ghcr-pull ...`).
+      imagePullSecrets:
+        - name: ghcr-pull
+      containers:
+        - name: backend
+          image: ghcr.io/80rjan/volter-backend:latest
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: volter-config         # SPRING_PROFILES_ACTIVE, SPRING_DATASOURCE_URL, ...
+          env:
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: volter-secrets
+                  key: POSTGRES_USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: volter-secrets
+                  key: POSTGRES_PASSWORD
+            - name: JWT_CONFIG_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: volter-secrets
+                  key: JWT_CONFIG_SECRET
+            - name: GOLD_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: volter-secrets
+                  key: GOLD_API_KEY
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi

@@ -5,3 +5,4 @@ node_modules
 frontend/dist
 /dist
 .idea
+# Kubernetes: the real Secret is applied locally; only the *.example template is committed.

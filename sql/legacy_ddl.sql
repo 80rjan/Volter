@@ -1,7 +1,6 @@
 create table cash_register
 (
-    num_pawns        bigint                   default 0 not null
-        primary key,
+    num_pawns        bigint                   default 0 not null primary key,
     money_pawns      bigint                   default 0,
     num_sale_items   bigint                   default 0,
     money_sale_items bigint                   default 0,
@@ -14,8 +13,7 @@ create table cash_register
 
 create table client
 (
-    id          bigint generated always as identity (start with 1 minvalue 0)
-        primary key,
+    id          bigint generated always as identity (start with 1 minvalue 0) primary key,
     name        varchar(100),
     embg        char(13),
     telephone   char(20),
@@ -28,8 +26,7 @@ create table client
 
 create table electronics_pawn
 (
-    id              integer generated always as identity
-        primary key,
+    id              integer generated always as identity primary key,
     client_id       integer not null
         references client
         constraint fkelectronicspawnclient
@@ -49,8 +46,7 @@ create table electronics_pawn
 
 create table gold_pawn
 (
-    id              integer generated always as identity
-        primary key,
+    id              integer generated always as identity primary key,
     client_id       integer not null
         constraint fkgoldpawnclient
             references client
@@ -71,6 +67,7 @@ create table gold_pawn
 
 create table monthly_report
 (
+    id                       integer generated always as identity primary key,
     year                     integer not null,
     month                    integer not null,
     money_given              bigint,
@@ -100,13 +97,13 @@ create table monthly_report
     profit_sales             bigint,
     profit_pawns             bigint,
     shop_id                  integer,
-    primary key (year, month)
+    constraint unique_monthly_report
+        unique (year, month, shop_id)
 );
 
 create table other_pawn
 (
-    id              integer generated always as identity
-        primary key,
+    id              integer generated always as identity primary key,
     client_id       integer not null
         constraint fkotherpawnclient
             references client
@@ -124,8 +121,7 @@ create table other_pawn
 
 create table sale
 (
-    id           integer generated always as identity
-        primary key,
+    id           integer generated always as identity primary key,
     price_bought bigint,
     date_from    date,
     description  varchar(300),
@@ -134,8 +130,7 @@ create table sale
 
 create table transaction
 (
-    id          bigint generated always as identity
-        primary key,
+    id          bigint generated always as identity primary key,
     client_id   bigint not null
         constraint fktransactionclient
             references client
@@ -153,8 +148,7 @@ create table transaction
 
 create table vehicle_pawn
 (
-    id              integer generated always as identity
-        primary key,
+    id              integer generated always as identity primary key,
     client_id       integer not null
         constraint fkvehiclepawnclient
             references client
@@ -175,8 +169,7 @@ create table vehicle_pawn
 
 create table watch_pawn
 (
-    id              integer generated always as identity
-        primary key,
+    id              integer generated always as identity primary key,
     client_id       integer not null
         constraint fkwatchpawnclient
             references client
@@ -208,8 +201,7 @@ create table expense
 
 create table shop
 (
-    id       bigint not null
-        primary key,
+    id       bigint not null primary key,
     name     varchar(100),
     city     varchar(20),
     location varchar(20)

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: volter-config
+  namespace: volter
+  labels:
+    app.kubernetes.io/part-of: volter
+data:
+  POSTGRES_DB: volterdb
+  SPRING_PROFILES_ACTIVE: dev
+  # Backend-от се поврзува на базата по DNS името на headless Service-от на StatefulSet-от.
+  SPRING_DATASOURCE_URL: jdbc:postgresql://volter-postgres:5432/volterdb
+  ALLOWED_ORIGINS: https://erp.volter.local
+  TZ: Europe/Skopje

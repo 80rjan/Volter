@@ -31,7 +31,7 @@ export default function ModalAddNewExpense({ closeModal, refresh }: Props) {
         e.preventDefault();
         if (!openSessionId) { setError("Нема отворена каса — отворете каса пред да внесете расход."); return; }
         const amount = Number(form.amount);
-        if (!form.amount.trim() || isNaN(amount) || amount <= 0) { setError("Внеси валидна сума."); return; }
+        if (!form.amount.trim() || isNaN(amount)) { setError("Внеси валидна сума."); return; }
         setLoading(true);
         setError("");
         axios.post(`${API_BASE}/expenses`, {

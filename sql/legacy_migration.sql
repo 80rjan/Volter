@@ -27,10 +27,11 @@
 --      -f sql/legacy_migration.sql
 --
 -- MIGRATES : customers, pawn items + contracts (as ACTIVE), sales (as
---            AVAILABLE), expenses, and the transaction ledger (parked on a
---            synthetic "LEGACY" register + one closed session per shop).
--- SKIPS    : monthly_report (reports — deferred) and the legacy aggregate
---            cash_register summary (see notes at bottom).
+--            AVAILABLE), expenses, the transaction ledger (parked on a
+--            synthetic "LEGACY" register + one closed session per shop), and
+--            the monthly_report snapshots (rebuilt into public.report rows with
+--            the same payload shape the backend's report service produces).
+-- SKIPS    : the legacy aggregate cash_register summary (see notes at bottom).
 --
 -- ASSUMPTIONS (see the message that came with this file):
 --   * The rows still present in the pawn/sale tables are the OPEN ones
@@ -286,12 +287,109 @@ SELECT :migration_staff_id,
 FROM legacy.transaction t
 WHERE t.shop_id = :legacy_shop_id;
 
+-- ------------------------------------------------------------
+-- 6. MONTHLY REPORTS  (legacy.monthly_report -> public.report)
+--    Each legacy monthly_report row is rebuilt as a MONTHLY_SUMMARY system
+--    report. Unlike the blocks above, Report is pinned to the shared public
+--    schema and keyed by the NEW shop id (looked up from :tenant_schema), not
+--    the tenant schema. The JSON payload mirrors exactly what
+--    ReportService.aggregateMonthlySummary() emits, so an imported report
+--    renders identically to a natively generated one. The headline figures the
+--    UI shows are DERIVED from this payload (see ReportMetrics), so the section
+--    sums must be right:
+--      pawns/sales  -> { <ItemType>: {totalTransactions, inflow, outflow, net} }
+--      expenses     -> { <ExpenseCategory>: {count, amount} }
+--      cashRegister -> {totalTransactions, inflow, outflow, net}
+--      sessions     -> []   (legacy had no cash-register sessions)
+--
+--    MAPPING (from the snapshot's columns; net = inflow - outflow per section):
+--      * pawns, per type:  outflow = money_<type>_pawns, net = profit_<type>_pawns,
+--                          inflow  = money_<type>_pawns + profit_<type>_pawns,
+--                          totalTransactions = num_<type>_pawns.
+--      * sales:  legacy sales were untyped, so the whole sales aggregate is
+--                parked under OTHER (matching block 3): inflow = money_sales,
+--                net = profit_sales, outflow = money_sales - profit_sales.
+--      * expenses: the legacy report has no category split, only gross vs net,
+--                so total expenses = gross_profit - net_profit is parked under
+--                OTHER. This keeps the derived netProfit (= sum(net) - expenses)
+--                equal to the legacy net_profit.
+--      * cashRegister: the period's overall money movement
+--                (inflow = money_got, outflow = money_given).
+--    Every raw legacy column is also preserved verbatim under the "legacy" key,
+--    so nothing from the old report is lost even where the new shape can't hold
+--    it. Re-runnable: skips a period already present for this shop.
+-- ------------------------------------------------------------
+INSERT INTO public.report
+    (shop_id, owner_staff_id, subject_staff_id, type, date_from, date_to, payload, generated_at)
+SELECT
+    (SELECT id FROM public.shop WHERE schema_name = :'tenant_schema'),
+    NULL, NULL,
+    'MONTHLY_SUMMARY',
+    make_date(mr.year, mr.month, 1),
+    (make_date(mr.year, mr.month, 1) + INTERVAL '1 month' - INTERVAL '1 day')::date,
+    jsonb_build_object(
+        'pawns', jsonb_build_object(
+            'GOLD',       jsonb_build_object('totalTransactions', COALESCE(mr.num_gold_pawns,0),        'outflow', COALESCE(mr.money_gold_pawns,0),        'net', COALESCE(mr.profit_gold_pawns,0),        'inflow', COALESCE(mr.money_gold_pawns,0)        + COALESCE(mr.profit_gold_pawns,0)),
+            'ELECTRONIC', jsonb_build_object('totalTransactions', COALESCE(mr.num_electronics_pawns,0), 'outflow', COALESCE(mr.money_electronics_pawns,0), 'net', COALESCE(mr.profit_electronics_pawns,0), 'inflow', COALESCE(mr.money_electronics_pawns,0) + COALESCE(mr.profit_electronics_pawns,0)),
+            'WATCH',      jsonb_build_object('totalTransactions', COALESCE(mr.num_watch_pawns,0),       'outflow', COALESCE(mr.money_watch_pawns,0),       'net', COALESCE(mr.profit_watch_pawns,0),       'inflow', COALESCE(mr.money_watch_pawns,0)       + COALESCE(mr.profit_watch_pawns,0)),
+            'VEHICLE',    jsonb_build_object('totalTransactions', COALESCE(mr.num_vehicle_pawns,0),     'outflow', COALESCE(mr.money_vehicle_pawns,0),     'net', COALESCE(mr.profit_vehicle_pawns,0),     'inflow', COALESCE(mr.money_vehicle_pawns,0)     + COALESCE(mr.profit_vehicle_pawns,0)),
+            'OTHER',      jsonb_build_object('totalTransactions', COALESCE(mr.num_other_pawns,0),       'outflow', COALESCE(mr.money_other_pawns,0),       'net', COALESCE(mr.profit_other_pawns,0),       'inflow', COALESCE(mr.money_other_pawns,0)       + COALESCE(mr.profit_other_pawns,0))
+        ),
+        'sales', jsonb_build_object(
+            'GOLD',       jsonb_build_object('totalTransactions', 0, 'inflow', 0, 'outflow', 0, 'net', 0),
+            'ELECTRONIC', jsonb_build_object('totalTransactions', 0, 'inflow', 0, 'outflow', 0, 'net', 0),
+            'WATCH',      jsonb_build_object('totalTransactions', 0, 'inflow', 0, 'outflow', 0, 'net', 0),
+            'VEHICLE',    jsonb_build_object('totalTransactions', 0, 'inflow', 0, 'outflow', 0, 'net', 0),
+            'OTHER',      jsonb_build_object('totalTransactions', COALESCE(mr.total_sales,0), 'inflow', COALESCE(mr.money_sales,0), 'net', COALESCE(mr.profit_sales,0), 'outflow', COALESCE(mr.money_sales,0) - COALESCE(mr.profit_sales,0))
+        ),
+        'expenses', jsonb_build_object(
+            'SUPPLIES',    jsonb_build_object('count', 0, 'amount', 0),
+            'RENT',        jsonb_build_object('count', 0, 'amount', 0),
+            'UTILITIES',   jsonb_build_object('count', 0, 'amount', 0),
+            'SALARY',      jsonb_build_object('count', 0, 'amount', 0),
+            'MAINTENANCE', jsonb_build_object('count', 0, 'amount', 0),
+            'OTHER',       jsonb_build_object(
+                'count',  CASE WHEN GREATEST(COALESCE(mr.gross_profit,0) - COALESCE(mr.net_profit,0), 0) > 0 THEN 1 ELSE 0 END,
+                'amount', GREATEST(COALESCE(mr.gross_profit,0) - COALESCE(mr.net_profit,0), 0))
+        ),
+        'cashRegister', jsonb_build_object(
+            'totalTransactions', COALESCE(mr.total_pawns,0) + COALESCE(mr.total_sales,0),
+            'inflow',  COALESCE(mr.money_got,0),
+            'outflow', COALESCE(mr.money_given,0),
+            'net',     COALESCE(mr.money_got,0) - COALESCE(mr.money_given,0)),
+        'sessions', '[]'::jsonb,
+        'legacy', jsonb_strip_nulls(jsonb_build_object(
+            'sourceReportId', mr.id,
+            'totalTurnover',  mr.total_turnover,
+            'totalPawns',     mr.total_pawns,
+            'moneyPawns',     mr.money_pawns,
+            'profitPawns',    mr.profit_pawns,
+            'totalSales',     mr.total_sales,
+            'moneySales',     mr.money_sales,
+            'profitSales',    mr.profit_sales,
+            'grossProfit',    mr.gross_profit,
+            'netProfit',      mr.net_profit,
+            'moneyGot',       mr.money_got,
+            'moneyGiven',     mr.money_given))
+    ),
+    (make_date(mr.year, mr.month, 1) + INTERVAL '1 month' - INTERVAL '1 second')::timestamptz
+FROM legacy.monthly_report mr
+WHERE mr.shop_id = :legacy_shop_id
+  AND mr.year  IS NOT NULL
+  AND mr.month IS NOT NULL
+  AND NOT EXISTS (
+      SELECT 1 FROM public.report r
+      WHERE r.shop_id   = (SELECT id FROM public.shop WHERE schema_name = :'tenant_schema')
+        AND r.type      = 'MONTHLY_SUMMARY'
+        AND r.date_from = make_date(mr.year, mr.month, 1)
+  );
+
 COMMIT;
 
 -- ============================================================
 -- NOT MIGRATED (intentionally):
---  * legacy.monthly_report — reports are deferred; decide later whether to
---    import them or regenerate via the report service.
 --  * legacy.cash_register — aggregate running totals; superseded by the new
 --    per-session model.
+--  * legacy.yearly_report — not needed (and not present in legacy_ddl.sql);
+--    yearly figures can be re-derived from the imported monthly reports.
 -- ============================================================
