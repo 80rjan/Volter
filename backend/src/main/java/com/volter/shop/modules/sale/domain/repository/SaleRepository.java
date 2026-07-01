@@ -1,13 +1,17 @@
 package com.volter.shop.modules.sale.domain.repository;
 
 import com.volter.shop.modules.sale.domain.model.Sale;
+import com.volter.shop.modules.sale.domain.model.enums.SaleStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,4 +34,23 @@ public interface SaleRepository extends JpaRepository<Sale, Long>, JpaSpecificat
     @Override
     @EntityGraph(attributePaths = {"item"})
     List<Sale> findAll(Specification<Sale> spec);
+
+    /**
+     * Total profit (sale price minus purchase price) on sales sold between
+     * {@code from} and {@code to} (inclusive), by sale date.
+     */
+    @Query("""
+            select coalesce(sum(s.salePrice.amount - s.purchasePrice.amount), 0L)
+            from Sale s
+            where s.status = :sold
+              and s.soldAt is not null
+              and cast(s.soldAt as date) between :from and :to
+            """)
+    long profitBetween(@Param("from") LocalDate from,
+                       @Param("to") LocalDate to,
+                       @Param("sold") SaleStatus sold);
+
+    default long profitBetween(LocalDate from, LocalDate to) {
+        return profitBetween(from, to, SaleStatus.SOLD);
+    }
 }

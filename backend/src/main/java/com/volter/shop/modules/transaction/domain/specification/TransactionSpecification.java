@@ -17,6 +17,11 @@ public final class TransactionSpecification {
         return (root, query, cb) -> staffIds.isEmpty() ? cb.disjunction() : root.get("staffId").in(staffIds);
     }
 
+    /** Restricts to the given transaction ids (empty set matches nothing). */
+    public static Specification<Transaction> idIn(Collection<Long> ids) {
+        return (root, query, cb) -> ids.isEmpty() ? cb.disjunction() : root.get("id").in(ids);
+    }
+
     public static Specification<Transaction> matches(TransactionFilterRequest filter) {
         return (root, query, cb) -> {
             var predicates = new PredicateBuilder<Transaction>(root, cb)

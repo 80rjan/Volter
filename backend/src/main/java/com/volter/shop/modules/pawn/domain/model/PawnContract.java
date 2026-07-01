@@ -149,16 +149,20 @@ public class PawnContract {
 
     /**
      * Correct the terms of an active contract. Principal and interest are set
-     * directly; changing the term shifts the due date (and the original due date)
-     * by the difference, preserving any extension offset. The caller is
-     * responsible for moving the cash when the principal changes.
+     * directly. The due date is never set directly: moving the issue date and/or
+     * changing the term shifts the due date (and the original due date) by the
+     * combined number of days, so the term length and any extension offset are
+     * preserved. The caller is responsible for moving the cash when the principal
+     * changes.
      */
-    public void updateTerms(Money principalAmount, Money interestAmount, int termDays) {
+    public void updateTerms(Money principalAmount, Money interestAmount, int termDays, LocalDate issueDate) {
         ensureActive();
-        int dayShift = termDays - this.termDays;
+        long dayShift = java.time.temporal.ChronoUnit.DAYS.between(this.issueDate, issueDate)
+                + (termDays - this.termDays);
         this.principalAmount = principalAmount;
         this.interestAmount = interestAmount;
         this.termDays = termDays;
+        this.issueDate = issueDate;
         this.dueDate = this.dueDate.plusDays(dayShift);
         this.originalDueDate = this.originalDueDate.plusDays(dayShift);
     }

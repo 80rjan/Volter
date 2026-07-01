@@ -1,20 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { Bell, BellOff, Check, CheckCheck, AlertTriangle, Landmark, Info } from "lucide-react";
+import { Bell, BellOff, Check, CheckCheck, AlertTriangle, Landmark, Info, FilePen } from "lucide-react";
 import Loading from "../../shared/components/Loading.tsx";
 import ModalReadMoreNotification from "./ModalReadMoreNotification.tsx";
 import { NotificationRow, NotificationType, NOTIFICATION_TYPE_LABEL } from "./types.ts";
 import { API_BASE } from "../../shared/api/config.ts";
+import { useAuth } from "../../GlobalContext.tsx";
 
 const datetime = (s: string | null | undefined) => (s ? String(s).substring(0, 16).replace("T", " ") : "—");
 
 const TYPE_ICON: Record<NotificationType, React.ReactNode> = {
     RISK_FLAG: <AlertTriangle size={18} className="text-amber-500" />,
     CASH_REGISTER_SESSION_DISCREPANCY: <Landmark size={18} className="text-red-500" />,
+    PAWN_UPDATED: <FilePen size={18} className="text-blue-500" />,
     SYSTEM: <Info size={18} className="text-[#888]" />,
 };
 
 export default function Notifications() {
+    const { refreshUnreadCount } = useAuth();
     const [items, setItems] = useState<NotificationRow[]>([]);
     const [filterType, setFilterType] = useState("");
     const [filterRead, setFilterRead] = useState(""); // "" | "false" | "true"
@@ -75,18 +78,20 @@ export default function Notifications() {
 
     const markRead = (id: number) => {
         axios.post(`${API_BASE}/notifications/${id}/read`)
-            .then(res => setItems(prev => prev.map(n => n.id === id ? res.data : n)))
+            .then(res => { setItems(prev => prev.map(n => n.id === id ? res.data : n)); refreshUnreadCount(); })
             .catch(err => console.error("Error marking read:", err));
     };
 
     const markAllRead = () => {
         axios.post(`${API_BASE}/notifications/read-all`)
-            .then(() => setItems(prev => prev.map(n => ({ ...n, read: true }))))
+            .then(() => { setItems(prev => prev.map(n => ({ ...n, read: true }))); refreshUnreadCount(); })
             .catch(err => console.error("Error marking all read:", err));
     };
 
-    const onReadFromModal = (updated: NotificationRow) =>
+    const onReadFromModal = (updated: NotificationRow) => {
         setItems(prev => prev.map(n => n.id === updated.id ? updated : n));
+        refreshUnreadCount();
+    };
 
     const hasUnread = items.some(n => !n.read);
     const inputClass = "bg-white border-none rounded text-xs font-medium px-2 py-2 h-full shadow-sm";

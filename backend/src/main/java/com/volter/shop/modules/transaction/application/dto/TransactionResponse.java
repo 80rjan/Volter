@@ -13,6 +13,7 @@ public record TransactionResponse(
         Integer amount,
         TransactionDirection direction,
         String description,
+        String clientName,
         OffsetDateTime createdAt
 ) {
 }

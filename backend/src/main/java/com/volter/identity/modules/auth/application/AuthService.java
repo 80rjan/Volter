@@ -92,6 +92,18 @@ public class AuthService {
     }
 
     /**
+     * The shops the given staff member may currently use (active assignments only).
+     * Backs the in-app shop switcher: the SPA renders this list and lets the user
+     * swap the active shop without logging out.
+     */
+    @Transactional(readOnly = true)
+    public List<ShopOption> myShops(Long staffId) {
+        return staffShopRepository.findAllByStaffIdAndStatus(staffId, StaffShopStatus.ACTIVE).stream()
+                .map(ss -> new ShopOption(ss.getShop().getId(), ss.getShop().getName(), ss.getShop().getCode()))
+                .toList();
+    }
+
+    /**
      * Sets a new password for the staff member and clears the "change required" flag.
      * Used for the forced first-login change: the caller holds a pre-auth token (already
      * proving they know the temporary password), so no current-password re-entry is needed.

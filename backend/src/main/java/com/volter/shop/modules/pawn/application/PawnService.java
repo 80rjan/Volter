@@ -34,8 +34,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -87,7 +89,9 @@ public class PawnService {
                 .filter(p -> p.getItem() != null && p.getItem().getType() == ItemType.GOLD)
                 .mapToDouble(p -> goldWeightGrams(p.getItem()))
                 .sum();
-        return new PawnSummaryResponse(list.size(), principal, interest, goldGrams);
+        LocalDate today = LocalDate.now();
+        long monthlyProvision = pawnTxRepository.provisionBetween(today.withDayOfMonth(1), today);
+        return new PawnSummaryResponse(list.size(), principal, interest, goldGrams, monthlyProvision);
     }
 
     /** Read the gold weight (grams) from an item's free-form attributes; 0 if absent/unparseable. */
@@ -224,8 +228,25 @@ public class PawnService {
             cashRegisterService.applyTransaction(tx);
         }
 
-        contract.updateTerms(new Money(request.principalAmount()), new Money(request.interestAmount()), request.termDays());
+        contract.updateTerms(new Money(request.principalAmount()), new Money(request.interestAmount()),
+                request.termDays(), request.issueDate());
+
+        notifyManagerOfUpdate(staffId, contract);
         return contract;
+    }
+
+    /** Notify the updating staff member's manager (if any) that a pawn contract was edited. */
+    private void notifyManagerOfUpdate(Long staffId, PawnContract contract) {
+        staffService.findManagerId(staffId).ifPresent(managerId -> {
+            String staffName = staffService.findStaffNames(Set.of(staffId)).get(staffId);
+            notificationService.create(
+                    managerId,
+                    NotificationType.PAWN_UPDATED,
+                    "Ажуриран залог",
+                    (staffName != null ? staffName : "Вработен") + " го ажурираше залог #" + contract.getId() + ".",
+                    "pawn_contract",
+                    contract.getId());
+        });
     }
 
     /**

@@ -22,6 +22,8 @@ export default function ModalEditPawnContract({ pawn, closeModal, onSaved }: Pro
     const [interest, setInterest] = useState(String(pawn.interestAmount));
     // Duration is restricted to the same options as pawn creation: 15 or 30 days.
     const [termDays, setTermDays] = useState(pawn.termDays === 15 ? "15" : "30");
+    // Creation (issue) date. Changing it shifts the due date automatically on the server.
+    const [issueDate, setIssueDate] = useState((pawn.issueDate ?? "").substring(0, 10));
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     // Selected when the value changes (the difference moves cash on that session).
@@ -32,6 +34,7 @@ export default function ModalEditPawnContract({ pawn, closeModal, onSaved }: Pro
 
     const save = async () => {
         if (!principal.trim() || !interest.trim() || !termDays.trim()) { setError("Пополни ги сите полиња."); return; }
+        if (!issueDate) { setError("Изберете датум на креирање."); return; }
         if (Number(termDays) < 1) { setError("Времетраењето мора да биде барем 1 ден."); return; }
         if (principalChanged && !sessionId) { setError("Изберете каса за промена на вредноста."); return; }
         setBusy(true); setError("");
@@ -40,6 +43,7 @@ export default function ModalEditPawnContract({ pawn, closeModal, onSaved }: Pro
                 principalAmount: Number(principal),
                 interestAmount: Number(interest),
                 termDays: Number(termDays),
+                issueDate,
                 cashRegisterSessionId: principalChanged ? sessionId : null,
             });
             onSaved();
@@ -72,6 +76,11 @@ export default function ModalEditPawnContract({ pawn, closeModal, onSaved }: Pro
                             <option value="15">15 дена</option>
                             <option value="30">30 дена</option>
                         </select>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[#666] text-xs">Датум на креирање *</span>
+                        <input className={inputCls} type="date" value={issueDate} onChange={e => setIssueDate(e.target.value)} />
+                        <span className="text-[#888] text-[11px]">Датумот на достасување се менува автоматски.</span>
                     </div>
                     {principalChanged && (
                         <p className={`text-xs ${delta > 0 ? "text-red-500" : "text-green"}`}>

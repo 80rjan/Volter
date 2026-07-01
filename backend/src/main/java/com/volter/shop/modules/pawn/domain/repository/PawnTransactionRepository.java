@@ -2,6 +2,7 @@ package com.volter.shop.modules.pawn.domain.repository;
 
 import com.volter.shop.modules.inventory.domain.model.enums.ItemType;
 import com.volter.shop.modules.pawn.domain.model.PawnTransaction;
+import com.volter.shop.modules.pawn.domain.model.enums.PawnTransactionAction;
 import com.volter.shop.modules.transaction.application.dto.CashFlowSummary;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionDirection;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +19,22 @@ public interface PawnTransactionRepository extends JpaRepository<PawnTransaction
     /** Pawn contract id behind a given transaction, for assembling its detailed view. */
     @Query("select pt.pawnContract.id from PawnTransaction pt where pt.transaction.id = :transactionId")
     Optional<Long> findPawnContractIdByTransactionId(@Param("transactionId") Long transactionId);
+
+    /** [transactionId, customer full name] for the given PAWN transaction ids. */
+    @Query("""
+            select pt.transaction.id, pt.pawnContract.customer.fullName
+            from PawnTransaction pt
+            where pt.transaction.id in :transactionIds
+            """)
+    List<Object[]> findCustomerNamesByTransactionIds(@Param("transactionIds") Collection<Long> transactionIds);
+
+    /** PAWN transaction ids whose contract customer's name matches (case-insensitive, contains). */
+    @Query("""
+            select pt.transaction.id
+            from PawnTransaction pt
+            where upper(pt.pawnContract.customer.fullName) like upper(concat('%', :name, '%'))
+            """)
+    List<Long> findTransactionIdsByCustomerName(@Param("name") String name);
 
     /** A staff member's pawn transactions in a date range (with transaction + contract), for the staff performance report. */
     @Query("""
@@ -33,6 +51,31 @@ public interface PawnTransactionRepository extends JpaRepository<PawnTransaction
     default CashFlowSummary summarize(LocalDate from, LocalDate to, ItemType itemType) {
         return summarize(from, to, itemType,
                 TransactionDirection.IN, TransactionDirection.OUT);
+    }
+
+    /**
+     * Provision (interest income) collected between {@code from} and {@code to}
+     * (inclusive), by transaction date: the full amount of extension payments
+     * plus, on redemptions, the amount paid above the returned principal.
+     */
+    @Query("""
+            select coalesce(sum(
+                case
+                    when pt.action = :extended then pt.transaction.amount.amount
+                    when pt.action = :redeemed then pt.transaction.amount.amount - pt.pawnContract.principalAmount.amount
+                    else 0
+                end), 0L)
+            from PawnTransaction pt
+            where cast(pt.transaction.createdAt as date) between :from and :to
+              and pt.action in (:extended, :redeemed)
+            """)
+    long provisionBetween(@Param("from") LocalDate from,
+                          @Param("to") LocalDate to,
+                          @Param("extended") PawnTransactionAction extended,
+                          @Param("redeemed") PawnTransactionAction redeemed);
+
+    default long provisionBetween(LocalDate from, LocalDate to) {
+        return provisionBetween(from, to, PawnTransactionAction.EXTENDED, PawnTransactionAction.REDEEMED);
     }
 
     @Query("""

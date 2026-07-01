@@ -8,7 +8,8 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface TransactionMapper {
 
-    @Mapping(target = "cashRegisterSessionId", source = "cashRegisterSession.id")
+    @Mapping(target = "cashRegisterSessionId", source = "transaction.cashRegisterSession.id")
     @Mapping(target = "amount", expression = "java(transaction.getAmount() == null ? null : transaction.getAmount().amount())")
-    TransactionResponse toResponse(Transaction transaction);
+    @Mapping(target = "clientName", source = "clientName")
+    TransactionResponse toResponse(Transaction transaction, String clientName);
 }

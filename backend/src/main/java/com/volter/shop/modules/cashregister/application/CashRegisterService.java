@@ -3,6 +3,7 @@ package com.volter.shop.modules.cashregister.application;
 import com.volter.shop.modules.cashregister.application.dto.*;
 import com.volter.shop.modules.cashregister.domain.model.*;
 import com.volter.shop.modules.cashregister.domain.model.enums.CashRegisterSessionStatus;
+import com.volter.shop.modules.cashregister.domain.model.enums.CashRegisterStatus;
 import com.volter.shop.modules.cashregister.domain.repository.*;
 import com.volter.identity.modules.staff.application.StaffService;
 import com.volter.platform.modules.notification.application.NotificationService;
@@ -43,11 +44,12 @@ public class CashRegisterService {
     // ----- registers -----
 
     /**
-     * List all cash registers.
+     * List the active cash registers. Retired (INACTIVE) registers are hidden but
+     * kept in the database so their historical sessions/transactions remain intact.
      */
     @Transactional(readOnly = true)
     public List<CashRegister> listRegisters() {
-        return cashRegisterRepository.findAll();
+        return cashRegisterRepository.findAllByStatus(CashRegisterStatus.ACTIVE);
     }
 
     /**

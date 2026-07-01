@@ -5,6 +5,7 @@ import com.volter.identity.modules.auth.application.dto.CurrentUserResponse;
 import com.volter.identity.modules.auth.application.dto.LoginRequest;
 import com.volter.identity.modules.auth.application.dto.LoginResponse;
 import com.volter.identity.modules.auth.application.dto.SelectShopRequest;
+import com.volter.identity.modules.auth.application.dto.ShopOption;
 import com.volter.identity.modules.auth.application.dto.TokenResponse;
 import com.volter.identity.modules.staff.application.dto.PasswordChangeRequest;
 import com.volter.shared.security.StaffPrincipal;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * REST controller for auth actions.
@@ -43,6 +46,26 @@ public class AuthController {
      */
     @PostMapping("/select-shop")
     public ResponseEntity<TokenResponse> selectShop(@Valid @RequestBody SelectShopRequest request,
+                                                    @AuthenticationPrincipal StaffPrincipal principal) {
+        return ResponseEntity.ok(authService.selectShop(principal.staffId(), request));
+    }
+
+    /**
+     * The shops the already-authenticated caller may switch to. Powers the in-app
+     * shop switcher (current shop + the alternatives), so no re-login is needed.
+     */
+    @GetMapping("/my-shops")
+    public ResponseEntity<List<ShopOption>> myShops(@AuthenticationPrincipal StaffPrincipal principal) {
+        return ResponseEntity.ok(authService.myShops(principal.staffId()));
+    }
+
+    /**
+     * Re-issues an access token scoped to a different shop the caller is assigned to,
+     * from a full (already logged-in) access token — the in-app equivalent of
+     * select-shop, which is reserved for the pre-auth login step.
+     */
+    @PostMapping("/switch-shop")
+    public ResponseEntity<TokenResponse> switchShop(@Valid @RequestBody SelectShopRequest request,
                                                     @AuthenticationPrincipal StaffPrincipal principal) {
         return ResponseEntity.ok(authService.selectShop(principal.staffId(), request));
     }

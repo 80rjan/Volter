@@ -36,6 +36,14 @@ public class NotificationController {
     }
 
     /**
+     * Number of unread notifications for the current staff member (for the nav badge).
+     */
+    @GetMapping("/unread-count")
+    public ResponseEntity<UnreadCountResponse> unreadCount(@AuthenticationPrincipal StaffPrincipal principal) {
+        return ResponseEntity.ok(new UnreadCountResponse(notificationService.unreadCount(principal.staffId())));
+    }
+
+    /**
      * Detailed view of a notification, including a reference to the domain entity
      * it points at (PAWN contract / SALE) so the client can fetch its full details.
      */

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { Plus, ChevronUp, ChevronDown, Minus, Tag, Banknote, Gem } from "lucide-react";
+import { Plus, ChevronUp, ChevronDown, Minus, Tag, Banknote, Gem, TrendingUp } from "lucide-react";
 import ModalAddNewSale from "./ModalAddNewSale.tsx";
 import SaleRowComponent from "./Sale.tsx";
 import CashRegister from "../../shared/components/CashRegister.tsx";
@@ -62,7 +62,7 @@ export default function Sales() {
     const { can } = useAuth();
     const team = useTeam();
     const [allSales, setAllSales] = useState<SaleRow[]>([]);
-    const [summary, setSummary] = useState({ count: 0, totalPurchase: 0, totalGoldGrams: 0 });
+    const [summary, setSummary] = useState({ count: 0, totalPurchase: 0, totalGoldGrams: 0, monthlyProfit: 0 });
     const [orderBy, setOrderBy] = useState("Date Bought");
     const orderDirectionArr = useRef([0, 0, 0, 0, 0, 0, -1]);
     const [orderDirection, setOrderDirection] = useState("DESC");
@@ -209,6 +209,7 @@ export default function Sales() {
                     <span className="flex items-center gap-1.5"><Tag size={15} className="text-green" /> Продажби: <b className="text-[#333]">{summary.count}</b></span>
                     <span className="flex items-center gap-1.5"><Banknote size={15} className="text-green" /> Дадени пари: <b className="text-[#333]">{summary.totalPurchase.toLocaleString("de-DE")} ден</b></span>
                     <span className="flex items-center gap-1.5"><Gem size={15} className="text-green" /> Злато: <b className="text-[#333]">{summary.totalGoldGrams.toLocaleString("de-DE", { maximumFractionDigits: 2 })} гр</b></span>
+                    <span className="flex items-center gap-1.5"><TrendingUp size={15} className="text-green" /> Профит овој месец: <b className="text-[#333]">{summary.monthlyProfit.toLocaleString("de-DE")} ден</b></span>
                 </div>
 
                 <CashRegister refreshDependency={refresh} />

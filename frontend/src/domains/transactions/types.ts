@@ -13,6 +13,7 @@ export interface TransactionRow {
     amount: number;
     direction: TransactionDirection;
     description: string;
+    clientName: string | null;
     createdAt: string;
 }
 

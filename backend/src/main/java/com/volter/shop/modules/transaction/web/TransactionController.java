@@ -4,7 +4,6 @@ import com.volter.shop.modules.transaction.application.TransactionService;
 import com.volter.shop.modules.transaction.application.dto.TransactionDetailedResponse;
 import com.volter.shop.modules.transaction.application.dto.TransactionFilterRequest;
 import com.volter.shop.modules.transaction.application.dto.TransactionResponse;
-import com.volter.shop.modules.transaction.infrastructure.mapper.TransactionMapper;
 import com.volter.shared.security.StaffPrincipal;
 import com.volter.shared.web.PageResponse;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 public class TransactionController {
 
     private final TransactionService transactionService;
-    private final TransactionMapper transactionMapper;
 
     /**
      * List transactions made by the caller or by staff members below them (recursively), with optional filters.
@@ -34,7 +32,7 @@ public class TransactionController {
     public ResponseEntity<PageResponse<TransactionResponse>> list(@ModelAttribute TransactionFilterRequest filter, Pageable pageable,
                                                                   @AuthenticationPrincipal StaffPrincipal principal) {
         return ResponseEntity.ok(PageResponse.of(
-                transactionService.list(filter, pageable, principal.staffId()), transactionMapper::toResponse));
+                transactionService.list(filter, pageable, principal.staffId())));
     }
 
     /**

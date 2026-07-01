@@ -9,6 +9,7 @@ public record TransactionFilterRequest(
         TransactionType type,
         TransactionDirection direction,
         Long staffId,
+        String clientName,
         OffsetDateTime createdFrom,
         OffsetDateTime createdTo
 ) {

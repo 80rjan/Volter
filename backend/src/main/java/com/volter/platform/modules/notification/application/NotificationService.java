@@ -8,6 +8,7 @@ import com.volter.platform.modules.notification.domain.repository.NotificationRe
 import com.volter.platform.modules.notification.domain.specification.NotificationSpecification;
 import com.volter.shared.web.exception.ResourceNotFoundException;
 import com.volter.shared.web.exception.UnauthorizedException;
+import com.volter.shop.modules.pawn.domain.repository.PawnContractRepository;
 import com.volter.shop.modules.pawn.domain.repository.PawnTransactionRepository;
 import com.volter.shop.modules.sale.domain.repository.SaleTransactionRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final PawnTransactionRepository pawnTransactionRepository;
+    private final PawnContractRepository pawnContractRepository;
     private final SaleTransactionRepository saleTransactionRepository;
 
     /**
@@ -52,6 +54,12 @@ public class NotificationService {
     @Transactional(readOnly = true)
     public Page<Notification> list(Long staffId, NotificationFilterRequest filter, Pageable pageable) {
         return notificationRepository.findAll(NotificationSpecification.forRecipient(staffId, filter), pageable);
+    }
+
+    /** Number of unread notifications for the given staff member (drives the nav badge). */
+    @Transactional(readOnly = true)
+    public long unreadCount(Long staffId) {
+        return notificationRepository.countByRecipientStaffIdAndReadFalse(staffId);
     }
 
     /**
@@ -106,6 +114,12 @@ public class NotificationService {
                     if (st.isPresent()) {
                         entityKind = "SALE";
                         entityId = st.get().getSale().getId();
+                    }
+                }
+                case "pawn_contract" -> {
+                    if (pawnContractRepository.existsById(notification.getEntityId())) {
+                        entityKind = "PAWN";
+                        entityId = notification.getEntityId();
                     }
                 }
                 default -> { /* unknown / unlinked entity type */ }

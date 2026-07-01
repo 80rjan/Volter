@@ -1,4 +1,4 @@
-export type NotificationType = "RISK_FLAG" | "CASH_REGISTER_SESSION_DISCREPANCY" | "SYSTEM";
+export type NotificationType = "RISK_FLAG" | "CASH_REGISTER_SESSION_DISCREPANCY" | "PAWN_UPDATED" | "SYSTEM";
 
 // GET /notifications -> NotificationResponse
 export interface NotificationRow {
@@ -25,5 +25,6 @@ export interface NotificationDetail {
 export const NOTIFICATION_TYPE_LABEL: Record<NotificationType, string> = {
     RISK_FLAG: "Ризик",
     CASH_REGISTER_SESSION_DISCREPANCY: "Отстапување во каса",
+    PAWN_UPDATED: "Ажуриран залог",
     SYSTEM: "Системско",
 };

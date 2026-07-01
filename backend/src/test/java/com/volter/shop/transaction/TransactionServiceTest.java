@@ -7,6 +7,8 @@ import com.volter.shop.modules.transaction.domain.model.Transaction;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionDirection;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionType;
 import com.volter.shop.modules.transaction.domain.repository.TransactionRepository;
+import com.volter.shop.modules.pawn.application.PawnTxQueryService;
+import com.volter.shop.modules.sale.application.SaleTxQueryService;
 import com.volter.identity.modules.staff.application.StaffService;
 import com.volter.shop.shared.valueobject.Money;
 import com.volter.shared.web.exception.ResourceNotFoundException;
@@ -36,6 +38,10 @@ class TransactionServiceTest {
     private TransactionRepository transactionRepository;
     @Mock
     private StaffService staffService;
+    @Mock
+    private PawnTxQueryService pawnTxQueryService;
+    @Mock
+    private SaleTxQueryService saleTxQueryService;
 
     @InjectMocks
     private TransactionService transactionService;
@@ -110,8 +116,10 @@ class TransactionServiceTest {
         when(staffService.findSubordinateStaffIds(3L)).thenReturn(java.util.List.of(4L, 5L));
         when(transactionRepository.findAll(any(Specification.class), eq(pageable)))
                 .thenReturn(org.springframework.data.domain.Page.empty(pageable));
+        when(pawnTxQueryService.findCustomerNamesByTransactionIds(any())).thenReturn(java.util.Map.of());
+        when(saleTxQueryService.findCustomerNamesByTransactionIds(any())).thenReturn(java.util.Map.of());
 
-        transactionService.list(new TransactionFilterRequest(null, null, null, null, null), pageable, 3L);
+        transactionService.list(new TransactionFilterRequest(null, null, null, null, null, null), pageable, 3L);
 
         verify(staffService).findSubordinateStaffIds(3L);
         verify(transactionRepository).findAll(any(Specification.class), eq(pageable));

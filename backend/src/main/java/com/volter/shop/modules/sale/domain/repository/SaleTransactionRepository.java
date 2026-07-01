@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +18,22 @@ public interface SaleTransactionRepository extends JpaRepository<SaleTransaction
     /** Sale id behind a given transaction, for assembling its detailed view. */
     @Query("select st.sale.id from SaleTransaction st where st.transaction.id = :transactionId")
     Optional<Long> findSaleIdByTransactionId(@Param("transactionId") Long transactionId);
+
+    /** [transactionId, customer full name] for the given SALE transaction ids. */
+    @Query("""
+            select st.transaction.id, st.sale.customer.fullName
+            from SaleTransaction st
+            where st.transaction.id in :transactionIds
+            """)
+    List<Object[]> findCustomerNamesByTransactionIds(@Param("transactionIds") Collection<Long> transactionIds);
+
+    /** SALE transaction ids whose customer's name matches (case-insensitive, contains). */
+    @Query("""
+            select st.transaction.id
+            from SaleTransaction st
+            where upper(st.sale.customer.fullName) like upper(concat('%', :name, '%'))
+            """)
+    List<Long> findTransactionIdsByCustomerName(@Param("name") String name);
 
     /** A staff member's sale transactions in a date range (with transaction + sale), for the staff performance report. */
     @Query("""

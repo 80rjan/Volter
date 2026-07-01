@@ -9,23 +9,30 @@ import com.volter.shop.modules.pawn.application.PawnTxQueryService;
 import com.volter.shop.modules.sale.application.SaleTxQueryService;
 import com.volter.shop.modules.transaction.application.dto.TransactionDetailedResponse;
 import com.volter.shop.modules.transaction.application.dto.TransactionFilterRequest;
+import com.volter.shop.modules.transaction.application.dto.TransactionResponse;
 import com.volter.shop.modules.transaction.domain.model.Transaction;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionDirection;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionType;
 import com.volter.shop.modules.transaction.domain.repository.TransactionRepository;
 import com.volter.shop.modules.transaction.domain.specification.TransactionSpecification;
+import com.volter.shop.modules.transaction.infrastructure.mapper.TransactionMapper;
 import com.volter.shop.shared.valueobject.Money;
 import com.volter.shared.web.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +40,7 @@ import java.util.Objects;
 public class TransactionService {
 
     private final TransactionRepository transactionRepository;
+    private final TransactionMapper transactionMapper;
     private final StaffService staffService;
     private final StaffMapper staffMapper;
     private final PawnTxQueryService pawnTxQueryService;
@@ -42,14 +50,33 @@ public class TransactionService {
 
     /**
      * Transactions the caller may see: their own plus those of every staff member
-     * below them in the management tree (recursive), narrowed by the filter.
+     * below them in the management tree (recursive), narrowed by the filter. Each
+     * row is enriched with the client name resolved through its pawn/sale subtype
+     * (null for expense / cash-register transactions, which have no client).
      */
-    public Page<Transaction> list(TransactionFilterRequest filter, Pageable pageable, Long staffId) {
+    public Page<TransactionResponse> list(TransactionFilterRequest filter, Pageable pageable, Long staffId) {
         List<Long> visibleStaffIds = new ArrayList<>(staffService.findSubordinateStaffIds(staffId));
         visibleStaffIds.add(staffId);
-        return transactionRepository.findAll(
-                TransactionSpecification.matches(filter).and(TransactionSpecification.staffIdIn(visibleStaffIds)),
-                pageable);
+
+        Specification<Transaction> spec = TransactionSpecification.matches(filter)
+                .and(TransactionSpecification.staffIdIn(visibleStaffIds));
+
+        // Filter by client name: gather matching transaction ids from the pawn and
+        // sale modules (their services own the customer link), then narrow by id.
+        if (filter.clientName() != null && !filter.clientName().isBlank()) {
+            Set<Long> matchingTxIds = new HashSet<>(pawnTxQueryService.findTransactionIdsByCustomerName(filter.clientName()));
+            matchingTxIds.addAll(saleTxQueryService.findTransactionIdsByCustomerName(filter.clientName()));
+            spec = spec.and(TransactionSpecification.idIn(matchingTxIds));
+        }
+
+        Page<Transaction> page = transactionRepository.findAll(spec, pageable);
+
+        List<Long> pageTxIds = page.getContent().stream().map(Transaction::getId).toList();
+        Map<Long, String> clientNames = new HashMap<>();
+        clientNames.putAll(pawnTxQueryService.findCustomerNamesByTransactionIds(pageTxIds));
+        clientNames.putAll(saleTxQueryService.findCustomerNamesByTransactionIds(pageTxIds));
+
+        return page.map(tx -> transactionMapper.toResponse(tx, clientNames.get(tx.getId())));
     }
 
     /**

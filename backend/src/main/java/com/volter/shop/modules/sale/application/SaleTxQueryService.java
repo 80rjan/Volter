@@ -8,7 +8,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Read-only sale lookup by transaction id, consumed by the transaction module
@@ -30,5 +35,20 @@ public class SaleTxQueryService {
         return saleTxRepository.findSaleIdByTransactionId(transactionId)
                 .flatMap(saleRepository::findById)
                 .map(saleMapper::toDetailedResponse);
+    }
+
+    /** Maps each of the given transaction ids that is a SALE transaction to its customer's name. */
+    public Map<Long, String> findCustomerNamesByTransactionIds(Collection<Long> transactionIds) {
+        if (transactionIds.isEmpty()) return Map.of();
+        Map<Long, String> names = new HashMap<>();
+        for (Object[] row : saleTxRepository.findCustomerNamesByTransactionIds(transactionIds)) {
+            names.put((Long) row[0], (String) row[1]);
+        }
+        return names;
+    }
+
+    /** Ids of SALE transactions whose customer's name matches the query. */
+    public Set<Long> findTransactionIdsByCustomerName(String name) {
+        return new HashSet<>(saleTxRepository.findTransactionIdsByCustomerName(name));
     }
 }

@@ -9,6 +9,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -36,5 +40,20 @@ public class PawnTxQueryService {
                         contract,
                         staffService.findStaffNames(Set.of(contract.getCreatedByStaffId()))
                                 .get(contract.getCreatedByStaffId())));
+    }
+
+    /** Maps each of the given transaction ids that is a PAWN transaction to its customer's name. */
+    public Map<Long, String> findCustomerNamesByTransactionIds(Collection<Long> transactionIds) {
+        if (transactionIds.isEmpty()) return Map.of();
+        Map<Long, String> names = new HashMap<>();
+        for (Object[] row : pawnTxRepository.findCustomerNamesByTransactionIds(transactionIds)) {
+            names.put((Long) row[0], (String) row[1]);
+        }
+        return names;
+    }
+
+    /** Ids of PAWN transactions whose contract customer's name matches the query. */
+    public Set<Long> findTransactionIdsByCustomerName(String name) {
+        return new HashSet<>(pawnTxRepository.findTransactionIdsByCustomerName(name));
     }
 }

@@ -110,6 +110,20 @@ export default function ModalReadMoreTransaction({ tx, closeModal }: Props) {
                     </>
                 )}
 
+                {customer && (
+                    <>
+                        {divider}
+                        <Section icon={<User size={20} />} title="Клиент">
+                            <Field label="Име и презиме" value={customer.fullName} />
+                            <Field label="ЕМБГ" value={customer.nationalId} />
+                            <Field label="Телефон" value={customer.phonePrimary} />
+                            <Field label="Телефон 2" value={customer.phoneSecondary || "—"} />
+                            <Field label="Адреса" value={customer.address} />
+                            <Field label="Град" value={customer.city} />
+                        </Section>
+                    </>
+                )}
+
                 {pawn && (
                     <>
                         {divider}
@@ -154,6 +168,21 @@ export default function ModalReadMoreTransaction({ tx, closeModal }: Props) {
                     </>
                 )}
 
+                {item && (
+                    <>
+                        {divider}
+                        <Section icon={<Package size={20} />} title="Предмет">
+                            <Field label="Тип" value={ITEM_TYPE_MK[item.type] ?? item.type} />
+                            <Field label="Потекло" value={ORIGIN_MK[item.origin] ?? item.origin} />
+                            <Field label="Статус" value={ITEM_STATUS_MK[item.status] ?? item.status} />
+                            <Field label="Опис" value={item.description || "—"} />
+                            {Object.entries(attrs).map(([key, value]) => (
+                                <Field key={key} label={ATTR_MK[key] ?? key} value={fmtAttr(value)} />
+                            ))}
+                        </Section>
+                    </>
+                )}
+
                 {session && (
                     <>
                         {divider}
@@ -167,35 +196,6 @@ export default function ModalReadMoreTransaction({ tx, closeModal }: Props) {
                             <Field label="Тековно салдо" value={money(session.currentBalance)} />
                             <Field label="Завршно салдо" value={money(session.closingBalance)} />
                             <Field label="Очекувана провизија" value={money(session.expectedInterest)} />
-                        </Section>
-                    </>
-                )}
-
-                {customer && (
-                    <>
-                        {divider}
-                        <Section icon={<User size={20} />} title="Клиент">
-                            <Field label="Име и презиме" value={customer.fullName} />
-                            <Field label="ЕМБГ" value={customer.nationalId} />
-                            <Field label="Телефон" value={customer.phonePrimary} />
-                            <Field label="Телефон 2" value={customer.phoneSecondary || "—"} />
-                            <Field label="Адреса" value={customer.address} />
-                            <Field label="Град" value={customer.city} />
-                        </Section>
-                    </>
-                )}
-
-                {item && (
-                    <>
-                        {divider}
-                        <Section icon={<Package size={20} />} title="Предмет">
-                            <Field label="Тип" value={ITEM_TYPE_MK[item.type] ?? item.type} />
-                            <Field label="Потекло" value={ORIGIN_MK[item.origin] ?? item.origin} />
-                            <Field label="Статус" value={ITEM_STATUS_MK[item.status] ?? item.status} />
-                            <Field label="Опис" value={item.description || "—"} />
-                            {Object.entries(attrs).map(([key, value]) => (
-                                <Field key={key} label={ATTR_MK[key] ?? key} value={fmtAttr(value)} />
-                            ))}
                         </Section>
                     </>
                 )}

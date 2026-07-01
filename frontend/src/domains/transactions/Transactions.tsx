@@ -41,11 +41,12 @@ function mapTransactionResponse(r: any): TransactionRow {
         amount: r.amount,
         direction: r.direction,
         description: r.description ?? "",
+        clientName: r.clientName ?? null,
         createdAt: r.createdAt ?? "",
     };
 }
 
-const cols = "grid-cols-[1.2fr_2.5fr_1fr_1fr_1.5fr_0.5fr]";
+const cols = "grid-cols-[1.2fr_1.5fr_2fr_1fr_1fr_1.5fr_0.5fr]";
 
 function SortIcon({ dir }: { dir: number }) {
     return dir === 0 ? <Minus size={14} /> : dir === -1 ? <ChevronDown size={14} /> : <ChevronUp size={14} />;
@@ -57,12 +58,13 @@ export default function Transactions() {
 
     const [allTransactions, setAllTransactions] = useState<TransactionRow[]>([]);
     const [orderBy, setOrderBy] = useState("Date");
-    const orderDirectionArr = useRef([0, 0, 0, 0, -1, 0]);
+    const orderDirectionArr = useRef([0, 0, 0, 0, 0, -1, 0]);
     const [orderDirection, setOrderDirection] = useState("DESC");
     const team = useTeam();
     const [filterStaff, setFilterStaff] = useState("");
     const [filterType, setFilterType] = useState("");
     const [filterDirection, setFilterDirection] = useState("");
+    const [filterClient, setFilterClient] = useState("");
     const [filterFrom, setFilterFrom] = useState("");
     const [filterTo, setFilterTo] = useState("");
     const [refresh] = useState(false);
@@ -90,6 +92,7 @@ export default function Transactions() {
         if (filterStaff) params.set("staffId", filterStaff);
         if (filterType) params.set("type", filterType);
         if (filterDirection) params.set("direction", filterDirection);
+        if (filterClient) params.set("clientName", filterClient);
         if (filterFrom) params.set("createdFrom", `${filterFrom}T00:00:00Z`);
         if (filterTo) params.set("createdTo", `${filterTo}T23:59:59Z`);
         axios.get(`${API_BASE}/transactions?${params}`)
@@ -116,7 +119,7 @@ export default function Transactions() {
         el.addEventListener("scroll", handleScroll);
         return () => el.removeEventListener("scroll", handleScroll);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLastPage, orderBy, orderDirection, filterStaff, filterType, filterDirection, filterFrom, filterTo]);
+    }, [isLastPage, orderBy, orderDirection, filterStaff, filterType, filterDirection, filterClient, filterFrom, filterTo]);
 
     useEffect(() => {
         if (!allowed) return;
@@ -125,7 +128,7 @@ export default function Transactions() {
         page.current = 0;
         fetchTransactions(0, orderBy, orderDirection, true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [allowed, refresh, orderBy, orderDirection, filterStaff, filterType, filterDirection, filterFrom, filterTo]);
+    }, [allowed, refresh, orderBy, orderDirection, filterStaff, filterType, filterDirection, filterClient, filterFrom, filterTo]);
 
     useEffect(() => { if (detailed != null) setModalReadMore(true); }, [detailed]);
 
@@ -148,8 +151,8 @@ export default function Transactions() {
     const inputClass = "bg-white border-none rounded text-xs font-medium px-2 py-2 w-full shadow-sm";
 
     const headers: [string, string | null, number][] = [
-        ["Категорија", "Category", 0], ["Опис", null, -1], ["Износ", "Amount", 2],
-        ["Насока", "Direction", 3], ["Датум", "Date", 4], ["", null, -1],
+        ["Категорија", "Category", 0], ["Клиент", null, -1], ["Опис", null, -1], ["Износ", "Amount", 3],
+        ["Насока", "Direction", 4], ["Датум", "Date", 5], ["", null, -1],
     ];
 
     return (
@@ -162,7 +165,14 @@ export default function Transactions() {
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-[2fr_2fr_2fr_1fr_1fr_.5fr] w-full gap-3 flex-wrap">
+                        <div className="grid grid-cols-[2fr_2fr_2fr_2fr_1fr_1fr_.5fr] w-full gap-3 flex-wrap">
+                            <input
+                                type="search"
+                                className={inputClass}
+                                placeholder="Пребарувај по клиент"
+                                value={filterClient}
+                                onChange={e => setFilterClient(e.target.value)}
+                            />
                             <select
                                 className={inputClass}
                                 style={{ color: filterStaff === "" ? "#888" : "#000" }}
@@ -198,9 +208,9 @@ export default function Transactions() {
                                 <span className="text-xs text-[#666]">До</span>
                                 <input type="date" style={{ color: filterTo ? "#000" : "#888" }} className={inputClass} value={filterTo} onChange={e => setFilterTo(e.target.value)} />
                             </div>
-                            {(filterStaff || filterType || filterDirection || filterFrom || filterTo) && (
+                            {(filterStaff || filterType || filterDirection || filterClient || filterFrom || filterTo) && (
                                 <button
-                                    onClick={() => { setFilterStaff(""); setFilterType(""); setFilterDirection(""); setFilterFrom(""); setFilterTo(""); }}
+                                    onClick={() => { setFilterStaff(""); setFilterType(""); setFilterDirection(""); setFilterClient(""); setFilterFrom(""); setFilterTo(""); }}
                                     className="text-xs text-[#666] underline hover:text-black transition-colors"
                                 >
                                     Исчисти филтри
@@ -229,6 +239,7 @@ export default function Transactions() {
                                         className={`grid place-items-center text-center ${cols} gap-2 px-1 py-1 border-b border-black/20`}
                                     >
                                         <p className="text-xs">{TYPE_LABELS[tx.type] ?? tx.type}</p>
+                                        <p className="text-xs">{tx.clientName || "—"}</p>
                                         <p className="text-xs">{tx.description || "—"}</p>
                                         <p className="text-xs font-bold italic">{tx.direction === "OUT" && "-"}{Number(tx.amount).toLocaleString("de-DE")}</p>
                                         <p className={`text-xs font-semibold ${tx.direction === "IN" ? "text-green" : "text-red-500"}`}>
