@@ -4,7 +4,6 @@ export type NotificationType = "RISK_FLAG" | "CASH_REGISTER_SESSION_DISCREPANCY"
 export interface NotificationRow {
     id: number;
     recipientStaffId: number;
-    shopId: number | null;
     type: NotificationType;
     title: string;
     description: string | null;

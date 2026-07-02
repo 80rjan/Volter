@@ -1,4 +1,4 @@
-package com.volter.platform.modules.notification.application.dto;
+package com.volter.shop.modules.notification.application.dto;
 
 /**
  * Detailed view of a notification: the notification itself plus a reference to

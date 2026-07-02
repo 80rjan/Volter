@@ -36,3 +36,4 @@
 {"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/sale/application/SaleService.java","timestamp":1782393046021,"sessionId":null}
 {"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/pawn/web/PawnController.java","timestamp":1782393055926,"sessionId":null}
 {"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/sale/web/SaleController.java","timestamp":1782393063776,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/resources/db/migration/tenant/V5__notification.sql","timestamp":1783008037055,"sessionId":null}

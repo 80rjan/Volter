@@ -342,3 +342,5 @@
 {"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/pawn/application/PawnService.java","timestamp":1782974440299,"sessionId":null}
 {"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/pawn/application/PawnService.java","timestamp":1782974446782,"sessionId":null}
 {"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/pawn/application/PawnService.java","timestamp":1782974452952,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/resources/db/migration/public/V8__drop_notification.sql","timestamp":1783003230826,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/resources/db/migration/tenant/V5__notification.sql","timestamp":1783008674701,"sessionId":null}

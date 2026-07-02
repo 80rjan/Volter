@@ -1,11 +1,11 @@
-package com.volter.platform.modules.notification.application;
+package com.volter.shop.modules.notification.application;
 
-import com.volter.platform.modules.notification.application.dto.NotificationDetailResult;
-import com.volter.platform.modules.notification.application.dto.NotificationFilterRequest;
-import com.volter.platform.modules.notification.domain.model.Notification;
-import com.volter.platform.modules.notification.domain.model.enums.NotificationType;
-import com.volter.platform.modules.notification.domain.repository.NotificationRepository;
-import com.volter.platform.modules.notification.domain.specification.NotificationSpecification;
+import com.volter.shop.modules.notification.application.dto.NotificationDetailResult;
+import com.volter.shop.modules.notification.application.dto.NotificationFilterRequest;
+import com.volter.shop.modules.notification.domain.model.Notification;
+import com.volter.shop.modules.notification.domain.model.enums.NotificationType;
+import com.volter.shop.modules.notification.domain.repository.NotificationRepository;
+import com.volter.shop.modules.notification.domain.specification.NotificationSpecification;
 import com.volter.shared.web.exception.ResourceNotFoundException;
 import com.volter.shared.web.exception.UnauthorizedException;
 import com.volter.shop.modules.pawn.domain.repository.PawnContractRepository;

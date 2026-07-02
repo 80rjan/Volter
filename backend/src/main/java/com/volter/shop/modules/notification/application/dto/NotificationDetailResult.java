@@ -1,6 +1,6 @@
-package com.volter.platform.modules.notification.application.dto;
+package com.volter.shop.modules.notification.application.dto;
 
-import com.volter.platform.modules.notification.domain.model.Notification;
+import com.volter.shop.modules.notification.domain.model.Notification;
 
 /**
  * A notification together with the resolved reference to the domain entity it is

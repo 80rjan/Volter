@@ -1,4 +1,4 @@
-package com.volter.platform.modules.notification.domain.model.enums;
+package com.volter.shop.modules.notification.domain.model.enums;
 
 public enum NotificationType {
     RISK_FLAG,

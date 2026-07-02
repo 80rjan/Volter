@@ -1,12 +1,12 @@
-package com.volter.platform.modules.notification.web;
+package com.volter.shop.modules.notification.web;
 
-import com.volter.platform.modules.notification.application.NotificationService;
-import com.volter.platform.modules.notification.application.dto.NotificationDetailResponse;
-import com.volter.platform.modules.notification.application.dto.NotificationDetailResult;
-import com.volter.platform.modules.notification.application.dto.NotificationFilterRequest;
-import com.volter.platform.modules.notification.application.dto.NotificationResponse;
-import com.volter.platform.modules.notification.application.dto.UnreadCountResponse;
-import com.volter.platform.modules.notification.infrastructure.mapper.NotificationMapper;
+import com.volter.shop.modules.notification.application.NotificationService;
+import com.volter.shop.modules.notification.application.dto.NotificationDetailResponse;
+import com.volter.shop.modules.notification.application.dto.NotificationDetailResult;
+import com.volter.shop.modules.notification.application.dto.NotificationFilterRequest;
+import com.volter.shop.modules.notification.application.dto.NotificationResponse;
+import com.volter.shop.modules.notification.application.dto.UnreadCountResponse;
+import com.volter.shop.modules.notification.infrastructure.mapper.NotificationMapper;
 import com.volter.shared.security.StaffPrincipal;
 import com.volter.shared.web.PageResponse;
 import lombok.RequiredArgsConstructor;

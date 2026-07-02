@@ -1,6 +1,6 @@
-package com.volter.platform.modules.notification.domain.repository;
+package com.volter.shop.modules.notification.domain.repository;
 
-import com.volter.platform.modules.notification.domain.model.Notification;
+import com.volter.shop.modules.notification.domain.model.Notification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;

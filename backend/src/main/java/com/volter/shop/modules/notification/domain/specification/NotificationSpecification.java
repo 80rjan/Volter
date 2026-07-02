@@ -1,7 +1,7 @@
-package com.volter.platform.modules.notification.domain.specification;
+package com.volter.shop.modules.notification.domain.specification;
 
-import com.volter.platform.modules.notification.application.dto.NotificationFilterRequest;
-import com.volter.platform.modules.notification.domain.model.Notification;
+import com.volter.shop.modules.notification.application.dto.NotificationFilterRequest;
+import com.volter.shop.modules.notification.domain.model.Notification;
 import com.volter.shared.specification.PredicateBuilder;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;

@@ -6,8 +6,8 @@ import com.volter.shop.modules.cashregister.domain.model.enums.CashRegisterSessi
 import com.volter.shop.modules.cashregister.domain.model.enums.CashRegisterStatus;
 import com.volter.shop.modules.cashregister.domain.repository.*;
 import com.volter.identity.modules.staff.application.StaffService;
-import com.volter.platform.modules.notification.application.NotificationService;
-import com.volter.platform.modules.notification.domain.model.enums.NotificationType;
+import com.volter.shop.modules.notification.application.NotificationService;
+import com.volter.shop.modules.notification.domain.model.enums.NotificationType;
 import com.volter.shop.modules.cashregister.domain.specification.CashRegisterSessionSpecification;
 import com.volter.shop.modules.cashregister.domain.specification.DiscrepancySpecification;
 import com.volter.shop.modules.pawn.application.PawnDueQueryService;

@@ -2,8 +2,8 @@ package com.volter.shop.modules.bonus.application;
 
 import com.volter.identity.modules.staff.application.StaffService;
 import com.volter.identity.modules.staff.domain.model.Staff;
-import com.volter.platform.modules.notification.application.NotificationService;
-import com.volter.platform.modules.notification.domain.model.enums.NotificationType;
+import com.volter.shop.modules.notification.application.NotificationService;
+import com.volter.shop.modules.notification.domain.model.enums.NotificationType;
 import com.volter.platform.modules.shop.domain.model.StaffShop;
 import com.volter.platform.modules.shop.domain.repository.StaffShopRepository;
 import com.volter.shop.modules.bonus.application.dto.StaffBonusAvailableResponse;

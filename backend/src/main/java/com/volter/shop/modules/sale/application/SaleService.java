@@ -23,8 +23,8 @@ import com.volter.shop.modules.transaction.domain.model.enums.TransactionDirecti
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionType;
 import com.volter.shop.shared.valueobject.Money;
 import com.volter.identity.modules.staff.application.StaffService;
-import com.volter.platform.modules.notification.application.NotificationService;
-import com.volter.platform.modules.notification.domain.model.enums.NotificationType;
+import com.volter.shop.modules.notification.application.NotificationService;
+import com.volter.shop.modules.notification.domain.model.enums.NotificationType;
 import com.volter.shared.web.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

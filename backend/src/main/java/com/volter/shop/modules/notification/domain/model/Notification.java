@@ -1,6 +1,6 @@
-package com.volter.platform.modules.notification.domain.model;
+package com.volter.shop.modules.notification.domain.model;
 
-import com.volter.platform.modules.notification.domain.model.enums.NotificationType;
+import com.volter.shop.modules.notification.domain.model.enums.NotificationType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -13,9 +13,14 @@ import java.time.OffsetDateTime;
  * A message delivered to a staff member (e.g. a risk flag or a cash register
  * discrepancy). May optionally point back to a domain entity via
  * {@code entityType}/{@code entityId}.
+ * <p>
+ * Lives in the per-shop tenant schema (not {@code public}), so a notification
+ * physically belongs to the shop it was raised in and its {@code entityId}
+ * always resolves against that same schema. Listing/counting is therefore
+ * naturally scoped to the staff member's currently active shop.
  */
 @Entity
-@Table(schema = "public", name = "notification")
+@Table(name = "notification")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -29,9 +34,6 @@ public class Notification {
     @NotNull(message = "Recipient staff is required")
     @Column(name = "recipient_staff_id", nullable = false)
     private Long recipientStaffId;
-
-    @Column(name = "shop_id")
-    private Long shopId;
 
     @NotNull(message = "Notification type is required")
     @Enumerated(EnumType.STRING)
