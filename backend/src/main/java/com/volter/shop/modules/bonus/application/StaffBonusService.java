@@ -73,7 +73,7 @@ public class StaffBonusService {
         CashRegisterSession session = cashRegisterService.requireOpenSession(request.cashRegisterSessionId());
         Transaction tx = transactionService.record(
                 callerStaffId, session, TransactionType.STAFF_BONUS,
-                new Money(amount), TransactionDirection.OUT, "Staff bonus withdrawal");
+                new Money(amount), TransactionDirection.OUT, "Подигнат бонус");
         cashRegisterService.applyTransaction(tx);
 
         notifyManager(callerStaffId, staff, amount, ledger.available());

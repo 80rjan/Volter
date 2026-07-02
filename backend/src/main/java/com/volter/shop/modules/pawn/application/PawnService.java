@@ -133,7 +133,7 @@ public class PawnService {
 
         Transaction tx = transactionService.record(
                 staffId, session, TransactionType.PAWN, principal,
-                TransactionDirection.OUT, "Pawn principal disbursed");
+                TransactionDirection.OUT, "Исплата на главница за залог");
         pawnTxRepository.save(PawnTransaction.record(tx, contract, PawnTransactionAction.CONTRACT_CREATED));
 
         cashRegisterService.applyTransaction(tx);
@@ -159,7 +159,7 @@ public class PawnService {
         Money received = interestPaid.add(fee);
         Transaction tx = transactionService.record(
                 staffId, session, TransactionType.PAWN, received,
-                TransactionDirection.IN, "Pawn extension: interest + fee");
+                TransactionDirection.IN, "Продолжување на залог (камата + провизија)");
         pawnTxRepository.save(PawnTransaction.record(tx, contract, PawnTransactionAction.EXTENDED));
 
         cashRegisterService.applyTransaction(tx);
@@ -184,7 +184,7 @@ public class PawnService {
         Money paid = new Money(request.paidAmount());
         Transaction tx = transactionService.record(
                 staffId, session, TransactionType.PAWN, paid,
-                TransactionDirection.IN, "Pawn redemption");
+                TransactionDirection.IN, "Откуп на залог");
         PawnTransaction pawnTx = pawnTxRepository.save(
                 PawnTransaction.record(tx, contract, PawnTransactionAction.REDEEMED));
 
@@ -221,7 +221,7 @@ public class PawnService {
 
             // delta > 0: more cash handed out (OUT); delta < 0: cash returned (IN).
             TransactionDirection direction = delta > 0 ? TransactionDirection.OUT : TransactionDirection.IN;
-            String note = delta > 0 ? "Pawn principal increased" : "Pawn principal decreased";
+            String note = delta > 0 ? "Зголемена главница на залог" : "Намалена главница на залог";
             Transaction tx = transactionService.record(
                     staffId, session, TransactionType.PAWN, new Money(Math.abs(delta)), direction, note);
             pawnTxRepository.save(PawnTransaction.record(tx, contract, PawnTransactionAction.ADJUSTED));

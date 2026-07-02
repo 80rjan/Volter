@@ -122,7 +122,7 @@ public class SaleService {
 
         Transaction tx = transactionService.record(
                 staffId, session, TransactionType.SALE, purchasePrice,
-                TransactionDirection.OUT, "Item purchased for resale");
+                TransactionDirection.OUT, "Купен предмет за продажба");
         saleTxRepository.save(SaleTransaction.record(tx, sale, SaleTransactionAction.LISTING_CREATED));
 
         cashRegisterService.applyTransaction(tx);
@@ -155,7 +155,7 @@ public class SaleService {
 
         Transaction tx = transactionService.record(
                 staffId, session, TransactionType.SALE, salePrice,
-                TransactionDirection.IN, "Item sold");
+                TransactionDirection.IN, "Продаден предмет");
         cashRegisterService.applyTransaction(tx);
         SaleTransaction saleTx = saleTxRepository.save(SaleTransaction.record(tx, sale, SaleTransactionAction.SOLD));
 
