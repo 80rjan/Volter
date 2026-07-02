@@ -49,6 +49,13 @@ public class StaffShop {
     @Column(name = "unassigned_at")
     private OffsetDateTime unassignedAt;
 
+    // Baseline for the profit-share bonus: only profit generated and bonus taken
+    // from this moment on count toward the staff member's available bonus. Set when
+    // the assignment is created (existing rows were baselined to go-live by migration).
+    @CreationTimestamp
+    @Column(name = "bonus_since", nullable = false)
+    private OffsetDateTime bonusSince;
+
     public static StaffShop assign(Long staffId, Shop shop) {
         return StaffShop.builder()
                 .staffId(staffId)

@@ -1,7 +1,7 @@
 import { PawnDetailed } from "../pawns/types.ts";
 import { SaleDetailed } from "../sales/types.ts";
 
-export type TransactionType = "PAWN" | "SALE" | "EXPENSE" | "CASH_REGISTER";
+export type TransactionType = "PAWN" | "SALE" | "EXPENSE" | "CASH_REGISTER" | "STAFF_BONUS";
 export type TransactionDirection = "IN" | "OUT";
 
 // Transaction list row (GET /transactions -> TransactionResponse).

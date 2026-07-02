@@ -87,7 +87,7 @@ public class StaffService {
                 .phonePrimary(request.phonePrimary())
                 .phoneSecondary(request.phoneSecondary())
                 .baseSalary(request.baseSalary())
-                .bonusPercent(request.bonusPercent())
+                .profitSharePercent(request.profitSharePercent())
                 .manager(manager)
                 .build();
         return staffRepository.save(staff);
@@ -103,7 +103,7 @@ public class StaffService {
 
         Staff staff = loadStaff(id);
         staff.updateProfile(request.phonePrimary(), request.phoneSecondary(),
-                request.baseSalary(), request.bonusPercent());
+                request.baseSalary(), request.profitSharePercent());
         staff.assignManager(resolveManager(request.managerId()));
         return staff;
     }

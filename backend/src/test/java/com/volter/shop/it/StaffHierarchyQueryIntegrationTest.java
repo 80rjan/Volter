@@ -135,7 +135,7 @@ class StaffHierarchyQueryIntegrationTest extends AbstractIntegrationTest {
                 .nationalId(unique)
                 .phonePrimary("000")
                 .baseSalary(1000)
-                .bonusPercent(BigDecimal.ZERO)
+                .profitSharePercent(BigDecimal.ZERO)
                 .manager(manager)
                 .build();
     }

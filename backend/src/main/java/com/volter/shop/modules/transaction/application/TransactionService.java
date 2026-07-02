@@ -26,6 +26,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -120,6 +121,11 @@ public class TransactionService {
                 tx.getCreatedAt(),
                 tx.getCashRegisterSession().getId(),
                 staff, pawn, sale, expense, session);
+    }
+
+    /** Total STAFF_BONUS a staff member has taken since the given moment (for the bonus ledger). */
+    public long staffBonusTakenSince(Long staffId, OffsetDateTime since) {
+        return transactionRepository.sumAmountByStaffAndTypeSince(staffId, TransactionType.STAFF_BONUS, since);
     }
 
     // CROSS MODULE OPERATIONS

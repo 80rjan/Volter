@@ -16,8 +16,6 @@ public interface StaffMapper {
     @Mapping(target = "managerId", source = "manager.id")
     StaffResponse toResponse(Staff staff);
 
-    @Mapping(target = "bonusAmount", expression = "java(staff.bonusAmount())")
-    @Mapping(target = "totalCompensation", expression = "java(staff.totalCompensation())")
     @Mapping(target = "managerId", source = "manager.id")
     @Mapping(target = "roleGrants", source = "staffRoles")
     StaffDetailedResponse toDetailedResponse(Staff staff, @Context Map<Long, ShopResponse> shops);

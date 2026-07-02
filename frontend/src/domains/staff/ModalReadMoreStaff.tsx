@@ -52,7 +52,9 @@ export default function ModalReadMoreStaff({ staffId, managers, managerName, clo
     const [editing, setEditing] = useState(false);
     const [error, setError] = useState("");
     const [confirmDelete, setConfirmDelete] = useState(false);
-    const [form, setForm] = useState({ phonePrimary: "", phoneSecondary: "", baseSalary: "", bonusPercent: "", managerId: "" });
+    const [form, setForm] = useState({ phonePrimary: "", phoneSecondary: "", baseSalary: "", profitSharePercent: "", managerId: "" });
+    // Profit-share bonus the staff member still has left to take (current shop).
+    const [bonusLeft, setBonusLeft] = useState<number | null>(null);
 
     // shops & roles (IAM)
     const [assignments, setAssignments] = useState<StaffShopAssignment[]>([]);
@@ -77,7 +79,7 @@ export default function ModalReadMoreStaff({ staffId, managers, managerName, clo
                     phonePrimary: d.phonePrimary ?? "",
                     phoneSecondary: d.phoneSecondary ?? "",
                     baseSalary: String(d.baseSalary ?? ""),
-                    bonusPercent: String(d.bonusPercent ?? ""),
+                    profitSharePercent: String(d.profitSharePercent ?? ""),
                     managerId: d.managerId != null ? String(d.managerId) : "",
                 });
             })
@@ -101,6 +103,12 @@ export default function ModalReadMoreStaff({ staffId, managers, managerName, clo
             .finally(() => setPerfLoading(false));
     };
 
+    const loadBonusLeft = () => {
+        axios.get(`${API_BASE}/staff-bonus/available/${staffId}`)
+            .then(res => setBonusLeft(res.data.available ?? 0))
+            .catch(() => setBonusLeft(null));
+    };
+
     useEffect(() => {
         load(true);
         if (canIam) {
@@ -109,6 +117,7 @@ export default function ModalReadMoreStaff({ staffId, managers, managerName, clo
             axios.get(`${API_BASE}/admin/roles`, { params: { size: 1000, sort: "name,ASC" } }).then(r => setRoleOptions(r.data.content ?? [])).catch(() => {});
         }
         if (canReports) loadPerformance();
+        loadBonusLeft();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [staffId]);
 
@@ -157,7 +166,7 @@ export default function ModalReadMoreStaff({ staffId, managers, managerName, clo
             phonePrimary: form.phonePrimary,
             phoneSecondary: form.phoneSecondary || null,
             baseSalary: Number(form.baseSalary),
-            bonusPercent: Number(form.bonusPercent),
+            profitSharePercent: Number(form.profitSharePercent),
             managerId: form.managerId ? Number(form.managerId) : null,
         }).then(() => setEditing(false)), "save");
     };
@@ -214,9 +223,8 @@ export default function ModalReadMoreStaff({ staffId, managers, managerName, clo
 
                                 <Section icon={<BadgeEuro size={20} />} title="Плата">
                                     <Field label="Основна плата" value={money(detail.baseSalary)} />
-                                    <Field label="Бонус" value={`${detail.bonusPercent}%`} />
-                                    <Field label="Бонус износ" value={money(detail.bonusAmount)} />
-                                    <Field label="Вкупно примања" value={money(detail.totalCompensation)} />
+                                    <Field label="Профит удел" value={`${detail.profitSharePercent}%`} />
+                                    <Field label="Бонус за подигнување" value={bonusLeft == null ? "—" : money(bonusLeft)} />
                                 </Section>
                             </>
                         ) : (
@@ -235,8 +243,8 @@ export default function ModalReadMoreStaff({ staffId, managers, managerName, clo
                                         <input className={inputCls} type="number" value={form.baseSalary} onChange={e => setForm(p => ({ ...p, baseSalary: e.target.value }))} />
                                     </div>
                                     <div className="flex flex-col gap-1">
-                                        <span className="text-[#666] text-xs">Бонус (%)</span>
-                                        <input className={inputCls} type="number" value={form.bonusPercent} onChange={e => setForm(p => ({ ...p, bonusPercent: e.target.value }))} />
+                                        <span className="text-[#666] text-xs">Профит удел (%)</span>
+                                        <input className={inputCls} type="number" value={form.profitSharePercent} onChange={e => setForm(p => ({ ...p, profitSharePercent: e.target.value }))} />
                                     </div>
                                     <div className="flex flex-col gap-1">
                                         <span className="text-[#666] text-xs">Менаџер</span>

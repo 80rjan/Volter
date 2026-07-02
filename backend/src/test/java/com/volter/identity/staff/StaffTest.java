@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class StaffTest {
 
-    private Staff staff(Long id, int baseSalary, BigDecimal bonusPercent) {
+    private Staff staff(Long id, int baseSalary, BigDecimal profitSharePercent) {
         return Staff.builder()
                 .id(id)
                 .fullName("Jane Doe")
@@ -33,28 +33,8 @@ class StaffTest {
                 .nationalId("NID-" + id)
                 .phonePrimary("000")
                 .baseSalary(baseSalary)
-                .bonusPercent(bonusPercent)
+                .profitSharePercent(profitSharePercent)
                 .build();
-    }
-
-    @Nested
-    @DisplayName("compensation")
-    class Compensation {
-
-        @Test
-        @DisplayName("bonus is base * percent / 100, rounded half-up to whole units")
-        void bonusRoundsHalfUp() {
-            // 1000 * 2.55 / 100 = 25.5 -> 26
-            assertEquals(26, staff(1L, 1000, new BigDecimal("2.55")).bonusAmount());
-        }
-
-        @Test
-        @DisplayName("total compensation is base plus bonus")
-        void totalIsBasePlusBonus() {
-            Staff s = staff(1L, 1000, new BigDecimal("10.00"));
-            assertEquals(100, s.bonusAmount());
-            assertEquals(1100, s.totalCompensation());
-        }
     }
 
     @Nested

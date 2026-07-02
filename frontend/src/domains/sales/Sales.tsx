@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { Plus, ChevronUp, ChevronDown, Minus, Tag, Banknote, Gem, TrendingUp } from "lucide-react";
+import {Plus, ChevronUp, ChevronDown, Minus, Tag, Banknote, Gem, TrendingUp, HandCoins, Coins} from "lucide-react";
 import ModalAddNewSale from "./ModalAddNewSale.tsx";
 import SaleRowComponent from "./Sale.tsx";
 import CashRegister from "../../shared/components/CashRegister.tsx";
@@ -208,7 +208,7 @@ export default function Sales() {
                 <div className="flex w-full justify-between flex-wrap items-center gap-x-6 gap-y-1 bg-[#f4f4f4] border border-black/10 rounded-lg px-5 py-1.5 text-xs text-[#666]">
                     <span className="flex items-center gap-1.5"><Tag size={15} className="text-green" /> Продажби: <b className="text-[#333]">{summary.count}</b></span>
                     <span className="flex items-center gap-1.5"><Banknote size={15} className="text-green" /> Дадени пари: <b className="text-[#333]">{summary.totalPurchase.toLocaleString("de-DE")} ден</b></span>
-                    <span className="flex items-center gap-1.5"><Gem size={15} className="text-green" /> Злато: <b className="text-[#333]">{summary.totalGoldGrams.toLocaleString("de-DE", { maximumFractionDigits: 2 })} гр</b></span>
+                    <span className="flex items-center gap-1.5"><Coins size={15} className="text-green" /> Злато: <b className="text-[#333]">{summary.totalGoldGrams.toLocaleString("de-DE", { maximumFractionDigits: 2 })} гр</b></span>
                     <span className="flex items-center gap-1.5"><TrendingUp size={15} className="text-green" /> Профит овој месец: <b className="text-[#333]">{summary.monthlyProfit.toLocaleString("de-DE")} ден</b></span>
                 </div>
 

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import {Landmark, CalendarClock, Plus, Minus, LockKeyhole, Coins, Wallet, Percent} from "lucide-react";
+import {Landmark, CalendarClock, Plus, Minus, LockKeyhole, Coins, Wallet, Percent, HandCoins} from "lucide-react";
 import ModalAdjustCashRegister from "./ModalAdjustCashRegister.tsx";
 import ModalOpenCashRegister from "./ModalOpenCashRegister.tsx";
 import ModalCloseCashRegister from "./ModalCloseCashRegister.tsx";
+import ModalTakeBonus from "./ModalTakeBonus.tsx";
 import Loading from "./Loading.tsx";
 import { CashSession } from "../types.ts";
 import { API_BASE } from "../api/config.ts";
@@ -34,6 +35,7 @@ export default function CashRegister({ refreshDependency, refreshDependencyAdjus
     const [showWithdraw, setShowWithdraw] = useState(false);
     const [showOpen, setShowOpen] = useState(false);
     const [showClose, setShowClose] = useState(false);
+    const [showBonus, setShowBonus] = useState(false);
 
     const fetchData = () => {
         if (!canRead) return;
@@ -121,6 +123,7 @@ export default function CashRegister({ refreshDependency, refreshDependencyAdjus
                         </div>
 
                         <div className="flex items-center justify-end gap-3 svg-hover">
+                            <HandCoins size={20} color="var(--green)" className="cursor-pointer" onClick={() => setShowBonus(true)} aria-label="Земи бонус" />
                             {canWrite && <Minus size={22} color="var(--dark-red)" className="cursor-pointer" onClick={() => setShowWithdraw(true)} />}
                             {canWrite && <Plus size={22} color="var(--green)" className="cursor-pointer" onClick={() => setShowDeposit(true)} />}
                             {canManage && <LockKeyhole size={20} color="#666" className="cursor-pointer" onClick={() => setShowClose(true)} />}
@@ -133,6 +136,7 @@ export default function CashRegister({ refreshDependency, refreshDependencyAdjus
             {session && showDeposit && <ModalAdjustCashRegister sessionId={session.id} isInsert={true} closeModal={() => setShowDeposit(false)} refresh={onRefresh} />}
             {session && showWithdraw && <ModalAdjustCashRegister sessionId={session.id} isInsert={false} closeModal={() => setShowWithdraw(false)} refresh={onRefresh} />}
             {session && showClose && <ModalCloseCashRegister registerId={session.cashRegisterId} expectedBalance={session.currentBalance} closeModal={() => setShowClose(false)} refresh={onRefresh} />}
+            {session && showBonus && <ModalTakeBonus sessionId={session.id} closeModal={() => setShowBonus(false)} refresh={onRefresh} />}
         </>
     );
 }

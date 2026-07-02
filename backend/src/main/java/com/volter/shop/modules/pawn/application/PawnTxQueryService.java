@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,5 +56,10 @@ public class PawnTxQueryService {
     /** Ids of PAWN transactions whose contract customer's name matches the query. */
     public Set<Long> findTransactionIdsByCustomerName(String name) {
         return new HashSet<>(pawnTxRepository.findTransactionIdsByCustomerName(name));
+    }
+
+    /** Pawn provision a staff member has generated since the given moment (bonus base). */
+    public long provisionForStaffSince(Long staffId, OffsetDateTime since) {
+        return pawnTxRepository.provisionForStaffSince(staffId, since);
     }
 }

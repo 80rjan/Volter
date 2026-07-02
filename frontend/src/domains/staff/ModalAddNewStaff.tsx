@@ -23,13 +23,13 @@ const fields: [string, string, string, boolean][] = [
     ["Телефон", "phonePrimary", "text", true],
     ["Телефон 2", "phoneSecondary", "text", false],
     ["Основна плата", "baseSalary", "number", true],
-    ["Бонус (%)", "bonusPercent", "number", true],
+    ["Профит удел (%)", "profitSharePercent", "number", true],
 ];
 
 export default function ModalAddNewStaff({ managers, closeModal, refresh }: Props) {
     const [form, setForm] = useState<Record<string, string>>({
         fullName: "", username: "", password: "", nationalId: "",
-        phonePrimary: "", phoneSecondary: "", baseSalary: "", bonusPercent: "0",
+        phonePrimary: "", phoneSecondary: "", baseSalary: "", profitSharePercent: "0",
     });
     const [managerId, setManagerId] = useState<string>("");
     const [loading, setLoading] = useState(false);
@@ -50,7 +50,7 @@ export default function ModalAddNewStaff({ managers, closeModal, refresh }: Prop
             phonePrimary: form.phonePrimary,
             phoneSecondary: form.phoneSecondary || null,
             baseSalary: Number(form.baseSalary),
-            bonusPercent: Number(form.bonusPercent),
+            profitSharePercent: Number(form.profitSharePercent),
             managerId: managerId ? Number(managerId) : null,
         })
             .then(() => { refresh(); closeModal(); })

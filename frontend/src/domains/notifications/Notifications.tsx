@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { Bell, BellOff, Check, CheckCheck, AlertTriangle, Landmark, Info, FilePen } from "lucide-react";
+import { Bell, BellOff, Check, CheckCheck, AlertTriangle, Landmark, Info, FilePen, HandCoins } from "lucide-react";
 import Loading from "../../shared/components/Loading.tsx";
 import ModalReadMoreNotification from "./ModalReadMoreNotification.tsx";
 import { NotificationRow, NotificationType, NOTIFICATION_TYPE_LABEL } from "./types.ts";
@@ -13,6 +13,7 @@ const TYPE_ICON: Record<NotificationType, React.ReactNode> = {
     RISK_FLAG: <AlertTriangle size={18} className="text-amber-500" />,
     CASH_REGISTER_SESSION_DISCREPANCY: <Landmark size={18} className="text-red-500" />,
     PAWN_UPDATED: <FilePen size={18} className="text-blue-500" />,
+    STAFF_BONUS: <HandCoins size={18} className="text-green" />,
     SYSTEM: <Info size={18} className="text-[#888]" />,
 };
 

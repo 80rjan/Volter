@@ -103,9 +103,7 @@ export interface StaffDetailed {
     phonePrimary: string;
     phoneSecondary: string | null;
     baseSalary: number;
-    bonusPercent: number;
-    bonusAmount: number;
-    totalCompensation: number;
+    profitSharePercent: number;
     status: StaffStatus;
     managerId: number | null;
     roleGrants: StaffRoleGrant[];

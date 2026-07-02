@@ -10,7 +10,7 @@ import { useAuth } from "../../GlobalContext.tsx";
 import { useTeam } from "../../shared/utils/useTeam.ts";
 
 const TYPE_LABELS: Record<string, string> = {
-    PAWN: "Залог", SALE: "Продажба", EXPENSE: "Расход", CASH_REGISTER: "Каса",
+    PAWN: "Залог", SALE: "Продажба", EXPENSE: "Расход", CASH_REGISTER: "Каса", STAFF_BONUS: "Бонус",
 };
 const DIRECTION_LABELS: Record<string, string> = { IN: "Влез", OUT: "Излез" };
 
@@ -26,6 +26,7 @@ const typeOptions = [
     { value: "SALE", label: "Продажби" },
     { value: "EXPENSE", label: "Расходи" },
     { value: "CASH_REGISTER", label: "Каса" },
+    { value: "STAFF_BONUS", label: "Бонуси" },
 ];
 const directionOptions = [
     { value: "IN", label: "Влез" },

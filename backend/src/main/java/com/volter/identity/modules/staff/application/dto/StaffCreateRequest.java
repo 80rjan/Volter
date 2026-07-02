@@ -12,7 +12,7 @@ public record StaffCreateRequest(
         @NotBlank(message = "Primary phone is required") @Size(max = 32) String phonePrimary,
         @Size(max = 32) String phoneSecondary,
         @NotNull(message = "Base salary is required") @PositiveOrZero Integer baseSalary,
-        @NotNull(message = "Bonus percent is required") @DecimalMin("0.0") @DecimalMax("100.0") BigDecimal bonusPercent,
+        @NotNull(message = "Profit share percent is required") @DecimalMin("0.0") @DecimalMax("100.0") BigDecimal profitSharePercent,
         Long managerId
 ) {
 }

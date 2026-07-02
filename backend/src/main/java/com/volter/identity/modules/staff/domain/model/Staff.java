@@ -11,7 +11,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,9 +67,9 @@ public class Staff {
     @Column(name = "base_salary", nullable = false)
     private Integer baseSalary;
 
-    @NotNull(message = "Bonus percent is required")
-    @Column(name = "bonus_percent", nullable = false, precision = 5, scale = 2)
-    private BigDecimal bonusPercent;
+    @NotNull(message = "Profit share percent is required")
+    @Column(name = "profit_share_percent", nullable = false, precision = 5, scale = 2)
+    private BigDecimal profitSharePercent;
 
     @NotNull(message = "Status is required")
     @Enumerated(EnumType.STRING)
@@ -100,19 +99,6 @@ public class Staff {
     @Builder.Default
     @OneToMany(mappedBy = "staff", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StaffRole> staffRoles = new ArrayList<>();
-
-    // ----- compensation -----
-
-    public Integer bonusAmount() {
-        return BigDecimal.valueOf(baseSalary)
-                .multiply(bonusPercent)
-                .divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP)
-                .intValue();
-    }
-
-    public Integer totalCompensation() {
-        return baseSalary + bonusAmount();
-    }
 
     // ----- lifecycle / status -----
 
@@ -148,12 +134,12 @@ public class Staff {
     public void updateProfile(String phonePrimary,
                               String phoneSecondary,
                               Integer baseSalary,
-                              BigDecimal bonusPercent) {
+                              BigDecimal profitSharePercent) {
         this.fullName = fullName;
         this.phonePrimary = phonePrimary;
         this.phoneSecondary = phoneSecondary;
         this.baseSalary = baseSalary;
-        this.bonusPercent = bonusPercent;
+        this.profitSharePercent = profitSharePercent;
     }
 
     public void changePassword(String newPasswordHash) {

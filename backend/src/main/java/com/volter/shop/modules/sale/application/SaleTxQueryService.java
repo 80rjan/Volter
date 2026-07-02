@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,5 +51,10 @@ public class SaleTxQueryService {
     /** Ids of SALE transactions whose customer's name matches the query. */
     public Set<Long> findTransactionIdsByCustomerName(String name) {
         return new HashSet<>(saleTxRepository.findTransactionIdsByCustomerName(name));
+    }
+
+    /** Sale margin a staff member has generated since the given moment (bonus base). */
+    public long marginForStaffSince(Long staffId, OffsetDateTime since) {
+        return saleTxRepository.marginForStaffSince(staffId, since);
     }
 }

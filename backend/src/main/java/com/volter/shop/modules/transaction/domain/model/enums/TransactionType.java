@@ -4,5 +4,6 @@ public enum TransactionType {
     PAWN,
     SALE,
     EXPENSE,
-    CASH_REGISTER
+    CASH_REGISTER,
+    STAFF_BONUS
 }
