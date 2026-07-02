@@ -33,7 +33,6 @@ export default function ModalTakeBonus({ sessionId, closeModal, refresh }: Props
     const save = async () => {
         const amt = Number(amount);
         if (!amount.trim() || amt <= 0) { setError("Внесете износ поголем од 0."); return; }
-        if (available != null && amt > available) { setError("Износот го надминува достапниот бонус."); return; }
         setBusy(true); setError("");
         try {
             await axios.post(`${API_BASE}/staff-bonus`, { amount: amt, cashRegisterSessionId: sessionId });
@@ -73,7 +72,7 @@ export default function ModalTakeBonus({ sessionId, closeModal, refresh }: Props
                 <div className="flex justify-end items-center gap-3 min-h-[40px]">
                     <button onClick={closeModal} disabled={busy} className="px-5 py-2 rounded bg-black/10 text-sm hover:bg-black/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">Откажи</button>
                     {busy ? <Loading width={26} height={26} /> : (
-                        <button onClick={save} disabled={loading || !available}
+                        <button onClick={save} disabled={loading}
                             className="flex items-center justify-center gap-2 px-6 py-2 rounded text-white font-medium bg-green shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed">
                             <CheckCheck size={20} /> Земи
                         </button>

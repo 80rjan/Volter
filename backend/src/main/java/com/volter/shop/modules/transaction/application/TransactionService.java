@@ -128,6 +128,11 @@ public class TransactionService {
         return transactionRepository.sumAmountByStaffAndTypeSince(staffId, TransactionType.STAFF_BONUS, since);
     }
 
+    /** Total expenses across the whole shop since the given moment (for the bonus ledger). */
+    public long shopExpensesSince(OffsetDateTime since) {
+        return transactionRepository.sumAmountByTypeSince(TransactionType.EXPENSE, since);
+    }
+
     // CROSS MODULE OPERATIONS
     /**
      * The transactions module write entry point.

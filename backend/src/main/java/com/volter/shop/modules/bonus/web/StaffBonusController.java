@@ -25,21 +25,21 @@ public class StaffBonusController {
     /** The caller's own available bonus in their active shop (for the withdraw modal). */
     @GetMapping("/available")
     public ResponseEntity<StaffBonusAvailableResponse> myAvailable(@AuthenticationPrincipal StaffPrincipal principal) {
-        return ResponseEntity.ok(staffBonusService.available(principal.staffId(), principal.shopId(), principal.staffId()));
+        return ResponseEntity.ok(staffBonusService.available(principal.staffId(), principal.staffId()));
     }
 
     /** A specific staff member's available bonus (self or a subordinate); authorization is enforced in the service. */
     @GetMapping("/available/{staffId}")
     public ResponseEntity<StaffBonusAvailableResponse> available(@PathVariable Long staffId,
                                                                  @AuthenticationPrincipal StaffPrincipal principal) {
-        return ResponseEntity.ok(staffBonusService.available(staffId, principal.shopId(), principal.staffId()));
+        return ResponseEntity.ok(staffBonusService.available(staffId, principal.staffId()));
     }
 
     /** Withdraw part or all of the caller's available bonus from an open session. */
     @PostMapping
     public ResponseEntity<Void> withdraw(@Valid @RequestBody StaffBonusWithdrawRequest request,
                                          @AuthenticationPrincipal StaffPrincipal principal) {
-        staffBonusService.withdraw(principal.staffId(), principal.shopId(), request);
+        staffBonusService.withdraw(principal.staffId(), request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

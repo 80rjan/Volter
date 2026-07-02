@@ -22,4 +22,14 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
     long sumAmountByStaffAndTypeSince(@Param("staffId") Long staffId,
                                       @Param("type") TransactionType type,
                                       @Param("since") OffsetDateTime since);
+
+    /** Total amount of a given transaction type across the whole shop from {@code since} onward. */
+    @Query("""
+            select coalesce(sum(t.amount.amount), 0L)
+            from Transaction t
+            where t.type = :type
+              and t.createdAt >= :since
+            """)
+    long sumAmountByTypeSince(@Param("type") TransactionType type,
+                             @Param("since") OffsetDateTime since);
 }
