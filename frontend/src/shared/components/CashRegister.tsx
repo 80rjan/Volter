@@ -108,7 +108,7 @@ export default function CashRegister({ refreshDependency, refreshDependencyAdjus
                         )}
                     </>
                 ) : (
-                    <div className="grid grid-cols-[3fr_1fr] w-full">
+                    <div className="grid grid-cols-1 md:grid-cols-[3fr_1fr] gap-2 md:gap-0 w-full">
                         <div className="flex items-center justify-between gap-5 flex-wrap w-full">
                             <div className={item} title="Каса">
                                 {registerSelect}

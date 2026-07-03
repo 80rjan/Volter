@@ -75,11 +75,11 @@ export default function Expenses() {
     };
     const dirOf = (by: string) => (orderBy === by ? orderDir : 0);
 
-    const inputClass = "bg-white border-none rounded text-xs font-medium px-2 py-2 w-full shadow-sm";
+    const inputClass = "bg-white border-none rounded text-xs font-medium px-2 py-2 shadow-sm flex-1 min-w-[140px] md:min-w-0";
 
     return (
-        <div className="h-screen flex pl-16">
-            <div className="flex flex-col px-8 pt-2 gap-3 flex-1 overflow-hidden">
+        <div className="h-screen flex md:pl-16 pt-12 md:pt-0">
+            <div className="flex flex-col px-3 md:px-8 pt-2 gap-3 flex-1 overflow-hidden">
                 {!allowed ? (
                     <div className="flex flex-1 flex-col items-center justify-center gap-3 text-[#666]">
                         <Lock size={40}/>
@@ -87,7 +87,7 @@ export default function Expenses() {
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-[2fr_2fr_1.5fr_1.5fr_1fr_2fr] gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-[2fr_2fr_1.5fr_1.5fr_1fr_2fr] gap-2 md:gap-3">
                             <select
                                 className={inputClass}
                                 style={{color: filterStaff === "" ? "#888" : "#000"}}
@@ -130,7 +130,7 @@ export default function Expenses() {
                             )}
 
                             {canWrite && (
-                                <div className="flex w-full justify-center col-start-6">
+                                <div className="flex w-full justify-center md:col-start-6">
                                     <button
                                         className="group relative overflow-hidden flex items-center gap-2 bg-green h-fit text-white rounded px-5 py-2 text-sm shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 shrink-0"
                                         onClick={() => setModalAdd(true)}
@@ -146,9 +146,9 @@ export default function Expenses() {
                         </div>
 
                         <div
-                            className="flex flex-col bg-white rounded-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] overflow-hidden flex-1 min-h-0">
+                            className="flex flex-col bg-white rounded-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] overflow-x-auto flex-1 min-h-0">
                             <div
-                                className={`grid place-items-center ${cols} gap-2 px-2 py-2 border-b-2 border-black/20 text-[#eee] bg-[#666] text-xs font-medium`}>
+                                className={`grid place-items-center ${cols} min-w-[880px] md:min-w-0 gap-2 px-2 py-2 border-b-2 border-black/20 text-[#eee] bg-[#666] text-xs font-medium`}>
                                 <div className="flex items-center cursor-pointer"
                                      onClick={() => handleOrder("Month")}>Месец <SortIcon dir={dirOf("Month")}/></div>
                                 {EXPENSE_CATEGORIES.map(c => (
@@ -161,7 +161,7 @@ export default function Expenses() {
                                 <div></div>
                             </div>
 
-                            <div className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-thin svg-hover">
+                            <div className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-thin min-w-[880px] md:min-w-0 svg-hover">
                                 {loading ? <Loading/> : sorted.length === 0 ? (
                                     <p className="text-center text-sm text-[#888] py-6">Нема расходи за прикажување.</p>
                                 ) : sorted.map((s, index) => (

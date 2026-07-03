@@ -107,7 +107,7 @@ export default function Clients() {
     const onUpdated = (updated: Customer) =>
         setAllClients(prev => prev.map(c => (c.id === updated.id ? updated : c)));
 
-    const inputClass = "bg-white border-none rounded text-xs font-medium px-2 py-2 w-full shadow-sm";
+    const inputClass = "bg-white border-none rounded text-xs font-medium px-2 py-2 shadow-sm flex-1 min-w-[140px] md:min-w-0";
 
     const headers: [string, string | null, number][] = [
         ["Код", "Id", 0], ["Име", "Name", 1], ["ЕМБГ", "Embg", 2], ["Телефон", null, -1],
@@ -115,8 +115,8 @@ export default function Clients() {
     ];
 
     return (
-        <div className="h-screen flex pl-16">
-            <div className="flex flex-col px-8 py-2 gap-3 flex-1 overflow-hidden">
+        <div className="h-screen flex md:pl-16 pt-12 md:pt-0">
+            <div className="flex flex-col px-3 md:px-8 py-2 gap-3 flex-1 overflow-hidden">
                 {!allowed ? (
                     <div className="flex flex-1 flex-col items-center justify-center gap-3 text-[#666]">
                         <Lock size={40} />
@@ -124,15 +124,15 @@ export default function Clients() {
                     </div>
                 ) : (
                     <>
-                        <div className="flex justify-between w-full gap-3">
+                        <div className="flex flex-wrap md:flex-nowrap justify-between w-full gap-2 md:gap-3">
                             <input className={inputClass} type="search" placeholder="Пребарувај по име" value={searchName} onChange={e => setSearchName(e.target.value)} />
                             <input className={inputClass} type="search" placeholder="Пребарувај по ембг" value={searchEmbg} onChange={e => setSearchEmbg(e.target.value)} />
                             <input className={inputClass} type="search" placeholder="Пребарувај по телефон" value={searchPhone} onChange={e => setSearchPhone(e.target.value)} />
                             <input className={inputClass} type="search" placeholder="Пребарувај по град" value={searchCity} onChange={e => setSearchCity(e.target.value)} />
                         </div>
 
-                        <div className="flex flex-col bg-white rounded-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] overflow-hidden flex-1 min-h-0">
-                            <div className={`grid place-items-center ${cols} px-2 py-2 border-b-2 border-black/20 text-[#eee] bg-[#666]`}>
+                        <div className="flex flex-col bg-white rounded-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] overflow-x-auto flex-1 min-h-0">
+                            <div className={`grid place-items-center ${cols} min-w-[880px] md:min-w-0 px-2 py-2 border-b-2 border-black/20 text-[#eee] bg-[#666]`}>
                                 {headers.map(([label, key, idx], i) => (
                                     <div
                                         key={i}
@@ -144,7 +144,7 @@ export default function Clients() {
                                 ))}
                             </div>
 
-                            <div ref={scrollableRef} className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-thin">
+                            <div ref={scrollableRef} className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-thin min-w-[880px] md:min-w-0">
                                 {loading ? <Loading /> : allClients.map((client, index) => (
                                     <ClientRow key={client.id} client={client} isOdd={index % 2 === 1} onUpdated={onUpdated} cols={cols} />
                                 ))}

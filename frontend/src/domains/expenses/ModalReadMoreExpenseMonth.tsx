@@ -110,11 +110,11 @@ export default function ModalReadMoreExpenseMonth({ summary, staffId, closeModal
                     </select>
                 </div>
 
-                <div className="flex flex-col bg-white rounded-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] overflow-hidden flex-1 min-h-0">
-                    <div className={`grid place-items-center ${cols} gap-2 px-2 py-2 border-b-2 border-black/20 text-[#eee] bg-[#666] text-xs font-medium`}>
+                <div className="flex flex-col bg-white rounded-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] overflow-x-auto flex-1 min-h-0">
+                    <div className={`grid place-items-center ${cols} min-w-[880px] md:min-w-0 gap-2 px-2 py-2 border-b-2 border-black/20 text-[#eee] bg-[#666] text-xs font-medium`}>
                         <div>Датум</div><div>Тип</div><div>Износ</div><div>Опис</div><div>Внел</div>
                     </div>
-                    <div ref={scrollRef} onScroll={onScroll} className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-thin">
+                    <div ref={scrollRef} onScroll={onScroll} className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-thin min-w-[880px] md:min-w-0">
                         {loading ? <Loading /> : rows.length === 0 ? (
                             <p className="text-center text-sm text-[#888] py-6">Нема расходи за прикажување.</p>
                         ) : rows.map((e, index) => (

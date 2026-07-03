@@ -95,11 +95,11 @@ export default function Notifications() {
     };
 
     const hasUnread = items.some(n => !n.read);
-    const inputClass = "bg-white border-none rounded text-xs font-medium px-2 py-2 h-full shadow-sm";
+    const inputClass = "bg-white border-none rounded text-xs font-medium px-2 py-2 shadow-sm w-full sm:w-auto sm:max-w-[200px]";
 
     return (
-        <div className="h-screen flex pl-16">
-            <div className="flex flex-col px-8 pt-2 gap-3 flex-1 overflow-hidden">
+        <div className="h-screen flex md:pl-16 pt-12 md:pt-0">
+            <div className="flex flex-col px-3 md:px-8 pt-2 gap-3 flex-1 overflow-hidden">
                 <div className="flex items-center gap-3 flex-wrap">
                     <h1 className="flex items-center gap-2 text-xl font-semibold mr-auto"><Bell size={22} /> Известувања</h1>
                     <select className={inputClass} style={{ color: filterType ? "#000" : "#888" }} value={filterType} onChange={e => setFilterType(e.target.value)}>

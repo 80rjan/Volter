@@ -344,3 +344,7 @@
 {"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/pawn/application/PawnService.java","timestamp":1782974452952,"sessionId":null}
 {"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/resources/db/migration/public/V8__drop_notification.sql","timestamp":1783003230826,"sessionId":null}
 {"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/resources/db/migration/tenant/V5__notification.sql","timestamp":1783008674701,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/bonus/application/StaffBonusService.java","timestamp":1783013105722,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/bonus/application/StaffBonusService.java","timestamp":1783013111590,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/shared/components/ModalTakeBonus.tsx","timestamp":1783013117587,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/shared/components/ModalTakeBonus.tsx","timestamp":1783013121407,"sessionId":null}

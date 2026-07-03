@@ -121,8 +121,8 @@ export default function Login() {
     const labelClass = "text-grey text-sm";
 
     return (
-        <div className="h-screen flex items-center justify-center bg-[#eee]">
-            <div className="flex flex-col items-center gap-8 bg-white rounded-xl shadow-[0_4px_28px_rgba(0,0,0,0.13)] p-10 w-[360px]">
+        <div className="h-screen flex items-center justify-center bg-[#eee] px-4">
+            <div className="flex flex-col items-center gap-8 bg-white rounded-xl shadow-[0_4px_28px_rgba(0,0,0,0.13)] p-6 md:p-10 w-full max-w-[360px]">
                 <img src={logo} alt="Волтер Залозна Куќа" className="w-44 h-auto" />
 
                 {step === "credentials" ? (

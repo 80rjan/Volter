@@ -149,7 +149,7 @@ export default function Transactions() {
         setOrderBy(by);
     };
 
-    const inputClass = "bg-white border-none rounded text-xs font-medium px-2 py-2 w-full shadow-sm";
+    const inputClass = "bg-white border-none rounded text-xs font-medium px-2 py-2 shadow-sm flex-1 min-w-[140px] md:min-w-0";
 
     const headers: [string, string | null, number][] = [
         ["Категорија", "Category", 0], ["Клиент", null, -1], ["Опис", null, -1], ["Износ", "Amount", 3],
@@ -157,8 +157,8 @@ export default function Transactions() {
     ];
 
     return (
-        <div className="h-screen flex pl-16">
-            <div className="flex flex-col px-8 pt-2 gap-3 flex-1 overflow-hidden">
+        <div className="h-screen flex md:pl-16 pt-12 md:pt-0">
+            <div className="flex flex-col px-3 md:px-8 pt-2 gap-3 flex-1 overflow-hidden">
                 {!allowed ? (
                     <div className="flex flex-1 flex-col items-center justify-center gap-3 text-[#666]">
                         <Lock size={40} />
@@ -166,7 +166,7 @@ export default function Transactions() {
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-[2fr_2fr_2fr_2fr_1fr_1fr_.5fr] w-full gap-3 flex-wrap">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-[2fr_2fr_2fr_2fr_1fr_1fr_.5fr] w-full gap-2 md:gap-3">
                             <input
                                 type="search"
                                 className={inputClass}
@@ -219,8 +219,8 @@ export default function Transactions() {
                             )}
                         </div>
 
-                        <div className="flex flex-col bg-white rounded-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] overflow-hidden flex-1 min-h-0">
-                            <div className={`grid place-items-center ${cols} gap-4 px-2 py-2 border-b-2 border-black/20 text-[#eee] bg-[#666]`}>
+                        <div className="flex flex-col bg-white rounded-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] overflow-x-auto flex-1 min-h-0">
+                            <div className={`grid place-items-center ${cols} min-w-[880px] md:min-w-0 gap-4 px-2 py-2 border-b-2 border-black/20 text-[#eee] bg-[#666]`}>
                                 {headers.map(([label, key, idx], i) => (
                                     <div
                                         key={i}
@@ -232,7 +232,7 @@ export default function Transactions() {
                                 ))}
                             </div>
 
-                            <div ref={scrollableRef} className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-thin svg-hover">
+                            <div ref={scrollableRef} className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-thin min-w-[880px] md:min-w-0 svg-hover">
                                 {loading ? <Loading /> : allTransactions.map((tx, index) => (
                                     <div
                                         key={tx.id}

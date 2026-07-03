@@ -149,7 +149,7 @@ export default function Sales() {
         setOrderBy(by);
     };
 
-    const inputClass = "bg-white border-none rounded text-xs font-medium px-2 py-2 w-full shadow-sm";
+    const inputClass = "bg-white border-none rounded text-xs font-medium px-2 py-2 shadow-sm flex-1 min-w-[140px] md:min-w-0";
     const cols = "grid-cols-[1.5fr_2fr_1fr_1fr_1fr_1.1fr_1.1fr_1fr_0.5fr]";
     const headers: [string, string | null, number][] = [
         ["Клиент", "Customer", 0], ["Опис", "About", 1], ["Откупна", "Item Cost", 2],
@@ -158,9 +158,9 @@ export default function Sales() {
     ];
 
     return (
-        <div className="h-screen flex pl-16">
-            <div className="flex flex-col px-8 pt-2 gap-3 flex-1 overflow-hidden">
-                <div className="flex justify-between w-full gap-6">
+        <div className="h-screen flex md:pl-16 pt-12 md:pt-0">
+            <div className="flex flex-col px-3 md:px-8 pt-2 gap-3 flex-1 overflow-hidden">
+                <div className="flex flex-wrap md:flex-nowrap justify-between w-full gap-2 md:gap-6">
                     <select className={inputClass} value={searchByStatus} onChange={e => setSearchByStatus(e.target.value)}>
                         {statusOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
@@ -177,7 +177,7 @@ export default function Sales() {
                     {can("SALE_WRITE") && (
                         <button
                             onClick={() => setModalAddNewSale(true)}
-                            className="group relative overflow-hidden flex shrink-0 items-center gap-2 bg-green h-full text-white rounded px-5 py-2 whitespace-nowrap text-xs font-semibold shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105"
+                            className="group relative overflow-hidden flex shrink-0 items-center justify-center gap-2 bg-green md:h-full md:w-auto text-white rounded px-5 py-2 whitespace-nowrap text-xs font-semibold shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105"
                         >
                             <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[180%]" />
                             <Plus size={16} color="white" strokeWidth={3} className="transition-transform duration-500 group-hover:rotate-90" />
@@ -187,8 +187,8 @@ export default function Sales() {
                     {modalAddNewSale && <ModalAddNewSale closeModal={() => setModalAddNewSale(false)} refresh={() => setRefresh(prev => !prev)} />}
                 </div>
 
-                <div className="flex flex-col bg-white rounded-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] overflow-hidden flex-1 min-h-0">
-                    <div className={`grid place-items-center ${cols} px-2 py-2 border-b-2 border-black/20 text-[#eee] bg-[#666]`}>
+                <div className="flex flex-col bg-white rounded-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] overflow-x-auto flex-1 min-h-0">
+                    <div className={`grid place-items-center ${cols} min-w-[880px] md:min-w-0 px-2 py-2 border-b-2 border-black/20 text-[#eee] bg-[#666]`}>
                         {headers.map(([label, key, idx]) => (
                             <div key={label} className={`text-xs font-medium flex items-center ${key ? "cursor-pointer" : "cursor-default"}`}
                                  onClick={key ? () => handleOrder(key, idx) : undefined}>
@@ -197,7 +197,7 @@ export default function Sales() {
                         ))}
                     </div>
 
-                    <div ref={scrollableSalesRef} className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-thin">
+                    <div ref={scrollableSalesRef} className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-thin min-w-[880px] md:min-w-0">
                         {loading ? <Loading /> : allSales.map((sale, index) => (
                             <SaleRowComponent key={index} sale={sale} refresh={() => setRefresh(prev => !prev)} isOdd={index % 2 !== 0} />
                         ))}
