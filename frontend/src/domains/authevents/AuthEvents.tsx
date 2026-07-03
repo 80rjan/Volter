@@ -74,7 +74,7 @@ export default function AuthEvents() {
     const headers = ["Вработен", "Тип", "IP адреса", "Уред", "Време"];
 
     return (
-        <div className="h-screen flex md:pl-16 pt-12 md:pt-0">
+        <div className="h-screen flex lg:pl-16 pt-12 lg:pt-0">
             <div className="flex flex-col px-3 md:px-8 pt-2 gap-3 flex-1 overflow-hidden">
                 {!allowed ? (
                     <div className="flex flex-1 flex-col items-center justify-center gap-3 text-[#666]">

@@ -157,7 +157,7 @@ export default function Transactions() {
     ];
 
     return (
-        <div className="h-screen flex md:pl-16 pt-12 md:pt-0">
+        <div className="h-screen flex lg:pl-16 pt-12 lg:pt-0">
             <div className="flex flex-col px-3 md:px-8 pt-2 gap-3 flex-1 overflow-hidden">
                 {!allowed ? (
                     <div className="flex flex-1 flex-col items-center justify-center gap-3 text-[#666]">
@@ -166,7 +166,7 @@ export default function Transactions() {
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-[2fr_2fr_2fr_2fr_1fr_1fr_.5fr] w-full gap-2 md:gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[2fr_2fr_2fr_2fr_1fr_1fr_.5fr] w-full gap-2 md:gap-3">
                             <input
                                 type="search"
                                 className={inputClass}
