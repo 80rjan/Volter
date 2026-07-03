@@ -98,7 +98,7 @@ export default function Notifications() {
     const inputClass = "bg-white border-none rounded text-xs font-medium px-2 py-2 shadow-sm w-full sm:w-auto sm:max-w-[200px]";
 
     return (
-        <div className="h-screen flex md:pl-16 pt-12 md:pt-0">
+        <div className="h-screen flex lg:pl-16 pt-12 lg:pt-0">
             <div className="flex flex-col px-3 md:px-8 pt-2 gap-3 flex-1 overflow-hidden">
                 <div className="flex items-center gap-3 flex-wrap">
                     <h1 className="flex items-center gap-2 text-xl font-semibold mr-auto"><Bell size={22} /> Известувања</h1>

@@ -106,11 +106,11 @@ export default function Nav() {
 
     return (
         <>
-            {/* ---------- Desktop: fixed hover-expand rail (md and up) ---------- */}
+            {/* ---------- Desktop: fixed hover-expand rail (lg and up) ---------- */}
             {/* Fixed 4rem rail rendered once by the layout (so it never unmounts while
                 navigating); the <nav> widens on hover and overlays the page content to
-                its right (which reserves the rail with md:pl-16) instead of pushing it. */}
-            <div className="hidden md:block fixed left-0 top-0 h-screen w-16 group z-50" onMouseLeave={() => setShopMenuOpen(false)}>
+                its right (which reserves the rail with lg:pl-16) instead of pushing it. */}
+            <div className="hidden lg:block fixed left-0 top-0 h-screen w-16 group z-50" onMouseLeave={() => setShopMenuOpen(false)}>
                 <nav className="absolute inset-y-0 left-0 w-16 group-hover:w-64 bg-white shadow-[2px_0_8px_rgba(0,0,0,0.2)] overflow-hidden transition-[width] duration-300 ease-in-out flex flex-col py-4">
                     {/* Mini "V" logo when collapsed, crossfading to the full logo on hover. */}
                     <div className="relative h-12 mb-4 shrink-0 flex items-center justify-center">
@@ -202,8 +202,8 @@ export default function Nav() {
                 )}
             </div>
 
-            {/* ---------- Mobile: fixed top bar with a hamburger (below md) ---------- */}
-            <div className="md:hidden fixed top-0 inset-x-0 h-12 z-40 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center gap-3 px-3">
+            {/* ---------- Mobile: fixed top bar with a hamburger (below lg) ---------- */}
+            <div className="lg:hidden fixed top-0 inset-x-0 h-12 z-40 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center gap-3 px-3">
                 <button onClick={() => setMobileOpen(true)} aria-label="Отвори мени" className="border-none bg-transparent p-1 -ml-1 cursor-pointer">
                     <Menu size={24} />
                 </button>
@@ -219,9 +219,9 @@ export default function Nav() {
                 </NavLink>
             </div>
 
-            {/* ---------- Mobile: slide-in drawer + backdrop (below md) ---------- */}
+            {/* ---------- Mobile: slide-in drawer + backdrop (below lg) ---------- */}
             {mobileOpen && (
-                <div className="md:hidden fixed inset-0 z-[60]">
+                <div className="lg:hidden fixed inset-0 z-[60]">
                     <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
                     <div className="absolute left-0 top-0 h-full w-72 max-w-[85%] bg-white shadow-[2px_0_16px_rgba(0,0,0,0.3)] flex flex-col py-4 overflow-y-auto scrollbar-thin">
                         <div className="flex items-center justify-between px-4 mb-3 shrink-0">

@@ -33,7 +33,7 @@ export default function PeriodReport() {
     const inputClass = "bg-white border-none rounded text-sm px-2 py-2 shadow-[0_0_8px_rgba(0,0,0,0.2)]";
 
     return (
-        <div className="h-screen flex md:pl-16 pt-12 md:pt-0">
+        <div className="h-screen flex lg:pl-16 pt-12 lg:pt-0">
             <div className="flex flex-col px-3 md:px-8 py-2 gap-3 flex-1 overflow-hidden">
                 {!allowed ? (
                     <div className="flex flex-1 flex-col items-center justify-center gap-3 text-[#666]">

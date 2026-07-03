@@ -78,7 +78,7 @@ export default function Expenses() {
     const inputClass = "bg-white border-none rounded text-xs font-medium px-2 py-2 shadow-sm flex-1 min-w-[140px] md:min-w-0";
 
     return (
-        <div className="h-screen flex md:pl-16 pt-12 md:pt-0">
+        <div className="h-screen flex lg:pl-16 pt-12 lg:pt-0">
             <div className="flex flex-col px-3 md:px-8 pt-2 gap-3 flex-1 overflow-hidden">
                 {!allowed ? (
                     <div className="flex flex-1 flex-col items-center justify-center gap-3 text-[#666]">
@@ -87,7 +87,7 @@ export default function Expenses() {
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-[2fr_2fr_1.5fr_1.5fr_1fr_2fr] gap-2 md:gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[2fr_2fr_1.5fr_1.5fr_1fr_2fr] gap-2 md:gap-3">
                             <select
                                 className={inputClass}
                                 style={{color: filterStaff === "" ? "#888" : "#000"}}
@@ -130,7 +130,7 @@ export default function Expenses() {
                             )}
 
                             {canWrite && (
-                                <div className="flex w-full justify-center md:col-start-6">
+                                <div className="flex w-full justify-center xl:col-start-6">
                                     <button
                                         className="group relative overflow-hidden flex items-center gap-2 bg-green h-fit text-white rounded px-5 py-2 text-sm shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 shrink-0"
                                         onClick={() => setModalAdd(true)}
