@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import PawnRow from "./Pawn.tsx";
-import {Plus, ChevronUp, ChevronDown, Minus, Handshake, Banknote, Percent, Gem, Coins, TrendingUp} from "lucide-react";
+import {Plus, ChevronUp, ChevronDown, Minus, Handshake, Banknote, Percent, Gem, Coins} from "lucide-react";
 import ModalAddNewPawn from "./ModalAddNewPawn.tsx";
 import CashRegister from "../../shared/components/CashRegister.tsx";
+import MonthlyProfitBar from "../../shared/components/MonthlyProfitBar.tsx";
 import Loading from "../../shared/components/Loading.tsx";
 import { usePawns, SORT_FIELD } from "./usePawns.ts";
 import { useAuth } from "../../GlobalContext.tsx";
@@ -134,8 +135,10 @@ export default function Pawns() {
                     <span className="flex items-center gap-1.5"><Banknote size={15} className="text-green" /> Дадени пари: <b className="text-[#333]">{summary.totalPrincipal.toLocaleString("de-DE")} ден</b></span>
                     <span className="flex items-center gap-1.5"><Percent size={15} className="text-green" /> Камата за наплата: <b className="text-[#333]">{summary.totalInterest.toLocaleString("de-DE")} ден</b></span>
                     <span className="flex items-center gap-1.5"><Coins size={15} className="text-green" /> Злато: <b className="text-[#333]">{summary.totalGoldGrams.toLocaleString("de-DE", { maximumFractionDigits: 2 })} гр</b></span>
-                    <span className="flex items-center gap-1.5"><TrendingUp size={15} className="text-green" /> Провизија овој месец: <b className="text-[#333]">{summary.monthlyProvision.toLocaleString("de-DE")} ден</b></span>
                 </div>
+
+                {/* Profit since the first of the month: pawn provision + sale profit. */}
+                <MonthlyProfitBar refreshDependency={refreshDependency} />
 
                 <CashRegister refreshDependency={refreshDependency} refreshDependencyAdjustPawn={refreshCashRegDependency} />
             </div>

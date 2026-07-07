@@ -7,6 +7,7 @@ import com.volter.shop.modules.cashregister.domain.model.CashRegisterSession;
 import com.volter.shop.modules.expense.application.ExpenseTxQueryService;
 import com.volter.shop.modules.pawn.application.PawnTxQueryService;
 import com.volter.shop.modules.sale.application.SaleTxQueryService;
+import com.volter.shop.modules.transaction.application.dto.MonthlyProfitResponse;
 import com.volter.shop.modules.transaction.application.dto.TransactionDetailedResponse;
 import com.volter.shop.modules.transaction.application.dto.TransactionFilterRequest;
 import com.volter.shop.modules.transaction.application.dto.TransactionResponse;
@@ -26,6 +27,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -131,6 +133,20 @@ public class TransactionService {
     /** Total expenses across the whole shop since the given moment (for the bonus ledger). */
     public long shopExpensesSince(OffsetDateTime since) {
         return transactionRepository.sumAmountByTypeSince(TransactionType.EXPENSE, since);
+    }
+
+    /**
+     * Shop profit from the first of the current month until today, split into
+     * pawn provision (interest income) and sale profit (margin) plus their sum.
+     * Both figures come from the transaction ledger via each module's read-only
+     * query service, so this never forms a service dependency cycle.
+     */
+    public MonthlyProfitResponse monthlyProfit() {
+        LocalDate today = LocalDate.now();
+        LocalDate firstOfMonth = today.withDayOfMonth(1);
+        long pawnProvision = pawnTxQueryService.provisionBetween(firstOfMonth, today);
+        long saleProfit = saleTxQueryService.profitBetween(firstOfMonth, today);
+        return new MonthlyProfitResponse(pawnProvision, saleProfit, pawnProvision + saleProfit);
     }
 
     // CROSS MODULE OPERATIONS

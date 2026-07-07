@@ -1,6 +1,7 @@
 package com.volter.shop.modules.transaction.web;
 
 import com.volter.shop.modules.transaction.application.TransactionService;
+import com.volter.shop.modules.transaction.application.dto.MonthlyProfitResponse;
 import com.volter.shop.modules.transaction.application.dto.TransactionDetailedResponse;
 import com.volter.shop.modules.transaction.application.dto.TransactionFilterRequest;
 import com.volter.shop.modules.transaction.application.dto.TransactionResponse;
@@ -33,6 +34,16 @@ public class TransactionController {
                                                                   @AuthenticationPrincipal StaffPrincipal principal) {
         return ResponseEntity.ok(PageResponse.of(
                 transactionService.list(filter, pageable, principal.staffId())));
+    }
+
+    /**
+     * Profit earned from the first of the current month until now, derived from
+     * the transaction ledger: pawn provision, sale profit, and their sum. Shown
+     * as a dedicated month-to-date profit bar on the pawns and sales pages.
+     */
+    @GetMapping("/monthly-profit")
+    public ResponseEntity<MonthlyProfitResponse> monthlyProfit() {
+        return ResponseEntity.ok(transactionService.monthlyProfit());
     }
 
     /**

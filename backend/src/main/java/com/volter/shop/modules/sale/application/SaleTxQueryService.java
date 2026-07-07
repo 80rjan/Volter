@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.HashMap;
@@ -56,5 +57,10 @@ public class SaleTxQueryService {
     /** Sale margin a staff member has generated since the given moment (bonus base). */
     public long marginForStaffSince(Long staffId, OffsetDateTime since) {
         return saleTxRepository.marginForStaffSince(staffId, since);
+    }
+
+    /** Shop-wide sale profit (sale price minus purchase price) on sales sold between {@code from} and {@code to} (inclusive). */
+    public long profitBetween(LocalDate from, LocalDate to) {
+        return saleRepository.profitBetween(from, to);
     }
 }

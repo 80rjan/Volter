@@ -34,7 +34,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -89,9 +88,7 @@ public class PawnService {
                 .filter(p -> p.getItem() != null && p.getItem().getType() == ItemType.GOLD)
                 .mapToDouble(p -> goldWeightGrams(p.getItem()))
                 .sum();
-        LocalDate today = LocalDate.now();
-        long monthlyProvision = pawnTxRepository.provisionBetween(today.withDayOfMonth(1), today);
-        return new PawnSummaryResponse(list.size(), principal, interest, goldGrams, monthlyProvision);
+        return new PawnSummaryResponse(list.size(), principal, interest, goldGrams);
     }
 
     /** Read the gold weight (grams) from an item's free-form attributes; 0 if absent/unparseable. */
@@ -133,7 +130,7 @@ public class PawnService {
 
         Transaction tx = transactionService.record(
                 staffId, session, TransactionType.PAWN, principal,
-                TransactionDirection.OUT, "Исплата на главница за залог");
+                TransactionDirection.OUT, "Креирање на нов договор");
         pawnTxRepository.save(PawnTransaction.record(tx, contract, PawnTransactionAction.CONTRACT_CREATED));
 
         cashRegisterService.applyTransaction(tx);
@@ -159,7 +156,7 @@ public class PawnService {
         Money received = interestPaid.add(fee);
         Transaction tx = transactionService.record(
                 staffId, session, TransactionType.PAWN, received,
-                TransactionDirection.IN, "Продолжување на залог (камата + провизија)");
+                TransactionDirection.IN, "Продолжување на договор");
         pawnTxRepository.save(PawnTransaction.record(tx, contract, PawnTransactionAction.EXTENDED));
 
         cashRegisterService.applyTransaction(tx);
@@ -184,7 +181,7 @@ public class PawnService {
         Money paid = new Money(request.paidAmount());
         Transaction tx = transactionService.record(
                 staffId, session, TransactionType.PAWN, paid,
-                TransactionDirection.IN, "Откуп на залог");
+                TransactionDirection.IN, "Затворање на договор");
         PawnTransaction pawnTx = pawnTxRepository.save(
                 PawnTransaction.record(tx, contract, PawnTransactionAction.REDEEMED));
 

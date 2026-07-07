@@ -33,7 +33,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -81,9 +80,7 @@ public class SaleService {
                 .filter(s -> s.getItem() != null && s.getItem().getType() == ItemType.GOLD)
                 .mapToDouble(s -> goldWeightGrams(s.getItem()))
                 .sum();
-        LocalDate today = LocalDate.now();
-        long monthlyProfit = saleRepository.profitBetween(today.withDayOfMonth(1), today);
-        return new SaleSummaryResponse(list.size(), purchase, goldGrams, monthlyProfit);
+        return new SaleSummaryResponse(list.size(), purchase, goldGrams);
     }
 
     /** Read the gold weight (grams) from an item's free-form attributes; 0 if absent/unparseable. */

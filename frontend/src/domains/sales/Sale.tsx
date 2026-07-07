@@ -27,7 +27,6 @@ const num = (n: number | null) => (n == null ? "—" : Number(n).toLocaleString(
 export default function Sale({ sale, refresh, isOdd }: Props) {
     const { can } = useAuth();
     const [modalSell, setModalSell] = useState(false);
-    const [modalCancel, setModalCancel] = useState(false);
     const [modalReadMore, setModalReadMore] = useState(false);
     const [modalSuccess, setModalSuccess] = useState(false);
     const [successMsg, setSuccessMsg] = useState("");
@@ -47,18 +46,6 @@ export default function Sale({ sale, refresh, isOdd }: Props) {
             setModalSuccess(true);
         } catch (error) {
             console.error("Error selling item:", error);
-        } finally { setLoading(false); }
-    };
-
-    const cancelSale = async (id: number, _category: string) => {
-        setLoading(true);
-        try {
-            await axios.post(`${API_BASE}/sales/${id}/cancel`, {});
-            setSuccessMsg("Продажбата е откажана");
-            setModalCancel(false);
-            setModalSuccess(true);
-        } catch (error) {
-            console.error("Error canceling sale:", error);
         } finally { setLoading(false); }
     };
 
@@ -91,7 +78,6 @@ export default function Sale({ sale, refresh, isOdd }: Props) {
                     {sale.Status === "AVAILABLE" ? (
                         <div className="flex gap-2">
                             {can("SALE_WRITE") && <Euro size={16} color="var(--green)" className="cursor-pointer" onClick={() => setModalSell(true)} />}
-                            {can("SALE_CANCEL") && <Ban size={16} className="cursor-pointer text-red-500" onClick={() => setModalCancel(true)} />}
                         </div>
                     ) : (
                         <div />
@@ -111,20 +97,6 @@ export default function Sale({ sale, refresh, isOdd }: Props) {
                     priceBought={Number(sale["Item Cost"])}
                     suggestedPrice={Number(sale["Item Cost"])}
                     title="По која цена е продаден предметот?"
-                    loading={loading}
-                />
-            )}
-
-            {modalCancel && (
-                <ModalActions
-                    pawnAction="cancel"
-                    action={cancelSale}
-                    id={sale.Id}
-                    category="sale"
-                    successMsg="Продажбата е откажана!"
-                    closeModal={() => setModalCancel(false)}
-                    priceBought={Number(sale["Item Cost"])}
-                    title="Откажи продажба?"
                     loading={loading}
                 />
             )}

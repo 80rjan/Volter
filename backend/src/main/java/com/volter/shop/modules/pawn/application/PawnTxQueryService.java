@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.HashMap;
@@ -61,5 +62,10 @@ public class PawnTxQueryService {
     /** Pawn provision a staff member has generated since the given moment (bonus base). */
     public long provisionForStaffSince(Long staffId, OffsetDateTime since) {
         return pawnTxRepository.provisionForStaffSince(staffId, since);
+    }
+
+    /** Shop-wide pawn provision (interest income) collected between {@code from} and {@code to} (inclusive). */
+    public long provisionBetween(LocalDate from, LocalDate to) {
+        return pawnTxRepository.provisionBetween(from, to);
     }
 }
