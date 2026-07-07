@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -136,17 +137,21 @@ public class TransactionService {
     }
 
     /**
-     * Shop profit from the first of the current month until today, split into
-     * pawn provision (interest income) and sale profit (margin) plus their sum.
-     * Both figures come from the transaction ledger via each module's read-only
-     * query service, so this never forms a service dependency cycle.
+     * Shop profit from the first of the current month until today: pawn provision
+     * (interest income) plus sale profit (margin), minus shop expenses over the
+     * same period, giving the net profit. Provision and sale profit come from the
+     * transaction ledger via each module's read-only query service (so this never
+     * forms a service dependency cycle); expenses come from the transaction table.
      */
     public MonthlyProfitResponse monthlyProfit() {
         LocalDate today = LocalDate.now();
         LocalDate firstOfMonth = today.withDayOfMonth(1);
+        OffsetDateTime since = firstOfMonth.atStartOfDay(ZoneId.systemDefault()).toOffsetDateTime();
         long pawnProvision = pawnTxQueryService.provisionBetween(firstOfMonth, today);
         long saleProfit = saleTxQueryService.profitBetween(firstOfMonth, today);
-        return new MonthlyProfitResponse(pawnProvision, saleProfit, pawnProvision + saleProfit);
+        long totalExpenses = shopExpensesSince(since);
+        long netProfit = pawnProvision + saleProfit - totalExpenses;
+        return new MonthlyProfitResponse(pawnProvision, saleProfit, totalExpenses, netProfit);
     }
 
     // CROSS MODULE OPERATIONS

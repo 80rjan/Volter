@@ -42,6 +42,7 @@ public class TransactionController {
      * as a dedicated month-to-date profit bar on the pawns and sales pages.
      */
     @GetMapping("/monthly-profit")
+    @PreAuthorize("hasAuthority('PROFIT_READ')")
     public ResponseEntity<MonthlyProfitResponse> monthlyProfit() {
         return ResponseEntity.ok(transactionService.monthlyProfit());
     }
