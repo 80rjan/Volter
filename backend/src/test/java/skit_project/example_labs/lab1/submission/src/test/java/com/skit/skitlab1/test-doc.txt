@@ -1,0 +1,39 @@
+Characteristics and partitioning:
+
+Interface:
+    C1: list1 is null   ->  TRUE (T), FALSE (F)
+    C2: list2 is null   ->  TRUE (T), FALSE (F)
+    C3: list1 is empty (assuming its not null)  ->  TRUE (T), FALSE (F)
+    C4: list2 is empty (assuming its not null)  ->  TRUE (T), FALSE (F)
+
+functional:
+    C5: function throws exc -> TRUE (T), FALSE (F)
+    C6: function returns    ->  null (N), empty list (E), non-empty list (NE)
+
+
+1. Disjoint check
+    C1: the partitions are disjoint because one list cannot be both null and non-null at the same time.
+    C2: the partitions are disjoint because one list cannot be both null and non-null at the same time.
+    C3: the partitions are disjoint because one list cannot be both empty and non-empty at the same time.
+    C4: the partitions are disjoint because one list cannot be both empty and non-empty at the same time.
+    C5: the partitions are disjoint because one list cannot be both null, empty or non-empty at the same time.
+
+2. Complete check
+    C1: the partitions are complete because any list is either null or non-null.
+    C2: the partitions are complete because any list is either null or non-null.
+    C3: the partitions are complete because any list that is not null is either empty or non-empty.
+    C4: the partitions are complete because any list that is not null is either empty or non-empty.
+    C5: the partitions are complete because any list is either null, empty or non-empty.
+
+3. BCC
+             C1 C2 C3 C4 C5 C6
+Base test:   F, F, F, F, F, NE                      (happy path)
+             T, F, F, F, F, NE -> -                 NO  (bcs list1 is null, but exception is not thrown and returned list is not null)
+             F, T, F, F, F, NE -> -                 NO  (bcs list1 is null, but exception is not thrown and returned list is not null)
+             F, F, T, F, F, NE -> E                 YES (list1 is empty, returned list is empty)
+             F, F, F, T, F, NE -> E                 YES (list2 is empty, returned list is empty)
+             F, F, F, F, T, NE -> -                 NO  (bcs exception is thrown, but both lists need to be null and function returns nothing)
+             F, F, F, F, F, N  -> E/NE              YES but already satisfied by base case and last case
+             F, F, F, F, F, E                       YES (list1 and list2 are not empty but have no matches, returned list is empty)
+
+Dobieni testovi: vkupno 8, unikatni 7, feasable 4

@@ -1,0 +1,58 @@
+public static double calculateDosage(int age, double weight, boolean isHighRisk, boolean hasAllergy) {
+
+        if ((age > 65 || isHighRisk) && weight < 50 && !hasAllergy) {
+
+            return weight * 0.8;
+
+        } else {
+
+            return weight * 1.2 + age * 0.1;
+
+        }
+
+    }
+
+
+predicates: ((age > 65 || isHighRisk) && weight < 50 && !hasAllergy)
+clauses: (age > 65), (isHighRisk), (weight < 50), (!hasAllergy)
+
+Truth table:
+| age > 65 | isHighRisk  | weight < 50  | !hasAllergy  | Result                     |
+|----------|-------------|--------------|--------------|----------------------------|
+| T        | T           | T            | T            | weight * 0.8               |
+| T        | T           | T            | F            | weight * 1.2 + age * 0.1   |
+| T        | T           | F            | T            | weight * 1.2 + age * 0.1   |
+| T        | T           | F            | F            | weight * 1.2 + age * 0.1   |
+| T        | F           | T            | T            | weight * 0.8               |
+| T        | F           | T            | F            | weight * 1.2 + age * 0.1   |
+| T        | F           | F            | T            | weight * 1.2 + age * 0.1   |
+| T        | F           | F            | F            | weight * 1.2 + age * 0.1   |
+| F        | T           | T            | T            | weight * 0.8               |
+| F        | T           | T            | F            | weight * 1.2 + age * 0.1   |
+| F        | T           | F            | T            | weight * 1.2 + age * 0.1   |
+| F        | T           | F            | F            | weight * 1.2 + age * 0.1   |
+| F        | F           | T            | T            | weight * 0.8               |
+| F        | F           | T            | F            | weight * 1.2 + age * 0.1   |
+| F        | F           | F            | T            | weight * 1.2 + age * 0.1   |
+| F        | F           | F            | F            | weight * 1.2 + age * 0.1   |
+
+RACC:
+
+1. isHighRisk = F, weight < 50, !hasAllergy = T     |    result T when age > 65 = T and F when age > 65 = F
+2. age > 65 = F, weight < 50, !hasAllergy = T       |    result T when isHighRisk = T and F when isHighRisk = F
+3. age > 65 = T, isHighRisk = T, !hasAllergy = T    |    result T when weight < 50 = T and F when weight < 50 = F
+4. age > 65 = T, isHighRisk = T, weight < 50 = T    |    result T when !hasAllergy = T and F when !hasAllergy = F
+
+GACC:
+
+1. age > 65 = T, isHighRisk = F, weight < 50 = T, !hasAllergy = T  → T
+   age > 65 = F, isHighRisk = F, weight < 50 = T, !hasAllergy = T  → F
+
+2. age > 65 = F, isHighRisk = T, weight < 50 = T, !hasAllergy = T  → T
+   age > 65 = F, isHighRisk = F, weight < 50 = T, !hasAllergy = T  → F
+
+3. age > 65 = T, isHighRisk = F, weight < 50 = T, !hasAllergy = T  → T
+   age > 65 = T, isHighRisk = F, weight < 50 = F, !hasAllergy = T  → F
+
+4. age > 65 = T, isHighRisk = F, weight < 50 = T, !hasAllergy = T  → T
+   age > 65 = T, isHighRisk = F, weight < 50 = T, !hasAllergy = F  → F

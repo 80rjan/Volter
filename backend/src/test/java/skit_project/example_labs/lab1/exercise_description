@@ -1,0 +1,25 @@
+/**
+ * Given two lists of strings, return a list of all unique strings that appear in both lists,
+ * ignoring case differences.
+ *
+ * Example:
+ * list1 = ["Apple", "banana", "Cherry", "apple"]
+ * list2 = ["BANANA", "cherry", "Durian"]
+ * Output: ["banana", "Cherry"]
+ *
+ * The result should contain the matching strings from the first list only,
+ * preserving their original casing and order, but without duplicates.
+ */
+public static List<String> findCommonIgnoreCase(List<String> list1, List<String> list2)
+
+Perform ISP testing for the given method, starting by defining characteristics and partitioning, and then answering each of the following questions:
+
+a) Is the partitioning of the input parameters such that it ensures that the partitions are disjoint? Why? If not, alter the partitioning to ensure this property is satisfied.
+
+b) Is the partitioning of the input parameters such that it ensures that the partitions cover the entire domain? Why? If not, alter the partitioning to ensure this property is satisfied.
+
+c) Choose a base test and list all the necessary tests to satisfy the Base Choice Coverage (BCC) criterion. How many tests did you get?
+
+d) Write JUnit tests using the BCC criteria for ISP coverage. Try to use AI tools to help you!
+
+Note: It is mandatory to attach the pdf document answering the questions a, b, c and also attach the code answering question d.

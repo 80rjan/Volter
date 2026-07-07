@@ -1,0 +1,48 @@
+/**
+ * Analyzes an array of daily temperatures.
+ * Returns a summary message based on:
+ * - Number of warm days (>= 20°C)
+ * - If any temperature is invalid (< -50 or > 60)
+ * - If all days are warm
+ *
+ * @param temps an array of integers representing daily temperatures
+ * @return summary message
+ */
+public static String analyzeTemperatures(int[] temps) {
+    boolean hasInvalid = false;
+    int warmDays = 0;
+
+    for (int i = 0; i < temps.length; i++) {
+        int temp = temps[i];
+
+        if (temp < -50 || temp > 60) {
+            hasInvalid = true;
+        } else if (temp >= 20) {
+            warmDays++;
+        }
+    }
+
+    if (hasInvalid) {
+        return "Invalid temperatures detected.";
+    } else if (warmDays == temps.length && temps.length > 0) {
+        return "All days were warm.";
+    } else if (warmDays == 0) {
+        return "No warm days.";
+    } else {
+        return "Some days were warm.";
+    }
+}
+
+Answer each of the following questions:
+
+a) Create a graph for the function.
+
+b) Find all du-paths and perform All-Du-Paths coverage for the variable temps.
+
+c) Find the minimal test set that achieves Prime Path Coverage.
+
+d) Find the minimal test set that achieves Edge-Pair Coverage.
+
+e) Create Junit tests for some of the tests in the minimal test sets in c and d, choose at least half.
+
+Note: It is mandatory to attach the pdf document answering the questions a, b, c and also attach the code answering question d.

@@ -186,6 +186,12 @@
                 <configuration>
                     <source>21</source>  <!-- ADD THIS -->
                     <target>21</target>  <!-- ADD THIS -->
+                    <!-- Faculty lab submissions are self-contained sub-projects (each has
+                         its own build files) and pull in tools not on this project's
+                         classpath (Selenium, JUnit 3). Keep them out of the parent build. -->
+                    <testExcludes>
+                        <testExclude>skit_project/example_labs/**</testExclude>
+                    </testExcludes>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -233,6 +239,7 @@
                 <configuration>
                     <excludes>
                         <exclude>**/*IntegrationTest.java</exclude>
+                        <exclude>**/example_labs/**</exclude>
                     </excludes>
                 </configuration>
             </plugin>
@@ -258,5 +265,73 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- Mutation testing (syntax-based testing section of the faculty tests).
+             Kept in a profile so it never runs during a normal build/test.
+             Run:  ./mvnw -Ppit test-compile org.pitest:pitest-maven:mutationCoverage
+             Report: target/pit-reports/index.html -->
+        <profile>
+            <id>pit</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-maven</artifactId>
+                        <version>1.16.1</version>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.pitest</groupId>
+                                <artifactId>pitest-junit5-plugin</artifactId>
+                                <version>1.2.2</version>
+                                <!-- The plugin ships old junit-platform 1.9.x transitives that
+                                     clash with Spring Boot 4's junit-platform 6.x and crash the
+                                     PIT minion ("OutputDirectoryCreator not available"). Drop them
+                                     so only the project's aligned 6.x jars are on the classpath. -->
+                                <exclusions>
+                                    <exclusion>
+                                        <groupId>org.junit.platform</groupId>
+                                        <artifactId>*</artifactId>
+                                    </exclusion>
+                                    <exclusion>
+                                        <groupId>org.junit.jupiter</groupId>
+                                        <artifactId>*</artifactId>
+                                    </exclusion>
+                                </exclusions>
+                            </dependency>
+                        </dependencies>
+                        <configuration>
+                            <!-- Mutate only the pawn contract redemption arithmetic. -->
+                            <targetClasses>
+                                <param>com.volter.shop.modules.pawn.domain.model.PawnContract</param>
+                            </targetClasses>
+                            <!-- The adequate test set built for the syntax section. -->
+                            <targetTests>
+                                <param>skit_project.tests.syntax.ExpectedRedemptionMutationTest</param>
+                            </targetTests>
+                            <!-- Scope mutation to the redemption arithmetic under test; the other
+                                 PawnContract methods (extend/redeem/updateTerms/…) belong to other
+                                 units and are exercised by other tests, so we don't mutate them here. -->
+                            <excludedMethods>
+                                <param>extend</param>
+                                <param>updateTerms</param>
+                                <param>redeem</param>
+                                <param>forfeit</param>
+                                <param>isActive</param>
+                                <param>daysOverdue</param>
+                                <param>ensureActive</param>
+                            </excludedMethods>
+                            <outputFormats>
+                                <param>HTML</param>
+                                <param>XML</param>
+                            </outputFormats>
+                            <timestampedReports>false</timestampedReports>
+                            <fullMutationMatrix>true</fullMutationMatrix>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

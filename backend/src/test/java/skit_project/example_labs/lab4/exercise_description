@@ -1,0 +1,94 @@
+Part 1
+For the following webapp - https://opensource-demo.orangehrmlive.com/, create automated UI tests with Selenium for the add and delete user functionalities, considering different scenarios (get to know the application). Make sure that the tests code follows the best practices.
+
+Part 2
+You are given a simple course management system.
+
+Write tests using Mockito and Junit to test the full CourseService. Make sure that the tests code follows the best practices.
+
+class Course
+
+public class Course {
+    private Long id;
+    private String name;
+    private int credits;
+    private boolean active;
+
+    public Course(Long id, String name, int credits, boolean active) {
+        this.id = id;
+        this.name = name;
+        this.credits = credits;
+        this.active = active;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getCredits() {
+        return credits;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+}
+
+class CourseRepository
+
+import java.util.List;
+import java.util.Optional;
+
+public interface CourseRepository {
+    List<Course> findAll();
+    Optional<Course> findById(Long id);
+    Course save(Course course);
+    void deleteById(Long id);
+}
+
+class CourseService
+
+import java.util.List;
+
+public class CourseService {
+
+    private final CourseRepository courseRepository;
+
+    public CourseService(CourseRepository courseRepository) {
+        this.courseRepository = courseRepository;
+    }
+
+    public List<Course> findActiveCourses() {
+        return courseRepository.findAll()
+                .stream()
+                .filter(Course::isActive)
+                .toList();
+    }
+
+    public Course findById(Long id) {
+        return courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+    }
+
+    public Course createCourse(String name, int credits) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Course name is required");
+        }
+
+        if (credits <= 0) {
+            throw new IllegalArgumentException("Credits must be positive");
+        }
+
+        Course course = new Course(null, name, credits, true);
+        return courseRepository.save(course);
+    }
+
+    public void deleteCourse(Long id) {
+        Course course = findById(id);
+        courseRepository.deleteById(course.getId());
+    }
+}

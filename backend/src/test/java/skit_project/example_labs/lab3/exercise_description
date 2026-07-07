@@ -1,0 +1,39 @@
+For the given function, do the following:
+
+Find the predicates and their clauses.
+Write the appropriate truth tables for the predicates expressed through the clauses, also determining for each clause whether it is active in each row.
+Find TRs for the following coverage: GACC, RACC.
+Find test values (generate parameterized tests using JUnit) that satisfy RACC.
+NOTE: In order to be able to present the lab exercise, you need to have it uploaded here beforehand.
+
+/**
+
+     * Calculates a personalized dosage based on age, weight, risk level, and allergy status.
+
+     *
+
+     * @param age Patient's age in years
+
+     * @param weight Patient's weight in kilograms
+
+     * @param isHighRisk Whether the patient is in a high-risk group
+
+     * @param hasAllergy Whether the patient has a mild allergy to the medication
+
+     * @return Calculated dosage in milligrams
+
+     */
+
+    public static double calculateDosage(int age, double weight, boolean isHighRisk, boolean hasAllergy) {
+
+        if ((age > 65 || isHighRisk) && weight < 50 && !hasAllergy) {
+
+            return weight * 0.8;
+
+        } else {
+
+            return weight * 1.2 + age * 0.1;
+
+        }
+
+    }
