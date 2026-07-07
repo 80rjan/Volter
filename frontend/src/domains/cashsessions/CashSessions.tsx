@@ -186,7 +186,7 @@ export default function CashSessions() {
 
     return (
         <div className="h-screen flex lg:pl-16 pt-12 lg:pt-0">
-            <div className="flex flex-col px-3 md:px-8 pt-2 gap-3 flex-1 overflow-hidden">
+            <div className="flex flex-col px-3 md:px-8 pt-2 max-lg:landscape:pt-1 gap-3 max-lg:landscape:gap-1 flex-1 overflow-hidden">
                 {!allowed ? (
                     <div className="flex flex-1 flex-col items-center justify-center gap-3 text-[#666]">
                         <Lock size={40} />
@@ -194,7 +194,7 @@ export default function CashSessions() {
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[1.5fr_1fr_1fr_1fr_1fr_1fr_1fr_1.5fr] w-full gap-2 md:gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[1.5fr_1fr_1fr_1fr_1fr_1fr_1fr_1.5fr] max-lg:landscape:grid-cols-[1.5fr_1fr_1fr_1fr_1fr_1fr_1fr_1.5fr] w-full gap-2 md:gap-3">
                             <select className={inputClass} style={{ color: filterStaff ? "#000" : "#888" }} value={filterStaff} onChange={e => setFilterStaff(e.target.value)}>
                                 <option value="">Сите вработени</option>
                                 {team.map(s => <option key={s.id} value={s.id}>{s.fullName}</option>)}
@@ -227,7 +227,7 @@ export default function CashSessions() {
                                 <button onClick={clearFilters} className="whitespace-nowrap text-xs text-[#666] underline hover:text-black transition-colors">Исчисти филтри</button>
                             )}
                             {canManage && (
-                                <div className="flex xl:col-start-8 justify-center">
+                                <div className="flex xl:col-start-8 max-lg:landscape:col-start-8 justify-center">
                                     <button onClick={() => setShowCreate(true)}
                                             className="group relative overflow-hidden whitespace-nowrap flex items-center gap-2 px-4 py-2 rounded bg-green text-white text-sm font-semibold shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105">
                                         <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[180%]" />

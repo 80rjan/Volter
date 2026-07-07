@@ -94,7 +94,7 @@ export default function Staff() {
 
     return (
         <div className="h-screen flex lg:pl-16 pt-12 lg:pt-0">
-            <div className="flex flex-col px-3 md:px-8 py-2 gap-3 flex-1 overflow-hidden">
+            <div className="flex flex-col px-3 md:px-8 py-2 max-lg:landscape:py-1 gap-3 max-lg:landscape:gap-1 flex-1 overflow-hidden">
                 {!allowed ? (
                     <div className="flex flex-1 flex-col items-center justify-center gap-3 text-[#666]">
                         <Lock size={40}/>
@@ -102,7 +102,7 @@ export default function Staff() {
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[2fr_2fr_2fr_1.5fr_1fr_2fr] w-full gap-2 md:gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[2fr_2fr_2fr_1.5fr_1fr_2fr] max-lg:landscape:grid-cols-[2fr_2fr_2fr_1.5fr_1fr_2fr] w-full gap-2 md:gap-3">
                             <input className={inputClass} type="search" placeholder="Пребарувај по име"
                                    value={searchName} onChange={e => setSearchName(e.target.value)}/>
                             <input className={inputClass} type="search" placeholder="Пребарувај по корисничко"
@@ -133,7 +133,7 @@ export default function Staff() {
                                 </button>
                             )}
 
-                            <div className="w-full flex justify-center xl:col-start-6">
+                            <div className="w-full flex justify-center xl:col-start-6 max-lg:landscape:col-start-6">
                                 <button
                                     className="w-fit group relative overflow-hidden flex items-center gap-2 bg-green h-fit text-white rounded px-5 py-2 text-sm shadow-[4px_2px_6px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 shrink-0"
                                     onClick={() => setModalAdd(true)}

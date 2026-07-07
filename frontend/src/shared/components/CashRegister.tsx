@@ -70,7 +70,7 @@ export default function CashRegister({ refreshDependency, refreshDependencyAdjus
 
     const session = openSessions.find(s => s.cashRegisterId === registerId) ?? null;
 
-    const barClass = "flex justify-between items-center gap-4 px-4 py-2 rounded-t-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] bg-white border-2 border-black/40 border-b-0";
+    const barClass = "flex justify-between items-center gap-4 px-4 py-2 max-lg:landscape:py-1 rounded-t-lg shadow-[0_0_8px_rgba(0,0,0,0.2)] bg-white border-2 border-black/40 border-b-0";
     const item = "flex items-center gap-1.5";
     const val = "text-[.72rem] font-bold";
     const selectCls = "bg-[#f4f4f4] border-none rounded text-[.72rem] font-bold px-2 py-1 shadow-[0_0_3px_rgba(0,0,0,0.2)] cursor-pointer";

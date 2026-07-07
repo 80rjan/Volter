@@ -41,7 +41,7 @@ export default function MonthlyProfitBar({ refreshDependency }: Props) {
     if (!canRead) return null;
 
     return (
-        <div className="flex w-full flex-wrap items-center justify-between gap-x-6 gap-y-1 rounded-lg border border-green/30 bg-green/[0.06] px-3 md:px-5 py-1.5 text-xs text-[#555]">
+        <div className="flex w-full flex-wrap items-center justify-between gap-x-6 gap-y-1 rounded-lg border border-green/30 bg-green/[0.06] px-3 md:px-5 py-1.5 max-lg:landscape:py-0.5 text-xs text-[#555]">
             <span className="flex items-center gap-1.5 font-semibold text-green">
                 <TrendingUp size={15} /> Профит од почеток на месецот
             </span>

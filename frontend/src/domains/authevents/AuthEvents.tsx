@@ -75,7 +75,7 @@ export default function AuthEvents() {
 
     return (
         <div className="h-screen flex lg:pl-16 pt-12 lg:pt-0">
-            <div className="flex flex-col px-3 md:px-8 pt-2 gap-3 flex-1 overflow-hidden">
+            <div className="flex flex-col px-3 md:px-8 pt-2 max-lg:landscape:pt-1 gap-3 max-lg:landscape:gap-1 flex-1 overflow-hidden">
                 {!allowed ? (
                     <div className="flex flex-1 flex-col items-center justify-center gap-3 text-[#666]">
                         <Lock size={40} />
