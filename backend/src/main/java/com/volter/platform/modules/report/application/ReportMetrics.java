@@ -12,15 +12,15 @@ public final class ReportMetrics {
     private ReportMetrics() {}
 
     public static long totalRevenue(Map<String, Object> payload) {
-        return sumSection(payload, "pawns", "inflow") + sumSection(payload, "sales", "inflow");
+        return scalar(payload, "totalRevenue");
     }
 
     public static long moneyGivenToClients(Map<String, Object> payload) {
-        return sumSection(payload, "pawns", "outflow") + sumSection(payload, "sales", "outflow");
+        return scalar(payload, "moneyGivenToClients");
     }
 
     public static long totalExpenses(Map<String, Object> payload) {
-        return sumSection(payload, "expenses", "amount");
+        return scalar(payload, "totalExpenses");
     }
 
     /**
@@ -37,17 +37,5 @@ public final class ReportMetrics {
     public static long scalar(Map<String, Object> payload, String key) {
         if (payload != null && payload.get(key) instanceof Number n) return n.longValue();
         return 0L;
-    }
-
-    /** Sums {@code field} across every entry of {@code section} in the payload (0 if absent). */
-    public static long sumSection(Map<String, Object> payload, String section, String field) {
-        if (payload == null || !(payload.get(section) instanceof Map<?, ?> entries)) return 0L;
-        long sum = 0L;
-        for (Object value : entries.values()) {
-            if (value instanceof Map<?, ?> entry && entry.get(field) instanceof Number n) {
-                sum += n.longValue();
-            }
-        }
-        return sum;
     }
 }

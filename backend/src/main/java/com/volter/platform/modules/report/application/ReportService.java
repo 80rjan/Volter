@@ -105,31 +105,18 @@ public class ReportService {
      * and WITHOUT persisting it. Reads the caller's shop data via the request's tenant
      * context, so no shop id is needed.
      */
-    @SuppressWarnings("unchecked")
     public PeriodReportResponse periodSummary(LocalDate from, LocalDate to) {
-        // The freshly aggregated payload still holds typed records, so compute the
-        // headline figures from them directly (the same formula the list mapper applies
-        // to a persisted report's deserialized map). The payload serializes to the same
-        // JSON shape for the response either way.
+        // Headline figures are stored as scalars in the payload (see aggregateMonthlySummary),
+        // so they read correctly here whether or not the report is persisted — the same path
+        // the list mapper uses for a reloaded report.
         Map<String, Object> payload = aggregateMonthlySummary(from, to);
-        Map<ItemType, CashFlowSummary> pawns = (Map<ItemType, CashFlowSummary>) payload.get("pawns");
-        Map<ItemType, CashFlowSummary> sales = (Map<ItemType, CashFlowSummary>) payload.get("sales");
-        Map<ExpenseCategory, ExpenseSummary> expenses = (Map<ExpenseCategory, ExpenseSummary>) payload.get("expenses");
-
-        long totalRevenue = sumFlow(pawns, CashFlowSummary::inflow) + sumFlow(sales, CashFlowSummary::inflow);
-        long moneyGivenToClients = sumFlow(pawns, CashFlowSummary::outflow) + sumFlow(sales, CashFlowSummary::outflow);
-        long totalExpenses = expenses.values().stream().mapToLong(ExpenseSummary::amount).sum();
-        // Net profit is realized profit minus expenses (provision + sale margin - expenses),
-        // NOT revenue minus money-given: loan principal comes back on redemption and item
-        // cost is already netted into the margin, so neither should be deducted here.
-        long netProfit = ReportMetrics.scalar(payload, "pawnProvision")
-                + ReportMetrics.scalar(payload, "saleMargin") - totalExpenses;
-
-        return new PeriodReportResponse(from, to, totalRevenue, totalExpenses, netProfit, moneyGivenToClients, payload);
-    }
-
-    private static long sumFlow(Map<?, CashFlowSummary> flows, java.util.function.ToLongFunction<CashFlowSummary> field) {
-        return flows.values().stream().mapToLong(field).sum();
+        return new PeriodReportResponse(
+                from, to,
+                ReportMetrics.totalRevenue(payload),
+                ReportMetrics.totalExpenses(payload),
+                ReportMetrics.netProfit(payload),
+                ReportMetrics.moneyGivenToClients(payload),
+                payload);
     }
 
     // ----- staff performance -----
@@ -278,14 +265,34 @@ public class ReportService {
         summary.put("cashRegister", cashRegisterTransactionRepository.summarize(from, to));
         summary.put("sessions", cashRegisterTransactionRepository.summarizeSessions(from, to));
 
-        // Realized profit inputs for net profit: pawn interest (provision) and sale margin.
-        // Stored as scalars so net profit = provision + margin - expenses can be recomputed
-        // from a persisted report's payload, matching the Pawns/Sales monthly profit bar.
-        // Unlike the per-item cash-flow net (inflow - outflow), these exclude loan principal
-        // handed out / returned and net the cost of goods sold against sale prices.
-        summary.put("pawnProvision", pawnTransactionRepository.provisionBetween(from, to));
-        summary.put("saleMargin", saleRepository.profitBetween(from, to));
+        // Headline figures, stored as scalars. Kept alongside the per-category breakdown so
+        // they read the same whether the payload is freshly built (typed records) or reloaded
+        // from jsonb (nested maps) — computing them by summing the sections only works on the
+        // reloaded form, which is what silently returned zero on a just-generated report.
+        // Net profit is realized profit (pawn interest/provision + sale margin) minus expenses,
+        // NOT revenue minus money-given: loan principal returns on redemption and item cost is
+        // already netted into the margin, so neither should be deducted again.
+        long totalRevenue = sumInflow(pawnSummary) + sumInflow(saleSummary);
+        long moneyGivenToClients = sumOutflow(pawnSummary) + sumOutflow(saleSummary);
+        long totalExpenses = expenseSummary.values().stream().mapToLong(ExpenseSummary::amount).sum();
+        long pawnProvision = pawnTransactionRepository.provisionBetween(from, to);
+        long saleMargin = saleRepository.profitBetween(from, to);
+
+        summary.put("totalRevenue", totalRevenue);
+        summary.put("moneyGivenToClients", moneyGivenToClients);
+        summary.put("totalExpenses", totalExpenses);
+        summary.put("pawnProvision", pawnProvision);
+        summary.put("saleMargin", saleMargin);
+        summary.put("netProfit", pawnProvision + saleMargin - totalExpenses);
 
         return summary;
+    }
+
+    private static long sumInflow(Map<?, CashFlowSummary> flows) {
+        return flows.values().stream().mapToLong(CashFlowSummary::inflow).sum();
+    }
+
+    private static long sumOutflow(Map<?, CashFlowSummary> flows) {
+        return flows.values().stream().mapToLong(CashFlowSummary::outflow).sum();
     }
 }

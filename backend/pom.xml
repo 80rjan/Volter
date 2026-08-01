@@ -163,6 +163,14 @@
             <version>20230227</version>
         </dependency>
 
+        <!-- Jackson 2 java.time support. Hibernate's jsonb FormatMapper uses Jackson 2, whose
+             bare ObjectMapper cannot serialize java.time values (e.g. report session dates);
+             this module adds that support (the web layer uses Jackson 3, which has it built in). -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+
         <!-- Dotenv Java-->
         <dependency>
             <groupId>io.github.cdimascio</groupId>
