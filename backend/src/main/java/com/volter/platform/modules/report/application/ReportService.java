@@ -20,6 +20,7 @@ import com.volter.shop.modules.pawn.domain.model.PawnTransaction;
 import com.volter.shop.modules.pawn.domain.model.enums.PawnTransactionAction;
 import com.volter.shop.modules.pawn.domain.repository.PawnTransactionRepository;
 import com.volter.shop.modules.sale.domain.model.SaleTransaction;
+import com.volter.shop.modules.sale.domain.repository.SaleRepository;
 import com.volter.shop.modules.sale.domain.repository.SaleTransactionRepository;
 import com.volter.shop.modules.transaction.application.dto.CashFlowSummary;
 import com.volter.shop.modules.transaction.domain.model.Transaction;
@@ -44,6 +45,7 @@ public class ReportService {
     private final ReportRepository reportRepository;
     private final PawnTransactionRepository pawnTransactionRepository;
     private final SaleTransactionRepository saleTransactionRepository;
+    private final SaleRepository saleRepository;
     private final CashRegisterTransactionRepository cashRegisterTransactionRepository;
     private final CashRegisterSessionDiscrepancyRepository discrepancyRepository;
     private final ExpenseTransactionRepository expenseTransactionRepository;
@@ -117,7 +119,11 @@ public class ReportService {
         long totalRevenue = sumFlow(pawns, CashFlowSummary::inflow) + sumFlow(sales, CashFlowSummary::inflow);
         long moneyGivenToClients = sumFlow(pawns, CashFlowSummary::outflow) + sumFlow(sales, CashFlowSummary::outflow);
         long totalExpenses = expenses.values().stream().mapToLong(ExpenseSummary::amount).sum();
-        long netProfit = sumFlow(pawns, CashFlowSummary::net) + sumFlow(sales, CashFlowSummary::net) - totalExpenses;
+        // Net profit is realized profit minus expenses (provision + sale margin - expenses),
+        // NOT revenue minus money-given: loan principal comes back on redemption and item
+        // cost is already netted into the margin, so neither should be deducted here.
+        long netProfit = ReportMetrics.scalar(payload, "pawnProvision")
+                + ReportMetrics.scalar(payload, "saleMargin") - totalExpenses;
 
         return new PeriodReportResponse(from, to, totalRevenue, totalExpenses, netProfit, moneyGivenToClients, payload);
     }
@@ -271,6 +277,14 @@ public class ReportService {
 
         summary.put("cashRegister", cashRegisterTransactionRepository.summarize(from, to));
         summary.put("sessions", cashRegisterTransactionRepository.summarizeSessions(from, to));
+
+        // Realized profit inputs for net profit: pawn interest (provision) and sale margin.
+        // Stored as scalars so net profit = provision + margin - expenses can be recomputed
+        // from a persisted report's payload, matching the Pawns/Sales monthly profit bar.
+        // Unlike the per-item cash-flow net (inflow - outflow), these exclude loan principal
+        // handed out / returned and net the cost of goods sold against sale prices.
+        summary.put("pawnProvision", pawnTransactionRepository.provisionBetween(from, to));
+        summary.put("saleMargin", saleRepository.profitBetween(from, to));
 
         return summary;
     }

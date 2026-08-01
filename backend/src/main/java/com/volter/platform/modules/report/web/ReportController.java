@@ -6,6 +6,7 @@ import com.volter.platform.modules.report.application.dto.response.ReportDetaile
 import com.volter.platform.modules.report.application.dto.response.StaffPerformanceResponse;
 import com.volter.platform.modules.report.application.dto.request.ReportFilterRequest;
 import com.volter.platform.modules.report.application.dto.response.ReportResponse;
+import com.volter.platform.modules.report.domain.model.Report;
 import com.volter.platform.modules.report.infrastructure.mapper.ReportMapper;
 import com.volter.shared.security.StaffPrincipal;
 import com.volter.shared.web.PageResponse;
@@ -18,6 +19,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 
 @RestController
 @RequestMapping("/reports")
@@ -48,6 +50,24 @@ public class ReportController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
         return ResponseEntity.ok(reportService.periodSummary(dateFrom, dateTo));
+    }
+
+    /**
+     * Generates and persists the shop-wide monthly summary for the given year/month
+     * (caller's shop), e.g. to backfill a month the scheduled job missed or to recompute
+     * one after a formula change. Does NOT remove an existing report for that month —
+     * delete any stale row first to avoid a duplicate.
+     */
+    @PostMapping("/monthly")
+    public ResponseEntity<ReportResponse> generateMonthly(
+            @RequestParam int year, @RequestParam int month,
+            @AuthenticationPrincipal StaffPrincipal principal) {
+        if (month < 1 || month > 12) {
+            throw new IllegalArgumentException("month must be between 1 and 12");
+        }
+        YearMonth ym = YearMonth.of(year, month);
+        Report report = reportService.generateMonthlySummary(principal.shopId(), ym.atDay(1), ym.atEndOfMonth());
+        return ResponseEntity.ok(reportMapper.toResponse(report));
     }
 
     /**

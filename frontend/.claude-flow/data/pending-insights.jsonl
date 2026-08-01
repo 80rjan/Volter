@@ -201,6 +201,11 @@
 {"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/shared/components/CashRegister.tsx","timestamp":1783035046486,"sessionId":null}
 {"type":"edit","file":"/Users/borjan/Projects/Volter/frontend/src/domains/notifications/Notifications.tsx","timestamp":1783064763197,"sessionId":null}
 {"type":"edit","file":"/private/tmp/claude-501/-Users-borjan-Projects-Volter/b5ba3380-6cac-45b8-919b-ff39ac52fe6c/scratchpad/modals.mjs","timestamp":1783064807266,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/platform/modules/report/application/ReportService.java","timestamp":1785583704305,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/platform/modules/report/application/ReportService.java","timestamp":1785583737254,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/platform/modules/report/application/ReportService.java","timestamp":1785583758163,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/platform/modules/report/application/ReportService.java","timestamp":1785583819785,"sessionId":null}
+{"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/platform/modules/report/application/ReportMetrics.java","timestamp":1785583883190,"sessionId":null}
 {"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/resources/db/migration/public/V9__add_profit_read_permission.sql","timestamp":1783424941232,"sessionId":null}
 {"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/transaction/application/dto/MonthlyProfitResponse.java","timestamp":1783424949725,"sessionId":null}
 {"type":"edit","file":"/Users/borjan/Projects/Volter/backend/src/main/java/com/volter/shop/modules/transaction/application/TransactionService.java","timestamp":1783424959687,"sessionId":null}

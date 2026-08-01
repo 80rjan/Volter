@@ -31,7 +31,7 @@ public class MonthlyReportScheduler {
     private final StaffShopRepository staffShopRepository;
     private final ReportService reportService;
 
-    @Scheduled(cron = "0 0 0 1 * *", zone = "Europe/Skopje")
+    @Scheduled(cron = "0 0 4 1 * *", zone = "Europe/Skopje")
     public void generateMonthlyReports() {
         LocalDate firstOfThisMonth = LocalDate.now().withDayOfMonth(1);
         LocalDate from = firstOfThisMonth.minusMonths(1);  // 1st of the previous month

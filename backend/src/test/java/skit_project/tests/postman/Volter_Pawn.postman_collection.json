@@ -1,0 +1,508 @@
+{
+  "info": {
+    "name": "Volter — Pawn Controller",
+    "description": "Manual/API tests for PawnController (/pawns). Run the folders top to bottom: (1) Auth — Login then Select Shop yields a shop-scoped access token every request inherits; (2) Setup — creates a cash register, OPENS a session, and creates a customer, saving sessionId and customerId into collection variables (create/extend/redeem need an OPEN session); (3) Pawns — the 8 controller endpoints. Each request's test script chains the next by saving ids (registerId, sessionId, customerId, pawnId).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{accessToken}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "username", "value": "user", "type": "string" },
+    { "key": "password", "value": "password", "type": "string" },
+    { "key": "preAuthToken", "value": "", "type": "string" },
+    { "key": "accessToken", "value": "", "type": "string" },
+    { "key": "shopId", "value": "1", "type": "string" },
+    { "key": "registerId", "value": "1", "type": "string" },
+    { "key": "registerCode", "value": "REG-POSTMAN", "type": "string" },
+    { "key": "sessionId", "value": "5", "type": "string" },
+    { "key": "customerId", "value": "1", "type": "string" },
+    { "key": "pawnId", "value": "1", "type": "string" },
+    { "key": "pawnIdRedeem", "value": "6", "type": "string" },
+    { "key": "pawnIdForfeit", "value": "7", "type": "string" },
+    { "key": "issueDate", "value": "2026-07-08", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "1. Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('preAuthToken present', () => pm.expect(json.preAuthToken).to.be.a('string').and.not.empty);",
+                  "pm.collectionVariables.set('preAuthToken', json.preAuthToken);",
+                  "if (json.shops && json.shops.length) {",
+                  "  pm.collectionVariables.set('shopId', String(json.shops[0].id));",
+                  "  console.log('Shops:', json.shops.map(s => s.id + '=' + s.name).join(', '));",
+                  "  console.log('Using shopId=' + json.shops[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "auth", "login" ]
+            },
+            "description": "Authenticate. Returns a PRE-AUTH token plus the shops this staff can enter. Test script saves preAuthToken and picks shops[0] as shopId."
+          }
+        },
+        {
+          "name": "2. Select Shop",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('accessToken present', () => pm.expect(json.accessToken).to.be.a('string').and.not.empty);",
+                  "pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "console.log('Shop-scoped access token saved for shopId=' + json.shopId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [ { "key": "token", "value": "{{preAuthToken}}", "type": "string" } ]
+            },
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shopId\": {{shopId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/select-shop",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "auth", "select-shop" ]
+            },
+            "description": "Exchange the pre-auth token for a shop-scoped ACCESS token (sets the tenant). Uses Bearer {{preAuthToken}}. Test script saves accessToken; all pawn requests inherit it."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Setup",
+      "description": "Prerequisites for create/extend/redeem: a cash register, an OPEN session (money moves against it), and a customer. Run in order after Auth; ids are saved into collection variables.",
+      "item": [
+        {
+          "name": "1. Create cash register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "if (json && json.id) {",
+                  "  pm.collectionVariables.set('registerId', String(json.id));",
+                  "  console.log('Saved registerId=' + json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{registerCode}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cash-registers",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "cash-registers" ]
+            },
+            "description": "Create a cash register to open a session on. Requires CASH_REGISTER_MANAGE. Saves the new id into {{registerId}}. (If you already have a register, skip this and set registerId manually.)"
+          }
+        },
+        {
+          "name": "2. Open session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test('session is OPEN', () => pm.expect(json.status).to.eql('OPEN'));",
+                  "if (json && json.id) {",
+                  "  pm.collectionVariables.set('sessionId', String(json.id));",
+                  "  console.log('Saved OPEN sessionId=' + json.id + ' (opening balance ' + json.openingBalance + ')');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"openingBalance\": 5000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cash-registers/{{registerId}}/open-session",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "cash-registers", "{{registerId}}", "open-session" ]
+            },
+            "description": "Open a cash register session operated by the caller — this is the OPEN session the pawn operations move money against. Requires CASH_REGISTER_SESSION_MANAGE. Saves the id into {{sessionId}} and asserts status == OPEN. (A register may hold only one open session at a time; close any existing one first.)"
+          }
+        },
+        {
+          "name": "3. Create customer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "if (json && json.id) {",
+                  "  pm.collectionVariables.set('customerId', String(json.id));",
+                  "  console.log('Saved customerId=' + json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Ана Ангелова\",\n  \"nationalId\": \"1234567890123\",\n  \"phonePrimary\": \"070111222\",\n  \"phoneSecondary\": null,\n  \"address\": \"ул. Прва 1\",\n  \"city\": \"Скопје\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/customers",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "customers" ]
+            },
+            "description": "Create the customer the pawn contract is opened for. Requires CUSTOMER_WRITE. Saves the id into {{customerId}}. (create-or-fetch by nationalId, so re-running returns the same customer.)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pawns",
+      "item": [
+        {
+          "name": "List pawns (GET /pawns)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pawns?page=0&size=20&sort=issueDate,desc",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "pawns" ],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "20" },
+                { "key": "sort", "value": "issueDate,desc" },
+                { "key": "status", "value": "ACTIVE", "disabled": true, "description": "ACTIVE | REDEEMED | FORFEITED | EXTENDED (PawnContractStatus)" },
+                { "key": "customerFullName", "value": "Ана", "disabled": true },
+                { "key": "customerNationalId", "value": "", "disabled": true },
+                { "key": "customerPhone", "value": "", "disabled": true },
+                { "key": "itemType", "value": "GOLD", "disabled": true, "description": "GOLD | ELECTRONIC | WATCH | VEHICLE | OTHER" },
+                { "key": "createdByStaffId", "value": "", "disabled": true },
+                { "key": "issuedFrom", "value": "2026-01-01", "disabled": true },
+                { "key": "issuedTo", "value": "2026-12-31", "disabled": true },
+                { "key": "dueFrom", "value": "", "disabled": true },
+                { "key": "dueTo", "value": "", "disabled": true },
+                { "key": "overdueOnly", "value": "true", "disabled": true }
+              ]
+            },
+            "description": "Paginated list with optional filters (PawnFilterRequest bound from query params) + Spring Pageable (page/size/sort). Requires PAWN_READ."
+          }
+        },
+        {
+          "name": "Summary (GET /pawns/summary)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [ "pm.test('200 OK', () => pm.response.to.have.status(200));" ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pawns/summary",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "pawns", "summary" ],
+              "query": [
+                { "key": "status", "value": "ACTIVE", "disabled": true },
+                { "key": "itemType", "value": "GOLD", "disabled": true },
+                { "key": "overdueOnly", "value": "true", "disabled": true }
+              ]
+            },
+            "description": "Aggregate totals (count, money given, interest, gold grams) over the same filter set as List. Requires PAWN_READ."
+          }
+        },
+        {
+          "name": "Get by id (GET /pawns/{id})",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [ "pm.test('200 OK', () => pm.response.to.have.status(200));" ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pawns/{{pawnId}}",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "pawns", "{{pawnId}}" ]
+            },
+            "description": "Detailed view of one contract. Requires PAWN_READ. 404 if the id does not exist."
+          }
+        },
+        {
+          "name": "Create (POST /pawns)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "if (json && json.id) {",
+                  "  pm.collectionVariables.set('pawnId', String(json.id));",
+                  "  console.log('Saved pawnId=' + json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": {{customerId}},\n  \"item\": {\n    \"type\": \"GOLD\",\n    \"origin\": \"PAWN\",\n    \"initialStatus\": \"IN_PAWN\",\n    \"description\": \"Златен прстен 5г\",\n    \"attributes\": { \"weightGrams\": 5.0 }\n  },\n  \"principalAmount\": 1000,\n  \"interestAmount\": 100,\n  \"termDays\": 30,\n  \"issueDate\": \"{{issueDate}}\",\n  \"cashRegisterSessionId\": {{sessionId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pawns",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "pawns" ]
+            },
+            "description": "Open a new pawn contract (pays the principal OUT of the open cash session). Requires PAWN_WRITE. Uses {{customerId}} and {{sessionId}} — run the Setup folder first to populate them (customerId must exist; sessionId must be an OPEN cash register session). On success the test script saves the new contract id into {{pawnId}} for the requests below."
+          }
+        },
+        {
+          "name": "Update contract terms (PATCH /pawns/{id}/contract)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [ "pm.test('200 OK', () => pm.response.to.have.status(200));" ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"principalAmount\": 1200,\n  \"interestAmount\": 120,\n  \"termDays\": 45,\n  \"issueDate\": \"{{issueDate}}\",\n  \"cashRegisterSessionId\": {{sessionId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pawns/{{pawnId}}/contract",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "pawns", "{{pawnId}}", "contract" ]
+            },
+            "description": "Edit terms of an ACTIVE contract. Changing principalAmount moves cash, so cashRegisterSessionId is then required (must be OPEN). Changing termDays/issueDate shifts the due date. Requires PAWN_UPDATE."
+          }
+        },
+        {
+          "name": "Extend (POST /pawns/{id}/extend)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [ "pm.test('200 OK', () => pm.response.to.have.status(200));" ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"interestPaid\": 100,\n  \"fee\": 0,\n  \"cashRegisterSessionId\": {{sessionId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pawns/{{pawnId}}/extend",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "pawns", "{{pawnId}}", "extend" ]
+            },
+            "description": "Collect interest IN and push the due date forward. Requires PAWN_WRITE and an OPEN cash session."
+          }
+        },
+        {
+          "name": "Create (for redeem) — POST /pawns",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "if (json && json.id) {",
+                  "  pm.collectionVariables.set('pawnIdRedeem', String(json.id));",
+                  "  console.log('Saved pawnIdRedeem=' + json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": {{customerId}},\n  \"item\": {\n    \"type\": \"GOLD\",\n    \"origin\": \"PAWN\",\n    \"initialStatus\": \"IN_PAWN\",\n    \"description\": \"Прстен за откуп\",\n    \"attributes\": { \"weightGrams\": 4.0 }\n  },\n  \"principalAmount\": 1000,\n  \"interestAmount\": 100,\n  \"termDays\": 30,\n  \"issueDate\": \"{{issueDate}}\",\n  \"cashRegisterSessionId\": {{sessionId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pawns",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "pawns" ]
+            },
+            "description": "Open a FRESH ACTIVE contract dedicated to the Redeem test, saved into {{pawnIdRedeem}}. A contract can only end one way (redeemed OR forfeited), so Redeem and Forfeit each need their own contract — this is Redeem's."
+          }
+        },
+        {
+          "name": "Redeem (POST /pawns/{id}/redeem)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [ "pm.test('200 OK', () => pm.response.to.have.status(200));" ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paidAmount\": 1100,\n  \"cashRegisterSessionId\": {{sessionId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pawns/{{pawnIdRedeem}}/redeem",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "pawns", "{{pawnIdRedeem}}", "redeem" ]
+            },
+            "description": "Customer pays back principal + interest IN and reclaims the item; closes the contract (-> REDEEMED). Requires PAWN_WRITE and an OPEN cash session. Uses {{pawnIdRedeem}} (its own contract) so it never clashes with Forfeit — run 'Create (for redeem)' first."
+          }
+        },
+        {
+          "name": "Create (for forfeit) — POST /pawns",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "if (json && json.id) {",
+                  "  pm.collectionVariables.set('pawnIdForfeit', String(json.id));",
+                  "  console.log('Saved pawnIdForfeit=' + json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": {{customerId}},\n  \"item\": {\n    \"type\": \"GOLD\",\n    \"origin\": \"PAWN\",\n    \"initialStatus\": \"IN_PAWN\",\n    \"description\": \"Прстен за конфискација\",\n    \"attributes\": { \"weightGrams\": 6.0 }\n  },\n  \"principalAmount\": 1000,\n  \"interestAmount\": 100,\n  \"termDays\": 30,\n  \"issueDate\": \"{{issueDate}}\",\n  \"cashRegisterSessionId\": {{sessionId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pawns",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "pawns" ]
+            },
+            "description": "Open a FRESH ACTIVE contract dedicated to the Forfeit test, saved into {{pawnIdForfeit}} — a SEPARATE contract from Redeem's, since a redeemed contract cannot be forfeited (both require ACTIVE and are terminal)."
+          }
+        },
+        {
+          "name": "Forfeit (POST /pawns/{id}/forfeit)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [ "pm.test('200 OK', () => pm.response.to.have.status(200));" ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pawns/{{pawnIdForfeit}}/forfeit",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "pawns", "{{pawnIdForfeit}}", "forfeit" ]
+            },
+            "description": "Forfeit an ACTIVE contract (the item passes to the shop and is listed for sale -> FORFEITED). No body. Requires PAWN_FORFEIT. Uses its own {{pawnIdForfeit}} so it never targets the already-redeemed contract — run 'Create (for forfeit)' first."
+          }
+        }
+      ]
+    }
+  ]
+}

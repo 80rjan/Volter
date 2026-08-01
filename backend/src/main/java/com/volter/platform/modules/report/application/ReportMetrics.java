@@ -23,8 +23,20 @@ public final class ReportMetrics {
         return sumSection(payload, "expenses", "amount");
     }
 
+    /**
+     * Realized profit minus expenses: pawn interest (provision) + sale margin − expenses.
+     * The provision and margin are stored as scalars in the payload; this deliberately does
+     * NOT use the per-item cash-flow net (inflow − outflow), which would wrongly subtract the
+     * loan principal handed to clients and ignore the cost of goods sold.
+     */
     public static long netProfit(Map<String, Object> payload) {
-        return sumSection(payload, "pawns", "net") + sumSection(payload, "sales", "net") - totalExpenses(payload);
+        return scalar(payload, "pawnProvision") + scalar(payload, "saleMargin") - totalExpenses(payload);
+    }
+
+    /** Reads a top-level scalar long from the payload (0 if absent or not a number). */
+    public static long scalar(Map<String, Object> payload, String key) {
+        if (payload != null && payload.get(key) instanceof Number n) return n.longValue();
+        return 0L;
     }
 
     /** Sums {@code field} across every entry of {@code section} in the payload (0 if absent). */
