@@ -18,10 +18,14 @@ export function ReportStats({ totalRevenue, totalExpenses, netProfit, moneyGiven
             <span className={`text-base font-bold ${cls ?? ""}`}>{value}</span>
         </div>
     );
+    // Gross profit = pawn provision + sale margin (i.e. before expenses). Net is
+    // gross − expenses, so gross = net + expenses.
+    const grossProfit = netProfit + totalExpenses;
     return (
         <div className="flex flex-wrap gap-3">
             <Stat label="Приход" value={`${money(totalRevenue)} ден`} cls="text-green" />
             <Stat label="Дадено на клиенти" value={`${money(moneyGivenToClients)} ден`} />
+            <Stat label="Бруто профит" value={`${money(grossProfit)} ден`} cls={grossProfit < 0 ? "text-red-500" : "text-green"} />
             <Stat label="Расходи" value={`${money(totalExpenses)} ден`} cls="text-red-500" />
             <Stat label="Нето профит" value={`${money(netProfit)} ден`} cls={netProfit < 0 ? "text-red-500" : "text-green"} />
         </div>
