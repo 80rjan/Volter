@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import PawnRow from "./Pawn.tsx";
-import {Plus, ChevronUp, ChevronDown, Minus, Handshake, Banknote, Percent, Gem, Coins} from "lucide-react";
+import {Plus, ChevronUp, ChevronDown, Minus, Handshake, Banknote, Percent, Gem, Coins, CalendarClock} from "lucide-react";
 import ModalAddNewPawn from "./ModalAddNewPawn.tsx";
 import CashRegister from "../../shared/components/CashRegister.tsx";
 import MonthlyProfitBar from "../../shared/components/MonthlyProfitBar.tsx";
@@ -132,8 +132,10 @@ export default function Pawns() {
                 {/* Totals for the currently filtered (active) pawns. */}
                 <div className="flex flex-wrap w-full justify-between items-center gap-x-6 gap-y-1 bg-[#f4f4f4] border border-black/10 rounded-lg px-3 md:px-5 py-1.5 max-lg:landscape:py-0.5 text-xs text-[#666]">
                     <span className="flex items-center gap-1.5"><Handshake size={15} className="text-green" /> Залози: <b className="text-[#333]">{summary.count}</b></span>
-                    <span className="flex items-center gap-1.5"><Banknote size={15} className="text-green" /> Дадени пари: <b className="text-[#333]">{summary.totalPrincipal.toLocaleString("de-DE")} ден</b></span>
-                    <span className="flex items-center gap-1.5"><Percent size={15} className="text-green" /> Камата за наплата: <b className="text-[#333]">{summary.totalInterest.toLocaleString("de-DE")} ден</b></span>
+                    <span className="flex items-center gap-1.5"><Banknote size={15} className="text-green" /> Вкупно дадени пари: <b className="text-[#333]">{summary.totalPrincipal.toLocaleString("de-DE")} ден</b></span>
+                    <span className="flex items-center gap-1.5"><CalendarClock size={15} className="text-green" /> Дадени пари месецов: <b className="text-[#333]">{summary.monthlyPrincipal.toLocaleString("de-DE")} ден</b></span>
+                    <span className="flex items-center gap-1.5"><Percent size={15} className="text-green" /> Вкупно камата за наплата: <b className="text-[#333]">{summary.totalInterest.toLocaleString("de-DE")} ден</b></span>
+                    <span className="flex items-center gap-1.5"><CalendarClock size={15} className="text-green" /> Камата за наплата месецов: <b className="text-[#333]">{summary.monthlyInterest.toLocaleString("de-DE")} ден</b></span>
                     <span className="flex items-center gap-1.5"><Coins size={15} className="text-green" /> Злато: <b className="text-[#333]">{summary.totalGoldGrams.toLocaleString("de-DE", { maximumFractionDigits: 2 })} гр</b></span>
                 </div>
 

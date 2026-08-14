@@ -34,6 +34,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -88,7 +89,26 @@ public class PawnService {
                 .filter(p -> p.getItem() != null && p.getItem().getType() == ItemType.GOLD)
                 .mapToDouble(p -> goldWeightGrams(p.getItem()))
                 .sum();
-        return new PawnSummaryResponse(list.size(), principal, interest, goldGrams);
+
+        // Month-scoped figures (over the same filtered set, so they respect the active filters).
+        LocalDate today = LocalDate.now();
+        LocalDate firstOfMonth = today.withDayOfMonth(1);
+        LocalDate endOfMonth = today.withDayOfMonth(today.lengthOfMonth());
+        // Principal handed out for pawns opened this month (by issue date).
+        long monthlyPrincipal = list.stream()
+                .filter(p -> p.getIssueDate() != null
+                        && !p.getIssueDate().isBefore(firstOfMonth)
+                        && !p.getIssueDate().isAfter(endOfMonth))
+                .mapToLong(p -> p.getPrincipalAmount().amount())
+                .sum();
+        // Interest still to collect on pawns that expire by the end of this month
+        // (due date on/before month end — includes overdue-but-still-open contracts).
+        long monthlyInterest = list.stream()
+                .filter(p -> p.getDueDate() != null && !p.getDueDate().isAfter(endOfMonth))
+                .mapToLong(p -> p.getInterestAmount().amount())
+                .sum();
+
+        return new PawnSummaryResponse(list.size(), principal, monthlyPrincipal, interest, monthlyInterest, goldGrams);
     }
 
     /** Read the gold weight (grams) from an item's free-form attributes; 0 if absent/unparseable. */

@@ -84,7 +84,7 @@ function mapPawnResponse(r: any): PawnRowType {
 }
 
 export function usePawns() {
-    const [summary, setSummary] = useState({ count: 0, totalPrincipal: 0, totalInterest: 0, totalGoldGrams: 0, monthlyProvision: 0 });
+    const [summary, setSummary] = useState({ count: 0, totalPrincipal: 0, monthlyPrincipal: 0, totalInterest: 0, monthlyInterest: 0, totalGoldGrams: 0 });
     const [sorts, setSorts] = useState<SortItem[]>([{ key: "Valid Until", dir: "ASC" }]);
     const [searchByName, setSearchByName] = useState("");
     const [searchByEmbg, setSearchByEmbg] = useState("");
