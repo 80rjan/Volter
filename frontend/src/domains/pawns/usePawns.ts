@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { PawnRow as PawnRowType } from "./types.ts";
 import { API_BASE } from "../../shared/api/config.ts";
+import { useInfiniteScroll } from "../../shared/utils/useInfiniteScroll.ts";
 
 const ITEM_TYPE_TO_CATEGORY: Record<string, PawnRowType['Category']> = {
     GOLD: 'Gold', ELECTRONIC: 'Electronics', VEHICLE: 'Vehicle', WATCH: 'Watch', OTHER: 'Other',
@@ -83,7 +84,6 @@ function mapPawnResponse(r: any): PawnRowType {
 }
 
 export function usePawns() {
-    const [allPawns, setAllPawns] = useState<PawnRowType[]>([]);
     const [summary, setSummary] = useState({ count: 0, totalPrincipal: 0, totalInterest: 0, totalGoldGrams: 0, monthlyProvision: 0 });
     const [sorts, setSorts] = useState<SortItem[]>([{ key: "Valid Until", dir: "ASC" }]);
     const [searchByName, setSearchByName] = useState("");
@@ -93,66 +93,36 @@ export function usePawns() {
     const [searchByStatus, setSearchByStatus] = useState("ACTIVE");
     const [searchByStaff, setSearchByStaff] = useState("");
     const [refresh, setRefresh] = useState(false);
-    const page = useRef(0);
-    const size = 60;
-    const [isLastPage, setIsLastPage] = useState(false);
-    const scrollablePawnsRef = useRef<HTMLDivElement>(null);
-    const [loading, setLoading] = useState(false);
-    const isFetchingRef = useRef(false);
-    const [isFetching, setIsFetching] = useState(false);
     const [refreshCashReg, setRefreshCashReg] = useState(false);
-    const fetchedPawnIds = useRef(new Set<string>());
 
-    const fetchPawns = (pg: number, sortList: SortItem[], name: string, embg: string, tel: string, cat: string, status: string, staff: string, isLoading: boolean) => {
-        if (isFetching) return;
-        setIsFetching(true);
-        setLoading(isLoading);
-        isFetchingRef.current = true;
+    // Filters + multi-column sort -> Spring Data query params (no page/size).
+    // Multiple `sort` params => multi-column ordering (first = primary, then tie-breakers).
+    // Param names must match PawnFilterRequest exactly or the filter is ignored.
+    const params = new URLSearchParams();
+    const activeSorts = sorts.length ? sorts : [{ key: "Valid Until", dir: "ASC" as const }];
+    activeSorts.forEach(s => params.append("sort", `${SORT_FIELD[s.key] ?? "dueDate"},${s.dir}`));
+    if (searchByStatus) params.set("status", searchByStatus);
+    if (searchByName) params.set("customerFullName", searchByName);
+    if (searchByEmbg) params.set("customerNationalId", searchByEmbg);
+    if (searchByTel) params.set("customerPhone", searchByTel);
+    if (searchByCategory) params.set("itemType", CATEGORY_TO_ITEM_TYPE[searchByCategory as PawnRowType["Category"]] ?? searchByCategory);
+    if (searchByStaff) params.set("createdByStaffId", searchByStaff);
 
-        const params = new URLSearchParams({ page: String(pg), size: String(size) });
-        // Multiple `sort` params => multi-column ordering (first = primary, then tie-breakers).
-        const active = sortList.length ? sortList : [{ key: 'Valid Until', dir: 'ASC' as const }];
-        active.forEach(s => params.append('sort', `${SORT_FIELD[s.key] ?? 'dueDate'},${s.dir}`));
-        // Param names must match PawnFilterRequest exactly or the filter is ignored.
-        if (status) params.set('status', status);
-        if (name) params.set('customerFullName', name);
-        if (embg) params.set('customerNationalId', embg);
-        if (tel) params.set('customerPhone', tel);
-        if (cat) params.set('itemType', CATEGORY_TO_ITEM_TYPE[cat as PawnRowType['Category']] ?? cat);
-        if (staff) params.set('createdByStaffId', staff);
+    const { items: allPawns, loading, scrollRef: scrollablePawnsRef, reload } = useInfiniteScroll<any, PawnRowType>({
+        url: `${API_BASE}/pawns`,
+        params,
+        map: mapPawnResponse,
+        getId: p => `${p.Category}_${p.Id}`,
+        size: 60,
+    });
 
-        axios.get(`${API_BASE}/pawns?${params}`)
-            .then(res => {
-                const pawns: PawnRowType[] = (res.data.content ?? []).map(mapPawnResponse);
-                const newUnique = pawns.filter(p => !fetchedPawnIds.current.has(`${p.Category}_${p.Id}`));
-                newUnique.forEach(p => fetchedPawnIds.current.add(`${p.Category}_${p.Id}`));
-                setAllPawns(prev => [...prev, ...newUnique]);
-                // Backend returns a flat PageResponse ({ page, totalPages, last, ... }),
-                // so trust its `last` flag rather than a nested page object.
-                setIsLastPage(res.data.last ?? (res.data.page >= res.data.totalPages - 1));
-            })
-            .catch(error => console.error("Error fetching pawns:", error))
-            .finally(() => { setLoading(false); isFetchingRef.current = false; setIsFetching(false); });
-    };
-
+    // `refresh` is the app-wide "data changed" signal (after create/renew/redeem, etc.);
+    // replay it into the paged list. Skip the initial mount — the hook already loads page 0.
+    const firstRun = useRef(true);
     useEffect(() => {
-        const el = scrollablePawnsRef.current!;
-        const handleScroll = () => {
-            if (el.scrollHeight - el.scrollTop - el.clientHeight <= el.scrollHeight * 0.3 && !isLastPage && !isFetchingRef.current) {
-                page.current += 1;
-                fetchPawns(page.current, sorts, searchByName, searchByEmbg, searchByTel, searchByCategory, searchByStatus, searchByStaff, false);
-            }
-        };
-        el.addEventListener("scroll", handleScroll);
-        return () => el.removeEventListener("scroll", handleScroll);
-    }, [isLastPage, refresh, sorts, searchByName, searchByEmbg, searchByTel, searchByCategory, searchByStatus, searchByStaff]);
-
-    useEffect(() => {
-        fetchedPawnIds.current.clear();
-        setAllPawns([]);
-        page.current = 0;
-        fetchPawns(0, sorts, searchByName, searchByEmbg, searchByTel, searchByCategory, searchByStatus, searchByStaff, true);
-    }, [refresh, sorts, searchByName, searchByEmbg, searchByTel, searchByCategory, searchByStatus, searchByStaff]);
+        if (firstRun.current) { firstRun.current = false; return; }
+        reload();
+    }, [refresh, reload]);
 
     // Totals over the whole filtered set (server-side, not just loaded pages).
     const fetchSummary = () => {

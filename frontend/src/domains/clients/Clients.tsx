@@ -1,13 +1,12 @@
-import { useEffect, useRef, useState } from "react";
-import axios from "axios";
+import { useRef, useState } from "react";
 import { ChevronUp, ChevronDown, Minus, Lock } from "lucide-react";
-import CashRegister from "../../shared/components/CashRegister.tsx";
 import Loading from "../../shared/components/Loading.tsx";
 import ClientRow from "./Client.tsx";
 import { Customer } from "./types.ts";
 import { API_BASE } from "../../shared/api/config.ts";
 import { useAuth } from "../../GlobalContext.tsx";
 import { useDebounce } from "../../shared/utils/useDebounce.ts";
+import { useInfiniteScroll } from "../../shared/utils/useInfiniteScroll.ts";
 
 const SORT_FIELD: Record<string, string> = {
     Id: "id",
@@ -27,7 +26,6 @@ export default function Clients() {
     const { can } = useAuth();
     const allowed = can("CUSTOMER_READ");
 
-    const [allClients, setAllClients] = useState<Customer[]>([]);
     const [orderBy, setOrderBy] = useState("Date");
     const orderDirectionArr = useRef([0, 0, 0, 0, 0, -1, 0]);
     const [orderDirection, setOrderDirection] = useState("DESC");
@@ -40,60 +38,20 @@ export default function Clients() {
     const phone = useDebounce(searchPhone, 350);
     const city = useDebounce(searchCity, 350);
 
-    const page = useRef(0);
-    const size = 40;
-    const [isLastPage, setIsLastPage] = useState(false);
-    const scrollableRef = useRef<HTMLDivElement>(null);
-    const [loading, setLoading] = useState(false);
-    const isFetchingRef = useRef(false);
-    const fetchedIds = useRef(new Set<number>());
+    const params = new URLSearchParams();
+    params.set("sort", `${SORT_FIELD[orderBy] ?? "createdAt"},${orderDirection}`);
+    if (name) params.set("fullName", name);
+    if (embg) params.set("nationalId", embg);
+    if (phone) params.set("phone", phone);
+    if (city) params.set("city", city);
 
-    const fetchClients = (pg: number, order: string, direction: string, isLoading: boolean) => {
-        if (isFetchingRef.current) return;
-        isFetchingRef.current = true;
-        setLoading(isLoading);
-        const params = new URLSearchParams({
-            page: String(pg),
-            size: String(size),
-            sort: `${SORT_FIELD[order] ?? "createdAt"},${direction}`,
-        });
-        if (name) params.set("fullName", name);
-        if (embg) params.set("nationalId", embg);
-        if (phone) params.set("phone", phone);
-        if (city) params.set("city", city);
-        axios.get(`${API_BASE}/customers?${params}`)
-            .then(res => {
-                const newUnique = (res.data.content ?? []).filter((c: Customer) => !fetchedIds.current.has(c.id));
-                newUnique.forEach((c: Customer) => fetchedIds.current.add(c.id));
-                setAllClients(prev => [...prev, ...newUnique]);
-                setIsLastPage(res.data.page ? res.data.page.number >= res.data.page.totalPages - 1 : true);
-            })
-            .catch(error => console.error("Error fetching customers:", error))
-            .finally(() => { setLoading(false); isFetchingRef.current = false; });
-    };
-
-    useEffect(() => {
-        const el = scrollableRef.current;
-        if (!el) return;
-        const handleScroll = () => {
-            if (el.scrollHeight - el.scrollTop - el.clientHeight <= el.scrollHeight * 0.3 && !isLastPage && !isFetchingRef.current) {
-                page.current += 1;
-                fetchClients(page.current, orderBy, orderDirection, false);
-            }
-        };
-        el.addEventListener("scroll", handleScroll);
-        return () => el.removeEventListener("scroll", handleScroll);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLastPage, orderBy, orderDirection, name, embg, phone, city]);
-
-    useEffect(() => {
-        if (!allowed) return;
-        fetchedIds.current.clear();
-        setAllClients([]);
-        page.current = 0;
-        fetchClients(0, orderBy, orderDirection, true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [allowed, orderBy, orderDirection, name, embg, phone, city]);
+    const { items: allClients, setItems: setAllClients, loading, scrollRef } = useInfiniteScroll<Customer>({
+        url: `${API_BASE}/customers`,
+        params,
+        getId: c => c.id,
+        size: 40,
+        enabled: allowed,
+    });
 
     const handleOrder = (by: string, index: number) => {
         const newDir = new Array(orderDirectionArr.current.length).fill(0);
@@ -144,7 +102,7 @@ export default function Clients() {
                                 ))}
                             </div>
 
-                            <div ref={scrollableRef} className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-thin min-w-[880px] md:min-w-0">
+                            <div ref={scrollRef} className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-thin min-w-[880px] md:min-w-0">
                                 {loading ? <Loading /> : allClients.map((client, index) => (
                                     <ClientRow key={client.id} client={client} isOdd={index % 2 === 1} onUpdated={onUpdated} cols={cols} />
                                 ))}
