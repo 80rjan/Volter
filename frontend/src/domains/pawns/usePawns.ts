@@ -101,6 +101,11 @@ export function usePawns() {
     const params = new URLSearchParams();
     const activeSorts = sorts.length ? sorts : [{ key: "Valid Until", dir: "ASC" as const }];
     activeSorts.forEach(s => params.append("sort", `${SORT_FIELD[s.key] ?? "dueDate"},${s.dir}`));
+    // Final tie-breaker: dueDate (and every other sort key here) repeats across rows,
+    // and rows tied under the sort come back in arbitrary order per query — with
+    // offset paging that repeats a row on one page and skips it on another, so
+    // pawns silently go missing. `id` is unique, which makes the order total.
+    params.append("sort", "id,ASC");
     if (searchByStatus) params.set("status", searchByStatus);
     if (searchByName) params.set("customerFullName", searchByName);
     if (searchByEmbg) params.set("customerNationalId", searchByEmbg);

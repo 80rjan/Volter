@@ -40,6 +40,8 @@ export default function Clients() {
 
     const params = new URLSearchParams();
     params.set("sort", `${SORT_FIELD[orderBy] ?? "createdAt"},${orderDirection}`);
+    // Unique final tie-breaker so offset paging can't repeat or skip tied rows.
+    params.append("sort", "id,ASC");
     if (name) params.set("fullName", name);
     if (embg) params.set("nationalId", embg);
     if (phone) params.set("phone", phone);

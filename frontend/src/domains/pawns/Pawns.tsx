@@ -119,7 +119,7 @@ export default function Pawns() {
                     <div ref={scrollablePawnsRef} className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-thin min-w-[880px] md:min-w-0">
                         {loading ? <Loading /> : allPawns.map((pawn, index) => (
                             <PawnRow
-                                key={index}
+                                key={`${pawn.Category}_${pawn.Id}`}
                                 pawn={pawn}
                                 refresh={onRefresh}
                                 isOdd={index % 2 !== 0}
