@@ -11,17 +11,22 @@ import com.volter.shop.modules.transaction.application.dto.MonthlyProfitResponse
 import com.volter.shop.modules.transaction.application.dto.TransactionDetailedResponse;
 import com.volter.shop.modules.transaction.application.dto.TransactionFilterRequest;
 import com.volter.shop.modules.transaction.application.dto.TransactionResponse;
+import com.volter.shop.modules.transaction.domain.model.ActivityEntry;
 import com.volter.shop.modules.transaction.domain.model.Transaction;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionDirection;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionType;
+import com.volter.shop.modules.transaction.domain.model.enums.ActivityType;
+import com.volter.shop.modules.transaction.domain.repository.ActivityEntryRepository;
 import com.volter.shop.modules.transaction.domain.repository.TransactionRepository;
-import com.volter.shop.modules.transaction.domain.specification.TransactionSpecification;
+import com.volter.shop.modules.transaction.domain.specification.ActivitySpecification;
 import com.volter.shop.modules.transaction.infrastructure.mapper.TransactionMapper;
 import com.volter.shop.shared.valueobject.Money;
 import com.volter.shared.web.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -44,6 +49,7 @@ import java.util.Set;
 public class TransactionService {
 
     private final TransactionRepository transactionRepository;
+    private final ActivityEntryRepository activityRepository;
     private final TransactionMapper transactionMapper;
     private final StaffService staffService;
     private final StaffMapper staffMapper;
@@ -62,25 +68,64 @@ public class TransactionService {
         List<Long> visibleStaffIds = new ArrayList<>(staffService.findSubordinateStaffIds(staffId));
         visibleStaffIds.add(staffId);
 
-        Specification<Transaction> spec = TransactionSpecification.matches(filter)
-                .and(TransactionSpecification.staffIdIn(visibleStaffIds));
+        Specification<ActivityEntry> spec = ActivitySpecification.matches(filter)
+                .and(ActivitySpecification.staffIdIn(visibleStaffIds));
 
-        // Filter by client name: gather matching transaction ids from the pawn and
-        // sale modules (their services own the customer link), then narrow by id.
+        // Filter by client name: gather matching ids from the pawn and sale modules
+        // (their services own the customer link), then narrow by entry id. Ids are
+        // prefixed per source, matching the activity_entry view.
         if (filter.clientName() != null && !filter.clientName().isBlank()) {
-            Set<Long> matchingTxIds = new HashSet<>(pawnTxQueryService.findTransactionIdsByCustomerName(filter.clientName()));
-            matchingTxIds.addAll(saleTxQueryService.findTransactionIdsByCustomerName(filter.clientName()));
-            spec = spec.and(TransactionSpecification.idIn(matchingTxIds));
+            Set<String> matching = new HashSet<>();
+            pawnTxQueryService.findTransactionIdsByCustomerName(filter.clientName())
+                    .forEach(id -> matching.add(transactionEntryId(id)));
+            saleTxQueryService.findTransactionIdsByCustomerName(filter.clientName())
+                    .forEach(id -> matching.add(transactionEntryId(id)));
+            pawnTxQueryService.findEventIdsByCustomerName(filter.clientName())
+                    .forEach(id -> matching.add(pawnEventEntryId(id)));
+            spec = spec.and(ActivitySpecification.entryIdIn(matching));
         }
 
-        Page<Transaction> page = transactionRepository.findAll(spec, pageable);
+        Page<ActivityEntry> page = activityRepository.findAll(spec, withStableOrder(pageable));
 
-        List<Long> pageTxIds = page.getContent().stream().map(Transaction::getId).toList();
-        Map<Long, String> clientNames = new HashMap<>();
-        clientNames.putAll(pawnTxQueryService.findCustomerNamesByTransactionIds(pageTxIds));
-        clientNames.putAll(saleTxQueryService.findCustomerNamesByTransactionIds(pageTxIds));
+        // Resolve the client column for the page, per source.
+        List<Long> txIds = page.getContent().stream()
+                .filter(ActivityEntry::isTransaction).map(ActivityEntry::getSourceId).toList();
+        List<Long> eventIds = page.getContent().stream()
+                .filter(e -> !e.isTransaction()).map(ActivityEntry::getSourceId).toList();
 
-        return page.map(tx -> transactionMapper.toResponse(tx, clientNames.get(tx.getId())));
+        Map<Long, String> txClientNames = new HashMap<>();
+        txClientNames.putAll(pawnTxQueryService.findCustomerNamesByTransactionIds(txIds));
+        txClientNames.putAll(saleTxQueryService.findCustomerNamesByTransactionIds(txIds));
+        Map<Long, String> eventClientNames = pawnTxQueryService.findCustomerNamesByEventIds(eventIds);
+
+        return page.map(entry -> transactionMapper.toResponse(entry,
+                entry.isTransaction()
+                        ? txClientNames.get(entry.getSourceId())
+                        : eventClientNames.get(entry.getSourceId())));
+    }
+
+    /**
+     * Appends a unique final sort key. Every column the page sorts by (date, type,
+     * amount, direction) repeats across rows, and rows tied under a non-unique sort
+     * come back in arbitrary order per query — with offset paging that repeats a row
+     * on one page and skips it on another, so entries silently go missing. entryId
+     * is unique across the merged list, which makes the order total.
+     */
+    private static Pageable withStableOrder(Pageable pageable) {
+        if (pageable.isUnpaged() || pageable.getSort().getOrderFor("entryId") != null) {
+            return pageable;
+        }
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                pageable.getSort().and(Sort.by(Sort.Direction.ASC, "entryId")));
+    }
+
+    /** Entry ids in the activity_entry view are prefixed by source so they cannot collide. */
+    private static String transactionEntryId(Long transactionId) {
+        return "T" + transactionId;
+    }
+
+    private static String pawnEventEntryId(Long eventId) {
+        return "E" + eventId;
     }
 
     /**
@@ -117,13 +162,38 @@ public class TransactionService {
 
         return new TransactionDetailedResponse(
                 tx.getId(),
-                tx.getType(),
+                ActivityType.valueOf(tx.getType().name()),
                 tx.getAmount() == null ? null : tx.getAmount().amount(),
                 tx.getDirection(),
                 tx.getDescription(),
                 tx.getCreatedAt(),
                 tx.getCashRegisterSession().getId(),
                 staff, pawn, sale, expense, session);
+    }
+
+    /**
+     * Full detailed view of a non-monetary pawn contract event. There is no ledger
+     * row behind it, so amount, direction and session are null; the pawn block
+     * carries the contract the event happened to. Visibility follows the same rule
+     * as transactions: the caller's own, or one recorded by someone they manage.
+     */
+    public TransactionDetailedResponse getEventDetailed(Long eventId, Long callerStaffId) {
+        var event = pawnTxQueryService.findEventById(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Pawn contract event not found: " + eventId));
+        if (!Objects.equals(event.performedByStaffId(), callerStaffId)
+                && !staffService.isManagerOf(callerStaffId, event.performedByStaffId())) {
+            throw new AccessDeniedException("Cannot access an event recorded by another staff member");
+        }
+
+        var staff = staffMapper.toResponse(staffService.get(event.performedByStaffId(), callerStaffId));
+        var pawn = pawnTxQueryService.findDetailByEventId(eventId).orElse(null);
+
+        // Mirrors the activity_entry view, which types these rows as 'PAWN_' || action.
+        var type = ActivityType.valueOf("PAWN_" + event.action().name());
+
+        return new TransactionDetailedResponse(
+                event.id(), type, null, null, event.description(), event.occurredAt(),
+                null, staff, pawn, null, null, null);
     }
 
     /** Total STAFF_BONUS a staff member has taken since the given moment (for the bonus ledger). */

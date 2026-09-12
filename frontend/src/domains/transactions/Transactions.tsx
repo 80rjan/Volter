@@ -11,12 +11,14 @@ import { useTeam } from "../../shared/utils/useTeam.ts";
 
 const TYPE_LABELS: Record<string, string> = {
     PAWN: "Залог", SALE: "Продажба", EXPENSE: "Расход", CASH_REGISTER: "Каса", STAFF_BONUS: "Бонус",
+    PAWN_FORFEITED: "Залог → Продажба",
 };
 const DIRECTION_LABELS: Record<string, string> = { IN: "Влез", OUT: "Излез" };
 
+// Property paths on the activity_entry view the list reads from.
 const SORT_FIELD: Record<string, string> = {
     Category: "type",
-    Amount: "amount.amount",
+    Amount: "amount",
     Direction: "direction",
     Date: "createdAt",
 };
@@ -27,6 +29,7 @@ const typeOptions = [
     { value: "EXPENSE", label: "Расходи" },
     { value: "CASH_REGISTER", label: "Каса" },
     { value: "STAFF_BONUS", label: "Бонуси" },
+    { value: "PAWN_FORFEITED", label: "Пренесени во продажба" },
 ];
 const directionOptions = [
     { value: "IN", label: "Влез" },
@@ -35,12 +38,14 @@ const directionOptions = [
 
 function mapTransactionResponse(r: any): TransactionRow {
     return {
+        entryId: r.entryId,
+        kind: r.kind,
         id: r.id,
         staffId: r.staffId,
         cashRegisterSessionId: r.cashRegisterSessionId,
         type: r.type,
-        amount: r.amount,
-        direction: r.direction,
+        amount: r.amount ?? null,
+        direction: r.direction ?? null,
         description: r.description ?? "",
         clientName: r.clientName ?? null,
         createdAt: r.createdAt ?? "",
@@ -75,11 +80,11 @@ export default function Transactions() {
     const scrollableRef = useRef<HTMLDivElement>(null);
     const [loading, setLoading] = useState(false);
     const isFetchingRef = useRef(false);
-    const fetchedIds = useRef(new Set<number>());
+    const fetchedIds = useRef(new Set<string>());
 
     const [detailed, setDetailed] = useState<TransactionDetailed | null>(null);
     const [modalReadMore, setModalReadMore] = useState(false);
-    const [detailLoadingId, setDetailLoadingId] = useState<number | null>(null);
+    const [detailLoadingId, setDetailLoadingId] = useState<string | null>(null);
 
     const fetchTransactions = (pg: number, order: string, direction: string, isLoading: boolean) => {
         if (isFetchingRef.current) return;
@@ -99,8 +104,8 @@ export default function Transactions() {
         axios.get(`${API_BASE}/transactions?${params}`)
             .then(res => {
                 const txns: TransactionRow[] = (res.data.content ?? []).map(mapTransactionResponse);
-                const newUnique = txns.filter(t => !fetchedIds.current.has(t.id));
-                newUnique.forEach(t => fetchedIds.current.add(t.id));
+                const newUnique = txns.filter(t => !fetchedIds.current.has(t.entryId));
+                newUnique.forEach(t => fetchedIds.current.add(t.entryId));
                 setAllTransactions(prev => [...prev, ...newUnique]);
                 setIsLastPage(res.data.last ?? true);
             })
@@ -133,9 +138,12 @@ export default function Transactions() {
 
     useEffect(() => { if (detailed != null) setModalReadMore(true); }, [detailed]);
 
-    const openDetail = (id: number) => {
-        setDetailLoadingId(id);
-        axios.get(`${API_BASE}/transactions/${id}`)
+    const openDetail = (row: TransactionRow) => {
+        setDetailLoadingId(row.entryId);
+        const url = row.kind === "PAWN_EVENT"
+            ? `${API_BASE}/transactions/events/${row.id}`
+            : `${API_BASE}/transactions/${row.id}`;
+        axios.get(url)
             .then(res => setDetailed(res.data))
             .catch(error => console.error("Error fetching transaction:", error))
             .finally(() => setDetailLoadingId(null));
@@ -233,25 +241,32 @@ export default function Transactions() {
                             </div>
 
                             <div ref={scrollableRef} className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-thin min-w-[880px] md:min-w-0 svg-hover">
-                                {loading ? <Loading /> : allTransactions.map((tx, index) => (
-                                    <div
-                                        key={tx.id}
-                                        style={{ background: index % 2 === 1 ? "#f0f0f0" : "#ffffff" }}
-                                        className={`grid place-items-center text-center ${cols} gap-2 px-1 py-1 border-b border-black/20`}
-                                    >
-                                        <p className="text-xs">{TYPE_LABELS[tx.type] ?? tx.type}</p>
-                                        <p className="text-xs">{tx.clientName || "—"}</p>
-                                        <p className="text-xs">{tx.description || "—"}</p>
-                                        <p className="text-xs font-bold italic">{tx.direction === "OUT" && "-"}{Number(tx.amount).toLocaleString("de-DE")}</p>
-                                        <p className={`text-xs font-semibold ${tx.direction === "IN" ? "text-green" : "text-red-500"}`}>
-                                            {DIRECTION_LABELS[tx.direction] ?? tx.direction}
-                                        </p>
-                                        <p className="text-xs">{tx.createdAt.substring(0, 19).replace("T", " ")}</p>
-                                        {detailLoadingId === tx.id
-                                            ? <Loading width={18} height={18} />
-                                            : <Ellipsis size={18} color="#888" className="cursor-pointer" onClick={() => openDetail(tx.id)} />}
-                                    </div>
-                                ))}
+                                {loading ? <Loading /> : allTransactions.map((tx, index) => {
+                                    // A non-monetary event: no amount, no direction. Its category
+                                    // is tinted so it reads as an event, not a payment.
+                                    const isEvent = tx.kind === "PAWN_EVENT";
+                                    return (
+                                        <div
+                                            key={tx.entryId}
+                                            style={{ background: index % 2 === 1 ? "#f0f0f0" : "#ffffff" }}
+                                            className={`grid place-items-center text-center ${cols} gap-2 px-1 py-1 border-b border-black/20`}
+                                        >
+                                            <p className={`text-xs ${isEvent ? "font-semibold text-amber-600" : ""}`}>{TYPE_LABELS[tx.type] ?? tx.type}</p>
+                                            <p className="text-xs">{tx.clientName || "—"}</p>
+                                            <p className="text-xs">{tx.description || "—"}</p>
+                                            <p className="text-xs font-bold italic">
+                                                {tx.amount == null ? "—" : `${tx.direction === "OUT" ? "-" : ""}${Number(tx.amount).toLocaleString("de-DE")}`}
+                                            </p>
+                                            <p className={`text-xs font-semibold ${tx.direction === "IN" ? "text-green" : tx.direction === "OUT" ? "text-red-500" : "text-[#888]"}`}>
+                                                {tx.direction == null ? "—" : DIRECTION_LABELS[tx.direction] ?? tx.direction}
+                                            </p>
+                                            <p className="text-xs">{tx.createdAt.substring(0, 19).replace("T", " ")}</p>
+                                            {detailLoadingId === tx.entryId
+                                                ? <Loading width={18} height={18} />
+                                                : <Ellipsis size={18} color="#888" className="cursor-pointer" onClick={() => openDetail(tx)} />}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
 

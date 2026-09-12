@@ -1,17 +1,28 @@
 import { PawnDetailed } from "../pawns/types.ts";
 import { SaleDetailed } from "../sales/types.ts";
 
-export type TransactionType = "PAWN" | "SALE" | "EXPENSE" | "CASH_REGISTER" | "STAFF_BONUS";
+// The activity list's categories: the five ledger types, plus non-monetary
+// events that have no transaction behind them.
+export type TransactionType =
+    | "PAWN" | "SALE" | "EXPENSE" | "CASH_REGISTER" | "STAFF_BONUS"
+    | "PAWN_FORFEITED";
 export type TransactionDirection = "IN" | "OUT";
 
-// Transaction list row (GET /transactions -> TransactionResponse).
+// Which source a row came from. A PAWN_EVENT row moved no money, so its amount,
+// direction and session are null, and its detail lives behind a different URL.
+export type ActivityKind = "TRANSACTION" | "PAWN_EVENT";
+
+// Activity list row (GET /transactions -> TransactionResponse).
 export interface TransactionRow {
+    // Unique across the whole list ("T12" / "E3"); `id` is only unique per kind.
+    entryId: string;
+    kind: ActivityKind;
     id: number;
     staffId: number;
-    cashRegisterSessionId: number;
+    cashRegisterSessionId: number | null;
     type: TransactionType;
-    amount: number;
-    direction: TransactionDirection;
+    amount: number | null;
+    direction: TransactionDirection | null;
     description: string;
     clientName: string | null;
     createdAt: string;
@@ -57,8 +68,9 @@ export interface TransactionCashSession {
 export interface TransactionDetailed {
     id: number;
     type: TransactionType;
-    amount: number;
-    direction: TransactionDirection;
+    // Null on a non-monetary event.
+    amount: number | null;
+    direction: TransactionDirection | null;
     description: string | null;
     createdAt: string;
     cashRegisterSessionId: number | null;

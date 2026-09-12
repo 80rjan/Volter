@@ -19,6 +19,10 @@ import com.volter.shop.modules.pawn.domain.model.PawnContractExtension;
 import com.volter.shop.modules.pawn.domain.model.PawnTransaction;
 import com.volter.shop.modules.pawn.domain.repository.PawnContractExtensionRepository;
 import com.volter.shop.modules.pawn.domain.repository.PawnContractRepository;
+import com.volter.shop.modules.pawn.domain.model.PawnContractEvent;
+import com.volter.shop.modules.pawn.domain.model.enums.PawnContractEventAction;
+import com.volter.shop.modules.pawn.domain.repository.PawnContractEventRepository;
+import com.volter.shop.modules.pawn.domain.repository.PawnContractNoteRepository;
 import com.volter.shop.modules.pawn.domain.repository.PawnTransactionRepository;
 import com.volter.shop.modules.sale.application.SaleService;
 import com.volter.shop.modules.transaction.application.TransactionService;
@@ -51,6 +55,8 @@ class PawnServiceTest {
     @Mock private PawnContractRepository contractRepository;
     @Mock private PawnContractExtensionRepository extensionRepository;
     @Mock private PawnTransactionRepository pawnTxRepository;
+    @Mock private PawnContractNoteRepository noteRepository;
+    @Mock private PawnContractEventRepository eventRepository;
     @Mock private CustomerService customerService;
     @Mock private ItemService itemService;
     @Mock private CashRegisterService cashRegisterService;
@@ -236,7 +242,13 @@ class PawnServiceTest {
             verify(contract).forfeit();
             verify(itemService).markInSale(item, 3L);
             verify(saleService).createListing(customer, item, new Money(1000), 3L);
+            // No money moves, so no ledger transaction — the action is recorded as a
+            // contract event instead, which is what puts it on the activity list.
             verifyNoInteractions(transactionService);
+            ArgumentCaptor<PawnContractEvent> event = ArgumentCaptor.forClass(PawnContractEvent.class);
+            verify(eventRepository).save(event.capture());
+            assertEquals(PawnContractEventAction.FORFEITED, event.getValue().getAction());
+            assertEquals(3L, event.getValue().getPerformedByStaffId());
         }
     }
 }

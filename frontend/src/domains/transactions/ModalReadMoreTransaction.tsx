@@ -9,6 +9,7 @@ interface Props {
 
 const TYPE_MK: Record<string, string> = {
     PAWN: "Залог", SALE: "Продажба", EXPENSE: "Расход", CASH_REGISTER: "Каса",
+    STAFF_BONUS: "Бонус", PAWN_FORFEITED: "Залог → Продажба",
 };
 const DIRECTION_MK: Record<string, string> = { IN: "Влез", OUT: "Излез" };
 const ITEM_TYPE_MK: Record<string, string> = {
@@ -65,6 +66,9 @@ function Section({ icon, title, children }: { icon: React.ReactNode; title: stri
 const divider = <hr className="border-black/15" />;
 
 export default function ModalReadMoreTransaction({ tx, closeModal }: Props) {
+    // A non-monetary event (e.g. a pawn moved into sale) has no amount, direction
+    // or session — only the action itself and the contract it happened to.
+    const isEvent = tx.direction == null && tx.amount == null;
     const isIn = tx.direction === "IN";
     const { pawn, sale, expense, cashRegisterSession: session, staff } = tx;
     const customer = pawn?.customer ?? sale?.customer ?? null;
@@ -77,22 +81,28 @@ export default function ModalReadMoreTransaction({ tx, closeModal }: Props) {
             <div className="flex flex-col gap-6 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#eee] z-[1000] p-8 rounded-lg w-[min(900px,92%)] max-h-[90vh] overflow-y-auto scrollbar-hidden">
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        <h1 className="text-2xl font-semibold">Трансакција #{tx.id}</h1>
-                        <span className="px-2 py-0.5 rounded text-xs font-semibold bg-black/10 text-[#333]">
+                        <h1 className="text-2xl font-semibold">{isEvent ? "Дејство" : "Трансакција"} #{tx.id}</h1>
+                        <span className={`px-2 py-0.5 rounded text-xs font-semibold ${isEvent ? "bg-amber-100 text-amber-700" : "bg-black/10 text-[#333]"}`}>
                             {TYPE_MK[tx.type] ?? tx.type}
                         </span>
-                        <span className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${isIn ? "bg-green/15 text-green" : "bg-red-500/15 text-red-500"}`}>
-                            {isIn ? <ArrowDownLeft size={14} /> : <ArrowUpRight size={14} />}
-                            {DIRECTION_MK[tx.direction] ?? tx.direction}
-                        </span>
+                        {isEvent ? (
+                            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-black/10 text-[#666]">
+                                Без движење на пари
+                            </span>
+                        ) : (
+                            <span className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${isIn ? "bg-green/15 text-green" : "bg-red-500/15 text-red-500"}`}>
+                                {isIn ? <ArrowDownLeft size={14} /> : <ArrowUpRight size={14} />}
+                                {DIRECTION_MK[tx.direction ?? ""] ?? tx.direction}
+                            </span>
+                        )}
                     </div>
                     <button className="close-x-btn" onClick={closeModal}><X size={28} /></button>
                 </div>
 
-                <Section icon={<FileText size={20} />} title="Трансакција">
+                <Section icon={<FileText size={20} />} title={isEvent ? "Дејство" : "Трансакција"}>
                     <Field label="Тип" value={TYPE_MK[tx.type] ?? tx.type} />
-                    <Field label="Износ" value={<span className={isIn ? "text-green" : "text-red-500"}>{money(tx.amount)}</span>} />
-                    <Field label="Насока" value={DIRECTION_MK[tx.direction] ?? tx.direction} />
+                    <Field label="Износ" value={tx.amount == null ? "—" : <span className={isIn ? "text-green" : "text-red-500"}>{money(tx.amount)}</span>} />
+                    <Field label="Насока" value={tx.direction == null ? "—" : DIRECTION_MK[tx.direction] ?? tx.direction} />
                     <Field label="Каса сесија" value={tx.cashRegisterSessionId == null ? "—" : `#${tx.cashRegisterSessionId}`} />
                     <Field label="Опис" value={tx.description || "—"} />
                     <Field label="Датум" value={datetime(tx.createdAt)} />

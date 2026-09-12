@@ -10,12 +10,15 @@ import com.volter.shop.modules.inventory.domain.model.enums.ItemType;
 import com.volter.shop.modules.pawn.application.dto.*;
 import com.volter.shop.modules.pawn.domain.model.PawnContract;
 import com.volter.shop.modules.pawn.domain.model.PawnContractExtension;
+import com.volter.shop.modules.pawn.domain.model.PawnContractEvent;
 import com.volter.shop.modules.pawn.domain.model.PawnContractNote;
 import com.volter.shop.modules.pawn.domain.model.PawnTransaction;
+import com.volter.shop.modules.pawn.domain.model.enums.PawnContractEventAction;
 import com.volter.shop.modules.pawn.domain.model.enums.PawnContractNoteStatus;
 import com.volter.shop.modules.pawn.domain.model.enums.PawnTransactionAction;
 import com.volter.shop.modules.pawn.domain.repository.PawnContractExtensionRepository;
 import com.volter.shop.modules.pawn.domain.repository.PawnContractRepository;
+import com.volter.shop.modules.pawn.domain.repository.PawnContractEventRepository;
 import com.volter.shop.modules.pawn.domain.repository.PawnContractNoteRepository;
 import com.volter.shop.modules.pawn.domain.repository.PawnTransactionRepository;
 import com.volter.shop.modules.pawn.domain.specification.PawnContractSpecification;
@@ -50,6 +53,7 @@ public class PawnService {
     private final PawnContractRepository contractRepository;
     private final PawnContractExtensionRepository extensionRepository;
     private final PawnContractNoteRepository noteRepository;
+    private final PawnContractEventRepository eventRepository;
     private final PawnTransactionRepository pawnTxRepository;
     private final CustomerService customerService;
     private final ItemService itemService;
@@ -296,6 +300,11 @@ public class PawnService {
         contract.forfeit();
         itemService.markInSale(contract.getItem(), staffId);
         saleService.createListing(contract.getCustomer(), contract.getItem(), contract.getPrincipalAmount(), staffId);
+        // No money changes hands here, so there is no ledger transaction to show
+        // staff that this happened. Record it as a contract event instead; the
+        // activity list surfaces it next to the transactions.
+        eventRepository.save(PawnContractEvent.record(
+                contract, PawnContractEventAction.FORFEITED, staffId, "Залогот е пренесен во продажба"));
         return contract;
     }
 

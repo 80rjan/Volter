@@ -56,4 +56,14 @@ public class TransactionController {
     public ResponseEntity<TransactionDetailedResponse> get(@PathVariable Long id, @AuthenticationPrincipal StaffPrincipal principal) {
         return ResponseEntity.ok(transactionService.getDetailed(id, principal.staffId()));
     }
+
+    /**
+     * The detailed view of a non-monetary activity row (a pawn contract event, such
+     * as a forfeiture). Same shape as a transaction's detail, with the money fields
+     * null — the list marks these rows with kind = PAWN_EVENT.
+     */
+    @GetMapping("/events/{id}")
+    public ResponseEntity<TransactionDetailedResponse> getEvent(@PathVariable Long id, @AuthenticationPrincipal StaffPrincipal principal) {
+        return ResponseEntity.ok(transactionService.getEventDetailed(id, principal.staffId()));
+    }
 }

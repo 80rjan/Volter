@@ -6,6 +6,7 @@ import com.volter.shop.modules.transaction.application.dto.TransactionFilterRequ
 import com.volter.shop.modules.transaction.domain.model.Transaction;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionDirection;
 import com.volter.shop.modules.transaction.domain.model.enums.TransactionType;
+import com.volter.shop.modules.transaction.domain.repository.ActivityEntryRepository;
 import com.volter.shop.modules.transaction.domain.repository.TransactionRepository;
 import com.volter.shop.modules.pawn.application.PawnTxQueryService;
 import com.volter.shop.modules.sale.application.SaleTxQueryService;
@@ -36,6 +37,9 @@ class TransactionServiceTest {
 
     @Mock
     private TransactionRepository transactionRepository;
+
+    @Mock
+    private ActivityEntryRepository activityRepository;
     @Mock
     private StaffService staffService;
     @Mock
@@ -114,14 +118,23 @@ class TransactionServiceTest {
     void list_scopesToTeam() {
         Pageable pageable = PageRequest.of(0, 20);
         when(staffService.findSubordinateStaffIds(3L)).thenReturn(java.util.List.of(4L, 5L));
-        when(transactionRepository.findAll(any(Specification.class), eq(pageable)))
+        // The list reads the activity view (transactions + non-monetary events), not
+        // the transaction table.
+        when(activityRepository.findAll(any(Specification.class), any(Pageable.class)))
                 .thenReturn(org.springframework.data.domain.Page.empty(pageable));
         when(pawnTxQueryService.findCustomerNamesByTransactionIds(any())).thenReturn(java.util.Map.of());
         when(saleTxQueryService.findCustomerNamesByTransactionIds(any())).thenReturn(java.util.Map.of());
+        when(pawnTxQueryService.findCustomerNamesByEventIds(any())).thenReturn(java.util.Map.of());
 
         transactionService.list(new TransactionFilterRequest(null, null, null, null, null, null), pageable, 3L);
 
         verify(staffService).findSubordinateStaffIds(3L);
-        verify(transactionRepository).findAll(any(Specification.class), eq(pageable));
+        ArgumentCaptor<Pageable> paging = ArgumentCaptor.forClass(Pageable.class);
+        verify(activityRepository).findAll(any(Specification.class), paging.capture());
+        // The caller's paging is kept, with a unique tie-breaker appended so offset
+        // paging over the union cannot repeat or skip tied rows.
+        assertEquals(pageable.getPageNumber(), paging.getValue().getPageNumber());
+        assertEquals(pageable.getPageSize(), paging.getValue().getPageSize());
+        assertNotNull(paging.getValue().getSort().getOrderFor("entryId"));
     }
 }
