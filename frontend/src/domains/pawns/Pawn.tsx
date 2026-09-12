@@ -1,8 +1,9 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import {Euro, RotateCcw, X, Ellipsis, ShoppingCart, Tag} from "lucide-react";
+import {Euro, RotateCcw, X, Ellipsis, ShoppingCart, Tag, StickyNote} from "lucide-react";
 import ModalShowMessagePawn from "./ModalShowMessagePawn.tsx";
 import ModalReadMorePawn from "./ModalReadMorePawn.tsx";
+import ModalAddNoteToPawn from "./ModalAddNoteToPawn.tsx";
 import Loading from "../../shared/components/Loading.tsx";
 import ModalActions from "../../shared/components/ModalActions.tsx";
 import { PawnRow, PawnDetailed } from "./types.ts";
@@ -37,6 +38,7 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
     const [modalRedeemPawn, setModalRedeemPawn] = useState(false);
     const [modalExtendPawn, setModalExtendPawn] = useState(false);
     const [modalForfeitPawn, setModalForfeitPawn] = useState(false);
+    const [modalAddNote, setModalAddNote] = useState(false);
 
     // Extend/redeem post against the active register's open session (selected in the cash bar).
     const getOpenSessionId = (): Promise<number | null> => resolveActiveSessionId();
@@ -122,16 +124,19 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
                 <Loading width={30} height={30} />
             ) : (
                 <>
-                    {/* Actions only for active pawns, gated by permission; others are view-only. */}
-                    {pawn.Status === "ACTIVE" ? (
-                        <div className="flex gap-2">
-                            {can("PAWN_WRITE") && <RotateCcw size={16} color="var(--green)" className="cursor-pointer" onClick={() => setModalExtendPawn(true)} />}
-                            {can("PAWN_WRITE") && <X size={16} className="text-red-500 cursor-pointer" onClick={() => setModalRedeemPawn(true)} />}
-                            {can("PAWN_FORFEIT") && <Tag size={16}  className="text-amber-500 cursor-pointer" onClick={() => setModalForfeitPawn(true)} />}
-                        </div>
-                    ) : (
-                        <div />
-                    )}
+                    {/* Extend/redeem/forfeit only for active pawns, gated by permission.
+                        Adding a note is allowed in any status — it records something about
+                        the pawn rather than changing its terms. */}
+                    <div className="flex gap-2">
+                        {pawn.Status === "ACTIVE" && (
+                            <>
+                                {can("PAWN_WRITE") && <RotateCcw size={16} color="var(--green)" className="cursor-pointer" onClick={() => setModalExtendPawn(true)} />}
+                                {can("PAWN_WRITE") && <X size={16} className="text-red-500 cursor-pointer" onClick={() => setModalRedeemPawn(true)} />}
+                                {can("PAWN_FORFEIT") && <Tag size={16}  className="text-amber-500 cursor-pointer" onClick={() => setModalForfeitPawn(true)} />}
+                            </>
+                        )}
+                        {can("PAWN_WRITE") && <StickyNote size={16} className="text-[#888] cursor-pointer" onClick={() => setModalAddNote(true)} />}
+                    </div>
                     <Ellipsis size={20} color="#888" className="cursor-pointer" onClick={() => fetchPawn(pawn["Client Id"], pawn.Category, pawn.Id)} />
                 </>
             )}
@@ -183,6 +188,19 @@ export default function Pawn({ pawn, refresh, isOdd, refreshCashReg }: Props) {
                     priceBought={Number(pawn["Item Cost"])}
                     title="Пренеси во продажба?"
                     loading={loading}
+                />
+            )}
+
+            {modalAddNote && (
+                <ModalAddNoteToPawn
+                    pawnId={pawn.Id}
+                    closeModal={() => setModalAddNote(false)}
+                    onSaved={() => {
+                        setModalAddNote(false);
+                        setSuccessMsg("Успешно додадена белешка");
+                        setInfoMsg("");
+                        setModalSuccessMsg(true);
+                    }}
                 />
             )}
 

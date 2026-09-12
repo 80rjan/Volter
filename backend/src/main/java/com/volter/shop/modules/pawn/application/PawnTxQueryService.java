@@ -3,6 +3,7 @@ package com.volter.shop.modules.pawn.application;
 import com.volter.identity.modules.staff.application.StaffService;
 import com.volter.shop.modules.pawn.application.dto.PawnContractDetailedResponse;
 import com.volter.shop.modules.pawn.domain.repository.PawnContractRepository;
+import com.volter.shop.modules.pawn.domain.repository.PawnNoteRepository;
 import com.volter.shop.modules.pawn.domain.repository.PawnTransactionRepository;
 import com.volter.shop.modules.pawn.infrastructure.mapper.PawnContractMapper;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class PawnTxQueryService {
 
     private final PawnTransactionRepository pawnTxRepository;
     private final PawnContractRepository contractRepository;
+    private final PawnNoteRepository noteRepository;
     private final PawnContractMapper pawnContractMapper;
     private final StaffService staffService;
 
@@ -41,7 +43,8 @@ public class PawnTxQueryService {
                 .map(contract -> pawnContractMapper.toDetailedResponse(
                         contract,
                         staffService.findStaffNames(Set.of(contract.getCreatedByStaffId()))
-                                .get(contract.getCreatedByStaffId())));
+                                .get(contract.getCreatedByStaffId()),
+                        noteRepository.findByPawnContractIdOrderByCreatedAtDesc(contract.getId())));
     }
 
     /** Maps each of the given transaction ids that is a PAWN transaction to its customer's name. */

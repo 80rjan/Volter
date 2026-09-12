@@ -60,6 +60,19 @@ export interface PawnExtension {
   createdAt: string;
 }
 
+// A staff-written note on a pawn. ACTIVE until someone marks it RESOLVED;
+// resolved notes stay in the list, just de-emphasised.
+export type PawnNoteStatus = 'ACTIVE' | 'RESOLVED';
+
+export interface PawnNote {
+  id: number;
+  description: string;
+  status: PawnNoteStatus;
+  createdByStaffId: number;
+  createdAt: string;
+  resolvedAt: string | null;
+}
+
 export interface PawnDetailed {
   id: number;
   customer: CustomerDetail;
@@ -77,6 +90,7 @@ export interface PawnDetailed {
   redeemedAt: string | null;
   forfeitedAt: string | null;
   extensions: PawnExtension[];
+  notes: PawnNote[];
   createdAt: string;
   updatedAt: string;
 }

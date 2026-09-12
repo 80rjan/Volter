@@ -4,6 +4,7 @@ import com.volter.identity.modules.staff.application.StaffService;
 import com.volter.shop.modules.pawn.application.PawnService;
 import com.volter.shop.modules.pawn.application.dto.*;
 import com.volter.shop.modules.pawn.domain.model.PawnContract;
+import com.volter.shop.modules.pawn.domain.model.PawnNote;
 import com.volter.shop.modules.pawn.infrastructure.mapper.PawnContractMapper;
 import com.volter.shared.security.StaffPrincipal;
 import com.volter.shared.web.PageResponse;
@@ -16,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -65,7 +67,42 @@ public class PawnController {
     @PreAuthorize("hasAuthority('PAWN_READ')")
     public ResponseEntity<PawnContractDetailedResponse> get(@PathVariable Long id) {
         PawnContract contract = pawnService.get(id);
-        return ResponseEntity.ok(pawnContractMapper.toDetailedResponse(contract, staffNameOf(contract)));
+        return ResponseEntity.ok(pawnContractMapper.toDetailedResponse(
+                contract, staffNameOf(contract), pawnService.listNotes(id)));
+    }
+
+    /**
+     * Notes attached to a pawn contract, newest first.
+     */
+    @GetMapping("/{id}/notes")
+    @PreAuthorize("hasAuthority('PAWN_READ')")
+    public ResponseEntity<List<PawnNoteResponse>> listNotes(@PathVariable Long id) {
+        return ResponseEntity.ok(pawnService.listNotes(id).stream()
+                .map(pawnContractMapper::toResponse).toList());
+    }
+
+    /**
+     * Add a note to a pawn contract. Allowed in any contract status.
+     */
+    @PostMapping("/{id}/notes")
+    @PreAuthorize("hasAuthority('PAWN_WRITE')")
+    public ResponseEntity<PawnNoteResponse> addNote(@PathVariable Long id,
+                                                    @Valid @RequestBody PawnNoteCreateRequest request,
+                                                    @AuthenticationPrincipal StaffPrincipal principal) {
+        PawnNote note = pawnService.addNote(id, request, principal.staffId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(pawnContractMapper.toResponse(note));
+    }
+
+    /**
+     * Mark a note resolved, or move it back to active.
+     */
+    @PatchMapping("/{id}/notes/{noteId}")
+    @PreAuthorize("hasAuthority('PAWN_WRITE')")
+    public ResponseEntity<PawnNoteResponse> updateNoteStatus(@PathVariable Long id,
+                                                             @PathVariable Long noteId,
+                                                             @Valid @RequestBody PawnNoteStatusUpdateRequest request) {
+        return ResponseEntity.ok(pawnContractMapper.toResponse(
+                pawnService.updateNoteStatus(id, noteId, request.status())));
     }
 
     /**

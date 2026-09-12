@@ -1,14 +1,16 @@
 import ReactDom from "react-dom";
 import { useState } from "react";
 import axios from "axios";
-import { X, User, Package, FileText, History, RotateCcw, HandCoins, ShoppingCart, Pencil } from "lucide-react";
+import { X, User, Package, FileText, History, RotateCcw, HandCoins, ShoppingCart, Pencil, StickyNote, Plus } from "lucide-react";
 import { API_BASE } from "../../shared/api/config.ts";
-import { PawnDetailed, PAWN_ACTION_LABEL } from "./types.ts";
+import { PawnDetailed, PawnNote, PAWN_ACTION_LABEL } from "./types.ts";
 import { useAuth } from "../../GlobalContext.tsx";
 import ModalActions from "../../shared/components/ModalActions.tsx";
 import ModalShowMessagePawn from "./ModalShowMessagePawn.tsx";
 import ModalEditPawnContract from "./ModalEditPawnContract.tsx";
 import ModalEditPawnItem from "./ModalEditPawnItem.tsx";
+import ModalAddNoteToPawn from "./ModalAddNoteToPawn.tsx";
+import Loading from "../../shared/components/Loading.tsx";
 import { resolveActiveSessionId } from "../../shared/utils/activeSession.ts";
 import { downloadExtensionDocById, downloadRedemptionDoc } from "../../shared/utils/pawnDocuments.tsx";
 
@@ -82,9 +84,121 @@ function Section({ icon, title, action, children }: { icon: React.ReactNode; tit
 // Small, seamless inline "edit" affordance next to a section title.
 function EditLink({ onClick }: { onClick: () => void }) {
     return (
-        <button onClick={onClick} className="flex items-center gap-1 text-xs text-[#888] hover:text-green hover:font-semibold transition-colors">
+        <button onClick={onClick} className="flex items-center gap-1 text-xs text-[#888] hover:text-green transition-colors">
             <Pencil size={14} /> Измени
         </button>
+    );
+}
+
+const dateTime = (s: string | null | undefined) =>
+    s ? `${String(s).substring(0, 10)} ${String(s).substring(11, 16)}` : "—";
+
+/**
+ * All notes on the pawn, newest first. Resolved notes stay in the table but are
+ * dimmed so the active ones read first. Toggling a note's status patches it on
+ * the server and swaps the returned row in place — no refetch of the pawn.
+ */
+function NotesSection({ pawnId, notes, setNotes, canWrite }: {
+    pawnId: number;
+    notes: PawnNote[];
+    setNotes: React.Dispatch<React.SetStateAction<PawnNote[]>>;
+    canWrite: boolean;
+}) {
+    const [busyId, setBusyId] = useState<number | null>(null);
+    const [modalAdd, setModalAdd] = useState(false);
+    const [error, setError] = useState("");
+
+    const toggle = async (note: PawnNote) => {
+        const status = note.status === "ACTIVE" ? "RESOLVED" : "ACTIVE";
+        setBusyId(note.id); setError("");
+        try {
+            const res = await axios.patch(`${API_BASE}/pawns/${pawnId}/notes/${note.id}`, { status });
+            setNotes(prev => prev.map(n => (n.id === note.id ? res.data : n)));
+        } catch (err: any) {
+            setError(err?.response?.data?.message || "Статусот на белешката не е променет.");
+        } finally {
+            setBusyId(null);
+        }
+    };
+
+    const th = "text-left text-xs font-medium text-[#666] px-3 py-2";
+    const td = "px-3 py-2 text-sm align-top";
+
+    return (
+        <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+                <span className="flex items-center gap-2 font-medium"><StickyNote size={20} /> Белешки ({notes.length})</span>
+                {canWrite && (
+                    <button onClick={() => setModalAdd(true)}
+                            className="flex items-center gap-1 text-xs text-[#888] hover:text-green transition-colors">
+                        <Plus size={14} /> Додај белешка
+                    </button>
+                )}
+            </div>
+
+            {error && <span className="text-red-500 text-sm">{error}</span>}
+
+            {notes.length === 0 ? (
+                <span className="text-sm text-[#888]">Нема белешки за овој залог.</span>
+            ) : (
+                <div className="overflow-x-auto rounded bg-white/60">
+                    <table className="w-full border-collapse min-w-[520px]">
+                        <thead>
+                            <tr className="border-b border-black/15">
+                                <th className={th}>ИД</th>
+                                <th className={th}>Опис</th>
+                                <th className={th}>Креирана на</th>
+                                <th className={`${th} text-center`}>Решена</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {notes.map(note => {
+                                const active = note.status === "ACTIVE";
+                                return (
+                                    // Resolved notes stay readable but let the active ones dominate.
+                                    <tr key={note.id}
+                                        className={`border-b border-black/10 last:border-b-0 transition-opacity ${active ? "" : "opacity-60"}`}>
+                                        <td className={`${td} text-[#666]`}>{note.id}</td>
+                                        <td className={`${td} break-words whitespace-pre-wrap`}>{note.description}</td>
+                                        <td className={`${td} whitespace-nowrap text-[#666]`}>{dateTime(note.createdAt)}</td>
+                                        {/* The checkbox is the status: ticked = resolved. Fixed size and no
+                                            hover styling, so nothing in the row moves when the mouse passes over it. */}
+                                        <td className={`${td} text-center`}>
+                                            {/* While the PATCH is in flight the checkbox gives way to the
+                                                spinner: the new status is only shown once the server has
+                                                confirmed it, so the tick never contradicts what is stored.
+                                                The box is a fixed size so the swap moves nothing. */}
+                                            <span className="inline-flex h-5 w-5 items-center justify-center align-middle">
+                                                {busyId === note.id ? (
+                                                    <Loading width={20} height={20} />
+                                                ) : (
+                                                    <input
+                                                        type="checkbox"
+                                                        className="h-4 w-4 accent-green cursor-pointer disabled:cursor-not-allowed"
+                                                        checked={!active}
+                                                        disabled={!canWrite}
+                                                        title={active ? "Означи како решена" : "Врати во активна"}
+                                                        onChange={() => toggle(note)}
+                                                    />
+                                                )}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {modalAdd && (
+                <ModalAddNoteToPawn
+                    pawnId={pawnId}
+                    closeModal={() => setModalAdd(false)}
+                    onSaved={note => { setNotes(prev => [note, ...prev]); setModalAdd(false); }}
+                />
+            )}
+        </div>
     );
 }
 
@@ -113,6 +227,9 @@ export default function ModalReadMorePawn({ pawn, closeModal, refresh }: Props) 
     const [successMsg, setSuccessMsg] = useState("");
     const [infoMsg, setInfoMsg] = useState("");
     const [loading, setLoading] = useState(false);
+    // Seeded from the detail response, then kept current locally as notes are
+    // added or toggled, so the table updates without refetching the pawn.
+    const [notes, setNotes] = useState<PawnNote[]>(pawn.notes ?? []);
 
     // ModalActions inputs map to these the same way the pawn row does.
     const dailyProvision = Math.abs(Math.round(pawn.interestAmount) / pawn.termDays);
@@ -243,6 +360,10 @@ export default function ModalReadMorePawn({ pawn, closeModal, refresh }: Props) 
                         </div>
                     </>
                 )}
+
+                {divider}
+
+                <NotesSection pawnId={pawn.id} notes={notes} setNotes={setNotes} canWrite={canWrite} />
 
                 {canAct && (
                     <div className="flex flex-wrap gap-3 mt-2">

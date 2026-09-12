@@ -25,6 +25,7 @@ public record PawnContractDetailedResponse(
         OffsetDateTime redeemedAt,
         OffsetDateTime forfeitedAt,
         List<PawnContractExtensionResponse> extensions,
+        List<PawnNoteResponse> notes,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt
 ) {
