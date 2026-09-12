@@ -1,6 +1,6 @@
 package com.volter.shop.modules.pawn.domain.model;
 
-import com.volter.shop.modules.pawn.domain.model.enums.PawnNoteStatus;
+import com.volter.shop.modules.pawn.domain.model.enums.PawnContractNoteStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -20,12 +20,12 @@ import java.time.OffsetDateTime;
  * forfeited contract can still be annotated.
  */
 @Entity
-@Table(name = "pawn_note")
+@Table(name = "pawn_contract_note")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class PawnNote {
+public class PawnContractNote {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,7 +33,7 @@ public class PawnNote {
 
     @NotNull(message = "Pawn contract is required")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "pawn_contract_id", nullable = false, foreignKey = @ForeignKey(name = "fk_pawn_note_pawn_contract"))
+    @JoinColumn(name = "pawn_contract_id", nullable = false, foreignKey = @ForeignKey(name = "fk_pcn_pawn_contract"))
     private PawnContract pawnContract;
 
     @NotNull(message = "Staff is required")
@@ -48,7 +48,7 @@ public class PawnNote {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     @Builder.Default
-    private PawnNoteStatus status = PawnNoteStatus.ACTIVE;
+    private PawnContractNoteStatus status = PawnContractNoteStatus.ACTIVE;
 
     @Column(name = "resolved_at")
     private OffsetDateTime resolvedAt;
@@ -61,31 +61,31 @@ public class PawnNote {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
-    public static PawnNote of(PawnContract pawnContract, Long staffId, String description) {
-        return PawnNote.builder()
+    public static PawnContractNote of(PawnContract pawnContract, Long staffId, String description) {
+        return PawnContractNote.builder()
                 .pawnContract(pawnContract)
                 .createdByStaffId(staffId)
                 .description(description)
-                .status(PawnNoteStatus.ACTIVE)
+                .status(PawnContractNoteStatus.ACTIVE)
                 .build();
     }
 
     /** Mark as dealt with. Re-resolving an already resolved note keeps the original timestamp. */
     public void resolve() {
-        if (status == PawnNoteStatus.RESOLVED) {
+        if (status == PawnContractNoteStatus.RESOLVED) {
             return;
         }
-        this.status = PawnNoteStatus.RESOLVED;
+        this.status = PawnContractNoteStatus.RESOLVED;
         this.resolvedAt = OffsetDateTime.now();
     }
 
     /** Move back to ACTIVE, clearing the resolution timestamp. */
     public void reopen() {
-        this.status = PawnNoteStatus.ACTIVE;
+        this.status = PawnContractNoteStatus.ACTIVE;
         this.resolvedAt = null;
     }
 
     public boolean isActive() {
-        return status == PawnNoteStatus.ACTIVE;
+        return status == PawnContractNoteStatus.ACTIVE;
     }
 }

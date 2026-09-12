@@ -1,11 +1,11 @@
 package com.volter.shop.modules.pawn.application.dto;
 
-import com.volter.shop.modules.pawn.domain.model.enums.PawnNoteStatus;
+import com.volter.shop.modules.pawn.domain.model.enums.PawnContractNoteStatus;
 import jakarta.validation.constraints.NotNull;
 
 /** Move a note between ACTIVE and RESOLVED. */
-public record PawnNoteStatusUpdateRequest(
+public record PawnContractNoteStatusUpdateRequest(
         @NotNull(message = "Status is required")
-        PawnNoteStatus status
+        PawnContractNoteStatus status
 ) {
 }

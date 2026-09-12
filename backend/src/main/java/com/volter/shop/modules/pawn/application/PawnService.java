@@ -10,13 +10,13 @@ import com.volter.shop.modules.inventory.domain.model.enums.ItemType;
 import com.volter.shop.modules.pawn.application.dto.*;
 import com.volter.shop.modules.pawn.domain.model.PawnContract;
 import com.volter.shop.modules.pawn.domain.model.PawnContractExtension;
-import com.volter.shop.modules.pawn.domain.model.PawnNote;
+import com.volter.shop.modules.pawn.domain.model.PawnContractNote;
 import com.volter.shop.modules.pawn.domain.model.PawnTransaction;
-import com.volter.shop.modules.pawn.domain.model.enums.PawnNoteStatus;
+import com.volter.shop.modules.pawn.domain.model.enums.PawnContractNoteStatus;
 import com.volter.shop.modules.pawn.domain.model.enums.PawnTransactionAction;
 import com.volter.shop.modules.pawn.domain.repository.PawnContractExtensionRepository;
 import com.volter.shop.modules.pawn.domain.repository.PawnContractRepository;
-import com.volter.shop.modules.pawn.domain.repository.PawnNoteRepository;
+import com.volter.shop.modules.pawn.domain.repository.PawnContractNoteRepository;
 import com.volter.shop.modules.pawn.domain.repository.PawnTransactionRepository;
 import com.volter.shop.modules.pawn.domain.specification.PawnContractSpecification;
 import com.volter.shop.modules.sale.application.SaleService;
@@ -49,7 +49,7 @@ public class PawnService {
 
     private final PawnContractRepository contractRepository;
     private final PawnContractExtensionRepository extensionRepository;
-    private final PawnNoteRepository noteRepository;
+    private final PawnContractNoteRepository noteRepository;
     private final PawnTransactionRepository pawnTxRepository;
     private final CustomerService customerService;
     private final ItemService itemService;
@@ -307,7 +307,7 @@ public class PawnService {
      * List associations in a single query.
      */
     @Transactional(readOnly = true)
-    public List<PawnNote> listNotes(Long contractId) {
+    public List<PawnContractNote> listNotes(Long contractId) {
         requireContractExists(contractId);
         return noteRepository.findByPawnContractIdOrderByCreatedAtDesc(contractId);
     }
@@ -316,21 +316,21 @@ public class PawnService {
      * Attach a note to a contract. Allowed on a contract in any status — a note
      * records something about the pawn, not a change to its terms.
      */
-    public PawnNote addNote(Long contractId, PawnNoteCreateRequest request, Long staffId) {
+    public PawnContractNote addNote(Long contractId, PawnContractNoteCreateRequest request, Long staffId) {
         PawnContract contract = loadContract(contractId);
-        return noteRepository.save(PawnNote.of(contract, staffId, request.description().trim()));
+        return noteRepository.save(PawnContractNote.of(contract, staffId, request.description().trim()));
     }
 
     /** Move a note between ACTIVE and RESOLVED. */
-    public PawnNote updateNoteStatus(Long contractId, Long noteId, PawnNoteStatus status) {
-        PawnNote note = noteRepository.findById(noteId)
+    public PawnContractNote updateNoteStatus(Long contractId, Long noteId, PawnContractNoteStatus status) {
+        PawnContractNote note = noteRepository.findById(noteId)
                 .orElseThrow(() -> new ResourceNotFoundException("Pawn note not found: " + noteId));
         // The note id is global, so reject one that belongs to a different contract
         // rather than silently updating it through the wrong URL.
         if (!note.getPawnContract().getId().equals(contractId)) {
             throw new BusinessRuleException("Note " + noteId + " does not belong to pawn contract " + contractId);
         }
-        if (status == PawnNoteStatus.RESOLVED) {
+        if (status == PawnContractNoteStatus.RESOLVED) {
             note.resolve();
         } else {
             note.reopen();

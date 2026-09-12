@@ -1,13 +1,13 @@
 package com.volter.shop.modules.pawn.application.dto;
 
-import com.volter.shop.modules.pawn.domain.model.enums.PawnNoteStatus;
+import com.volter.shop.modules.pawn.domain.model.enums.PawnContractNoteStatus;
 
 import java.time.OffsetDateTime;
 
-public record PawnNoteResponse(
+public record PawnContractNoteResponse(
         Long id,
         String description,
-        PawnNoteStatus status,
+        PawnContractNoteStatus status,
         Long createdByStaffId,
         OffsetDateTime createdAt,
         OffsetDateTime resolvedAt

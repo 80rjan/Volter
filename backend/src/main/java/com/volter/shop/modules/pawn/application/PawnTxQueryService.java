@@ -3,7 +3,7 @@ package com.volter.shop.modules.pawn.application;
 import com.volter.identity.modules.staff.application.StaffService;
 import com.volter.shop.modules.pawn.application.dto.PawnContractDetailedResponse;
 import com.volter.shop.modules.pawn.domain.repository.PawnContractRepository;
-import com.volter.shop.modules.pawn.domain.repository.PawnNoteRepository;
+import com.volter.shop.modules.pawn.domain.repository.PawnContractNoteRepository;
 import com.volter.shop.modules.pawn.domain.repository.PawnTransactionRepository;
 import com.volter.shop.modules.pawn.infrastructure.mapper.PawnContractMapper;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class PawnTxQueryService {
 
     private final PawnTransactionRepository pawnTxRepository;
     private final PawnContractRepository contractRepository;
-    private final PawnNoteRepository noteRepository;
+    private final PawnContractNoteRepository noteRepository;
     private final PawnContractMapper pawnContractMapper;
     private final StaffService staffService;
 
