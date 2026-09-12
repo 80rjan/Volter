@@ -54,7 +54,7 @@ export default function ModalReadMoreMonthReport({ report, closeModal }: Props) 
                 ) : (
                     <>
                         <hr className="border-black/15" />
-                        <ReportBreakdown payload={payload} />
+                        <ReportBreakdown payload={payload} periodNoun="месецот" />
                     </>
                 )}
             </div>

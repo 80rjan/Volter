@@ -51,4 +51,12 @@ public interface PawnContractRepository extends JpaRepository<PawnContract, Long
               and (c.forfeitedAt is null or c.forfeitedAt >= :moment)
             """)
     long principalOutstandingAt(@Param("day") LocalDate day, @Param("moment") OffsetDateTime moment);
+
+    /** Principal handed out for contracts opened within {@code [from, to]} (by issue date). */
+    @Query("""
+            select coalesce(sum(c.principalAmount.amount), 0L)
+            from PawnContract c
+            where c.issueDate >= :from and c.issueDate <= :to
+            """)
+    long principalIssuedBetween(@Param("from") LocalDate from, @Param("to") LocalDate to);
 }

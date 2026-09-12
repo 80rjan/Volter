@@ -18,6 +18,7 @@ import com.volter.shop.modules.expense.domain.repository.ExpenseTransactionRepos
 import com.volter.shop.modules.inventory.domain.model.enums.ItemType;
 import com.volter.shop.modules.pawn.domain.model.PawnTransaction;
 import com.volter.shop.modules.pawn.domain.model.enums.PawnTransactionAction;
+import com.volter.shop.modules.pawn.domain.repository.PawnContractRepository;
 import com.volter.shop.modules.pawn.domain.repository.PawnTransactionRepository;
 import com.volter.shop.modules.sale.domain.model.SaleTransaction;
 import com.volter.shop.modules.sale.domain.repository.SaleRepository;
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -46,6 +48,7 @@ public class ReportService {
     private final PawnTransactionRepository pawnTransactionRepository;
     private final SaleTransactionRepository saleTransactionRepository;
     private final SaleRepository saleRepository;
+    private final PawnContractRepository pawnContractRepository;
     private final CashRegisterTransactionRepository cashRegisterTransactionRepository;
     private final CashRegisterSessionDiscrepancyRepository discrepancyRepository;
     private final ExpenseTransactionRepository expenseTransactionRepository;
@@ -284,6 +287,16 @@ public class ReportService {
         summary.put("pawnProvision", pawnProvision);
         summary.put("saleMargin", saleMargin);
         summary.put("netProfit", pawnProvision + saleMargin - totalExpenses);
+
+        // Pawn principal, as a position and as a flow. Distinct from moneyGivenToClients,
+        // which is cash out across pawn AND sale transactions: these two are pawn loan
+        // principal only, matching the figures on the pawns page.
+        //   atPeriodStart — still owed to the shop the moment the period opened, so it
+        //                   counts contracts settled during the period as well.
+        //   given         — handed out for contracts opened inside the period.
+        summary.put("pawnPrincipalAtPeriodStart", pawnContractRepository.principalOutstandingAt(
+                from, from.atStartOfDay(ZoneId.systemDefault()).toOffsetDateTime()));
+        summary.put("pawnPrincipalGiven", pawnContractRepository.principalIssuedBetween(from, to));
 
         return summary;
     }

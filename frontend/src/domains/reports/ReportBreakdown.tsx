@@ -61,13 +61,31 @@ function CashFlowTable({ icon, title, data }: { icon: React.ReactNode; title: st
 
 const divider = <hr className="border-black/15" />;
 
-export function ReportBreakdown({ payload }: { payload: ReportPayload }) {
+/**
+ * @param periodNoun what to call the reported span in labels — "месецот" from the
+ *   monthly report, "периодот" for an arbitrary range.
+ */
+export function ReportBreakdown({ payload, periodNoun = "периодот" }: { payload: ReportPayload; periodNoun?: string }) {
     const expenses = Object.entries(payload.expenses ?? {}).filter(([, v]) => v && (v.count > 0 || v.amount > 0));
     const sessions = payload.sessions ?? [];
     const cr = payload.cashRegister;
+    // Absent on reports generated before these figures existed and not yet backfilled.
+    const hasPrincipal = payload.pawnPrincipalAtPeriodStart != null || payload.pawnPrincipalGiven != null;
 
     return (
         <>
+            {hasPrincipal && (
+                <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-col bg-white rounded px-3 py-2 shadow-[0_0_4px_rgba(0,0,0,0.15)] min-w-[9rem] flex-1">
+                        <span className="text-[#666] text-xs">{`Поделени пари до почеток на ${periodNoun}`}</span>
+                        <span className="text-base font-bold">{money(payload.pawnPrincipalAtPeriodStart)} ден</span>
+                    </div>
+                    <div className="flex flex-col bg-white rounded px-3 py-2 shadow-[0_0_4px_rgba(0,0,0,0.15)] min-w-[9rem] flex-1">
+                        <span className="text-[#666] text-xs">{`Поделени пари во ${periodNoun}`}</span>
+                        <span className="text-base font-bold">{money(payload.pawnPrincipalGiven)} ден</span>
+                    </div>
+                </div>
+            )}
             <CashFlowTable icon={<HandCoins size={20} />} title="Залози" data={payload.pawns} />
             <CashFlowTable icon={<Tag size={20} />} title="Продажби" data={payload.sales} />
 

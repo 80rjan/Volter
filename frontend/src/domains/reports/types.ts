@@ -57,6 +57,10 @@ export interface ReportPayload {
     expenses?: Record<string, ExpenseBucket>;
     cashRegister?: CashRegisterSummary;
     sessions?: SessionSummary[];
+    // Pawn loan principal, as a position and as a flow. Optional: reports generated
+    // before these existed only carry them once the backfill migration has run.
+    pawnPrincipalAtPeriodStart?: number;
+    pawnPrincipalGiven?: number;
 }
 
 export interface MonthlyReportDetailed {
