@@ -241,17 +241,16 @@ export default function Transactions() {
                             </div>
 
                             <div ref={scrollableRef} className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-thin min-w-[880px] md:min-w-0 svg-hover">
-                                {loading ? <Loading /> : allTransactions.map((tx, index) => {
-                                    // A non-monetary event: no amount, no direction. Its category
-                                    // is tinted so it reads as an event, not a payment.
-                                    const isEvent = tx.kind === "PAWN_EVENT";
-                                    return (
+                                {/* A non-monetary event row carries no amount or direction; the "—"
+                                    in those cells is what marks it, so its category needs no styling
+                                    of its own and reads like every other row. */}
+                                {loading ? <Loading /> : allTransactions.map((tx, index) => (
                                         <div
                                             key={tx.entryId}
                                             style={{ background: index % 2 === 1 ? "#f0f0f0" : "#ffffff" }}
                                             className={`grid place-items-center text-center ${cols} gap-2 px-1 py-1 border-b border-black/20`}
                                         >
-                                            <p className={`text-xs ${isEvent ? "font-semibold text-amber-600" : ""}`}>{TYPE_LABELS[tx.type] ?? tx.type}</p>
+                                            <p className="text-xs">{TYPE_LABELS[tx.type] ?? tx.type}</p>
                                             <p className="text-xs">{tx.clientName || "—"}</p>
                                             <p className="text-xs">{tx.description || "—"}</p>
                                             <p className="text-xs font-bold italic">
@@ -265,8 +264,7 @@ export default function Transactions() {
                                                 ? <Loading width={18} height={18} />
                                                 : <Ellipsis size={18} color="#888" className="cursor-pointer" onClick={() => openDetail(tx)} />}
                                         </div>
-                                    );
-                                })}
+                                ))}
                             </div>
                         </div>
 
