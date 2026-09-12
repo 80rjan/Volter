@@ -7,7 +7,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,4 +36,19 @@ public interface PawnContractRepository extends JpaRepository<PawnContract, Long
     @Override
     @EntityGraph(attributePaths = {"item"})
     List<PawnContract> findAll(Specification<PawnContract> spec);
+
+    /**
+     * Principal still owed to the shop at {@code moment}: contracts issued before
+     * that day and not settled until at or after it. A contract redeemed or
+     * forfeited later is included — it was still an open loan at the time — which
+     * is why this cannot be derived from today's ACTIVE contracts alone.
+     */
+    @Query("""
+            select coalesce(sum(c.principalAmount.amount), 0L)
+            from PawnContract c
+            where c.issueDate < :day
+              and (c.redeemedAt is null or c.redeemedAt >= :moment)
+              and (c.forfeitedAt is null or c.forfeitedAt >= :moment)
+            """)
+    long principalOutstandingAt(@Param("day") LocalDate day, @Param("moment") OffsetDateTime moment);
 }

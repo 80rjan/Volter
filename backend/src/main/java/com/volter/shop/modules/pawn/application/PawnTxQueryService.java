@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -103,6 +104,16 @@ public class PawnTxQueryService {
     /** Pawn provision a staff member has generated since the given moment (bonus base). */
     public long provisionForStaffSince(Long staffId, OffsetDateTime since) {
         return pawnTxRepository.provisionForStaffSince(staffId, since);
+    }
+
+    /**
+     * Principal outstanding at the start of {@code day}: money handed out for
+     * contracts opened earlier that were still unsettled then. Shop-wide, across
+     * every status — a contract redeemed since was still an open loan that day.
+     */
+    public long principalOutstandingAt(LocalDate day) {
+        return contractRepository.principalOutstandingAt(
+                day, day.atStartOfDay(ZoneId.systemDefault()).toOffsetDateTime());
     }
 
     /** Shop-wide pawn provision (interest income) collected between {@code from} and {@code to} (inclusive). */

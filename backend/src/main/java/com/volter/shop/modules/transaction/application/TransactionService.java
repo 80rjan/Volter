@@ -221,7 +221,9 @@ public class TransactionService {
         long saleProfit = saleTxQueryService.profitBetween(firstOfMonth, today);
         long totalExpenses = shopExpensesSince(since);
         long netProfit = pawnProvision + saleProfit - totalExpenses;
-        return new MonthlyProfitResponse(pawnProvision, saleProfit, totalExpenses, netProfit);
+        long pawnPrincipalAtMonthStart = pawnTxQueryService.principalOutstandingAt(firstOfMonth);
+        return new MonthlyProfitResponse(pawnProvision, saleProfit, totalExpenses, netProfit,
+                pawnPrincipalAtMonthStart);
     }
 
     // CROSS MODULE OPERATIONS
